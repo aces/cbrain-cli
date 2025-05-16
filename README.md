@@ -1,6 +1,6 @@
 
-aces/cbrain-cli : A command-line interface to a CBRAIN service
-==============================================================
+A command-line interface to a CBRAIN service
+============================================
 
 This repo contains a UNIX command-line interface (CLI) for [CBRAIN](https://github.com/aces/cbrain).
 
