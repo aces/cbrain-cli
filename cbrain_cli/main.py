@@ -5,7 +5,8 @@ Setup and commands for the CBRAIN CLI command line interface.
 import argparse
 import sys
 
-from cbrain_cli.cli_utils import handle_errors 
+from cbrain_cli.cli_utils import handle_errors, is_authenticated
+from cbrain_cli.list import list_projects, list_files
 from cbrain_cli.sessions import (
     create_session,
     logout_session
@@ -38,22 +39,35 @@ def main():
     whoami_parser.add_argument('-v', '--version', action='store_true', help='Show version')
     whoami_parser.set_defaults(func=handle_errors(whoami_user))
 
+    # List of user details.
+    list_parser = subparsers.add_parser('list', help='List')
+    list_parser.add_argument('-j', '--json', action='store_true', help='Output projects lists in JSON format')
+    list_parser.add_argument('-p', '--project', action='store_true', help='List projects')
+    list_parser.add_argument('-f', '--file', action='store_true', help='List files')
+
+
     # MARK: Setup CLI
     args = parser.parse_args()
 
     if not args.command:
         parser.print_help()
         return 
-
     if args.command == 'login':
         return handle_errors(create_session)(args)
-    elif args.command == 'logout':
-        return handle_errors(logout_session)(args) 
-    elif args.command == 'whoami':
-        return handle_errors(whoami_user)(args)
 
-    if hasattr(args, 'func'):
-        return args.func(args)
+    if is_authenticated():
+        if args.command == 'logout':
+            return handle_errors(logout_session)(args) 
+        elif args.command == 'whoami':
+            return handle_errors(whoami_user)(args)
+        elif args.command == 'list':
+            if args.project:
+                return handle_errors(list_projects)(args)
+            elif args.file:
+                return handle_errors(list_files)(args)
+ 
+        if hasattr(args, 'func'):
+            return args.func(args)
 
 if __name__ == '__main__':
     sys.exit(main()) 

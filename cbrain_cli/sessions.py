@@ -6,6 +6,7 @@ import getpass
 from cbrain_cli.config import (
     DEFAULT_BASE_URL, CREDENTIALS_FILE, DEFAULT_HEADERS, auth_headers
 )
+from cbrain_cli.cli_utils import cbrain_url, api_token
 
 # MARK: Create Session.
 def create_session(args):
@@ -94,18 +95,6 @@ def logout_session(args):
     None
         A command is ran via inputs from the user.
     """
-
-    # Check if already logged out.
-    if not CREDENTIALS_FILE.exists():
-        print("Not logged in.")
-        return 1
-    
-    # Read credentials to get API token and URL.
-    with open(CREDENTIALS_FILE, 'r') as f:
-        credentials = json.load(f)
-    
-    cbrain_url = credentials.get('cbrain_url')
-    api_token = credentials.get('api_token')
     
     if not cbrain_url or not api_token:
         print("Invalid credentials file. Removing local session.")

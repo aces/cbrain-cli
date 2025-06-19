@@ -18,6 +18,16 @@ except FileNotFoundError:
     api_token = None
     user_id = None
 
+def is_authenticated():
+    """
+    Check if the user is authenticated.
+    """
+    # Check if user is logged in.
+    if not api_token or not cbrain_url:
+        print("Not logged in. Use 'cbrain login' to login first.")
+        return False
+    return True
+
 def handle_errors(func):
     """
     Decorator to handle common errors for all CLI commands.
