@@ -7,6 +7,7 @@ import sys
 
 from cbrain_cli.cli_utils import handle_errors, is_authenticated
 from cbrain_cli.list import list_projects, list_files
+from cbrain_cli.files import show_file
 from cbrain_cli.sessions import (
     create_session,
     logout_session
@@ -44,7 +45,11 @@ def main():
     list_parser.add_argument('-j', '--json', action='store_true', help='Output projects lists in JSON format')
     list_parser.add_argument('-p', '--project', action='store_true', help='List projects')
     list_parser.add_argument('-f', '--file', action='store_true', help='List files')
-
+     
+    # Show file command
+    file_parser = subparsers.add_parser('file', help='Show file details')
+    file_parser.add_argument('-s', '--show', type=int, metavar='FILE_ID', help='Show details for the specified file ID')
+    file_parser.set_defaults(func=handle_errors(show_file))
 
     # MARK: Setup CLI
     args = parser.parse_args()
@@ -65,6 +70,16 @@ def main():
                 return handle_errors(list_projects)(args)
             elif args.file:
                 return handle_errors(list_files)(args)
+            else:
+                list_parser.print_help()
+                return 1
+        elif args.command == 'file':
+            if args.show:
+                return handle_errors(show_file)(args)
+            else:
+                file_parser.print_help()
+                return 1
+             
  
         if hasattr(args, 'func'):
             return args.func(args)
