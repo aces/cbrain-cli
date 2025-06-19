@@ -39,16 +39,6 @@ def whoami_user(args):
     """
     version = getattr(args, 'version', False)
     user_data = user_details(user_id)
-
-    # Check if logged in.
-    if not CREDENTIALS_FILE.exists():
-        print("Not logged in. Please login with 'cbrain login'.")
-        return 
-    
- 
-    if not cbrain_url or not api_token or not user_id:
-        print("Invalid credentials file. Please login again.")
-        return 
     
     if version:    
         # Show masked token.
