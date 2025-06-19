@@ -1,0 +1,11 @@
+# Python
+*.py[cod]
+
+# Build
+build/
+
+# Egg
+*.egg-info/
+
+# Virtual Environment
+venv/
