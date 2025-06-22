@@ -1,7 +1,7 @@
 import json
 import urllib.error
 import functools
-
+import datetime
 from cbrain_cli.config import CREDENTIALS_FILE
 
 try:
@@ -13,15 +13,24 @@ try:
     cbrain_url = credentials.get('cbrain_url')
     api_token = credentials.get('api_token')
     user_id = credentials.get('user_id')
+    cbrain_timestamp = credentials.get('timestamp')
 except FileNotFoundError:
     cbrain_url = None
     api_token = None
     user_id = None
+    cbrain_timestamp = None
 
 def is_authenticated():
     """
     Check if the user is authenticated.
     """
+ 
+    if cbrain_timestamp:
+        timestamp_obj = datetime.datetime.fromisoformat(cbrain_timestamp)
+        if datetime.datetime.now() - timestamp_obj > datetime.timedelta(days=1):
+            print("Session expired. Please log in again using 'cbrain login'.")
+            CREDENTIALS_FILE.unlink()
+            return False
     # Check if user is logged in.
     if not api_token or not cbrain_url:
         print("Not logged in. Use 'cbrain login' to login first.")

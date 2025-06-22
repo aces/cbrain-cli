@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import getpass
+import datetime
 from cbrain_cli.config import (
     DEFAULT_BASE_URL, CREDENTIALS_FILE, DEFAULT_HEADERS, auth_headers
 )
@@ -75,7 +76,8 @@ def create_session(args):
         credentials = {
             'cbrain_url': cbrain_url,
             'api_token': cbrain_api_token,
-            'user_id': cbrain_user_id
+            'user_id': cbrain_user_id,
+            'timestamp': datetime.datetime.now().isoformat()
         }
         
         # Save credentials to file.
