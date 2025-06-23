@@ -6,8 +6,10 @@ import argparse
 import sys
 
 from cbrain_cli.cli_utils import handle_errors, is_authenticated
-from cbrain_cli.list import list_projects, list_files
-from cbrain_cli.files import show_file
+from cbrain_cli.list import list_projects, list_files, list_data_providers
+from cbrain_cli.files import show_file, upload_file
+from cbrain_cli.tool import show_tool
+from cbrain_cli.dataProviders import show_data_provider
 from cbrain_cli.sessions import (
     create_session,
     logout_session
@@ -44,12 +46,31 @@ def main():
     list_parser = subparsers.add_parser('list', help='List')
     list_parser.add_argument('-j', '--json', action='store_true', help='Output projects lists in JSON format')
     list_parser.add_argument('-p', '--project', action='store_true', help='List projects')
-    list_parser.add_argument('-f', '--file', action='store_true', help='List files')
+    list_parser.add_argument('-f', '--files', action='store_true', help='List files')
+    list_parser.add_argument('-dp', '--data-provider', action='store_true', help='List data providers')
+    # File filtering options
+    list_parser.add_argument('--group_id', type=int, help='Filter files by group ID')
+    list_parser.add_argument('--data_provider_id', type=int, help='Filter files by data provider ID')
+    list_parser.add_argument('--user_id', type=int, help='Filter files by user ID')
+    list_parser.add_argument('--parent_id', type=int, help='Filter files by parent ID')
+    list_parser.add_argument('--file_type', type=str, help='Filter files by type')
      
-    # Show file command
-    file_parser = subparsers.add_parser('file', help='Show file details')
-    file_parser.add_argument('-s', '--show', type=int, metavar='FILE_ID', help='Show details for the specified file ID')
-    file_parser.set_defaults(func=handle_errors(show_file))
+    # Show command
+    show_parser = subparsers.add_parser('show', help='Show file or tool details')
+    show_parser.add_argument('-f', '--file', type=int, metavar='FILE_ID', help='Show file details for the specified file ID')
+    show_parser.add_argument('--tool', action='store_true', help='Show tool details')
+    show_parser.add_argument('-id', '--id', type=int, metavar='ID', help='Show specific by ID')
+    show_parser.add_argument('--data-provider', action='store_true', help='Show data provider details')
+
+    # Upload command
+    upload_parser = subparsers.add_parser('upload', help='Upload a file to CBRAIN')
+    upload_parser.add_argument('--data-provider', type=int, required=True, help='Data provider ID')
+    upload_parser.add_argument('--group-id', type=int, default=2, help='Group ID (default: 2)')
+    upload_parser.add_argument('--TextFile', action='store_const', const='TextFile', dest='file_type', help='Upload as TextFile')
+    upload_parser.add_argument('--SingleFile', action='store_const', const='SingleFile', dest='file_type', help='Upload as SingleFile')
+    upload_parser.add_argument('--FileCollection', action='store_const', const='FileCollection', dest='file_type', help='Upload as FileCollection')
+    upload_parser.add_argument('file_path', help='Path to the file to upload')
+    upload_parser.set_defaults(func=handle_errors(upload_file))
 
     # MARK: Setup CLI
     args = parser.parse_args()
@@ -68,17 +89,25 @@ def main():
         elif args.command == 'list':
             if args.project:
                 return handle_errors(list_projects)(args)
-            elif args.file:
+            elif args.files:
                 return handle_errors(list_files)(args)
+            elif args.data_provider:
+                return handle_errors(list_data_providers)(args)
             else:
                 list_parser.print_help()
                 return 1
-        elif args.command == 'file':
-            if args.show:
+        elif args.command == 'show':
+            if args.file:
                 return handle_errors(show_file)(args)
+            elif args.tool:
+                return handle_errors(show_tool)(args)
+            elif args.data_provider:
+                return handle_errors(show_data_provider)(args)
             else:
-                file_parser.print_help()
+                show_parser.print_help()
                 return 1
+        elif args.command == 'upload':
+            return handle_errors(upload_file)(args)
              
  
         if hasattr(args, 'func'):
