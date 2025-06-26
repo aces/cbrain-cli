@@ -8,7 +8,7 @@ import sys
 from cbrain_cli.cli_utils import handle_errors, is_authenticated
 from cbrain_cli.dataProviders import show_data_provider
 from cbrain_cli.files import show_file, upload_file
-from cbrain_cli.list import list_data_providers, list_files, list_projects
+from cbrain_cli.list import list_data_providers, list_files, list_projects, list_background_activitites, show_background_activity
 from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.tags import create_tag, show_tag
 from cbrain_cli.tool import show_tool
@@ -63,7 +63,7 @@ def main():
     list_parser.add_argument("--user_id", type=int, help="Filter files by user ID")
     list_parser.add_argument("--parent_id", type=int, help="Filter files by parent ID")
     list_parser.add_argument("--file_type", type=str, help="Filter files by type")
-
+    list_parser.add_argument("--background_activities", action="store_true", help="List background activities") 
     # Show command
     show_parser = subparsers.add_parser("show", help="Show file or tool details")
     show_parser.add_argument(
@@ -81,6 +81,10 @@ def main():
         "--data-provider", action="store_true", help="Show data provider details"
     )
     show_parser.add_argument("--tag", action="store_true", help="Show tag details")
+    show_parser.add_argument("--background_activity", action="store_true", help="Show background activity details")
+    show_parser.add_argument(
+        "-j", "--json", action="store_true", help="Output in JSON format"
+    )
 
     # Upload command
     upload_parser = subparsers.add_parser("upload", help="Upload a file to CBRAIN")
@@ -148,6 +152,8 @@ def main():
                 return handle_errors(list_files)(args)
             elif args.data_provider:
                 return handle_errors(list_data_providers)(args)
+            elif args.background_activities:
+                return handle_errors(list_background_activitites)(args)
             else:
                 list_parser.print_help()
                 return 1
@@ -160,6 +166,8 @@ def main():
                 return handle_errors(show_data_provider)(args)
             elif args.tag:
                 return handle_errors(show_tag)(args)
+            elif args.background_activity:
+                return handle_errors(show_background_activity)(args)
             else:
                 show_parser.print_help()
                 return 1
