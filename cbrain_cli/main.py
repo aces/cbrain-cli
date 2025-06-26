@@ -25,9 +25,13 @@ def main():
         A command is ran via inputs from the user.
     """
     parser = argparse.ArgumentParser(description="CBRAIN CLI")
+    parser.add_argument(
+        "-j", "--json", action="store_true", help="Output in JSON format"
+    )
+    
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # MARK: Sessions
+    # MARK: Session commands (top-level)
     # Create new session.
     login_parser = subparsers.add_parser("login", help="Login to CBRAIN")
     login_parser.set_defaults(func=handle_errors(create_session))
@@ -43,93 +47,93 @@ def main():
     )
     whoami_parser.set_defaults(func=handle_errors(whoami_user))
 
-    # List of user details.
-    list_parser = subparsers.add_parser("list", help="List")
-    list_parser.add_argument(
-        "-j", "--json", action="store_true", help="Output projects lists in JSON format"
-    )
-    list_parser.add_argument(
-        "-p", "--project", action="store_true", help="List projects"
-    )
-    list_parser.add_argument("-f", "--files", action="store_true", help="List files")
-    list_parser.add_argument(
-        "-dp", "--data-provider", action="store_true", help="List data providers"
-    )
-    # File filtering options
-    list_parser.add_argument("--group_id", type=int, help="Filter files by group ID")
-    list_parser.add_argument(
-        "--data_provider_id", type=int, help="Filter files by data provider ID"
-    )
-    list_parser.add_argument("--user_id", type=int, help="Filter files by user ID")
-    list_parser.add_argument("--parent_id", type=int, help="Filter files by parent ID")
-    list_parser.add_argument("--file_type", type=str, help="Filter files by type")
-    list_parser.add_argument("--background_activities", action="store_true", help="List background activities") 
-    # Show command
-    show_parser = subparsers.add_parser("show", help="Show file or tool details")
-    show_parser.add_argument(
-        "-f",
-        "--file",
-        type=int,
-        metavar="FILE_ID",
-        help="Show file details for the specified file ID",
-    )
-    show_parser.add_argument("--tool", action="store_true", help="Show tool details")
-    show_parser.add_argument(
-        "-id", "--id", type=int, metavar="ID", help="Show specific by ID"
-    )
-    show_parser.add_argument(
-        "--data-provider", action="store_true", help="Show data provider details"
-    )
-    show_parser.add_argument("--tag", action="store_true", help="Show tag details")
-    show_parser.add_argument("--background_activity", action="store_true", help="Show background activity details")
-    show_parser.add_argument(
-        "-j", "--json", action="store_true", help="Output in JSON format"
-    )
+    # MARK: Model-based commands
+    # File commands
+    file_parser = subparsers.add_parser("file", help="File operations")
+    file_subparsers = file_parser.add_subparsers(dest="action", help="File actions")
+    
+    # file list
+    file_list_parser = file_subparsers.add_parser("list", help="List files")
+    file_list_parser.add_argument("--group_id", type=int, help="Filter files by group ID")
+    file_list_parser.add_argument("--data_provider_id", type=int, help="Filter files by data provider ID")
+    file_list_parser.add_argument("--user_id", type=int, help="Filter files by user ID")
+    file_list_parser.add_argument("--parent_id", type=int, help="Filter files by parent ID")
+    file_list_parser.add_argument("--file_type", type=str, help="Filter files by type")
+    file_list_parser.set_defaults(func=handle_errors(list_files))
+    
+    # file show
+    file_show_parser = file_subparsers.add_parser("show", help="Show file details")
+    file_show_parser.add_argument("file", type=int, help="File ID")
+    file_show_parser.set_defaults(func=handle_errors(show_file))
+    
+    # file upload
+    file_upload_parser = file_subparsers.add_parser("upload", help="Upload a file to CBRAIN")
+    file_upload_parser.add_argument("file_path", help="Path to the file to upload")
+    file_upload_parser.add_argument("--data-provider", type=int, required=True, help="Data provider ID")
+    file_upload_parser.add_argument("--group-id", type=int, default=2, help="Group ID (default: 2)")
+    file_upload_parser.add_argument("--TextFile", action="store_const", const="TextFile", dest="file_type", help="Upload as TextFile")
+    file_upload_parser.add_argument("--SingleFile", action="store_const", const="SingleFile", dest="file_type", help="Upload as SingleFile")
+    file_upload_parser.add_argument("--FileCollection", action="store_const", const="FileCollection", dest="file_type", help="Upload as FileCollection")
+    file_upload_parser.set_defaults(func=handle_errors(upload_file))
 
-    # Upload command
-    upload_parser = subparsers.add_parser("upload", help="Upload a file to CBRAIN")
-    upload_parser.add_argument(
-        "--data-provider", type=int, required=True, help="Data provider ID"
-    )
-    upload_parser.add_argument(
-        "--group-id", type=int, default=2, help="Group ID (default: 2)"
-    )
-    upload_parser.add_argument(
-        "--TextFile",
-        action="store_const",
-        const="TextFile",
-        dest="file_type",
-        help="Upload as TextFile",
-    )
-    upload_parser.add_argument(
-        "--SingleFile",
-        action="store_const",
-        const="SingleFile",
-        dest="file_type",
-        help="Upload as SingleFile",
-    )
-    upload_parser.add_argument(
-        "--FileCollection",
-        action="store_const",
-        const="FileCollection",
-        dest="file_type",
-        help="Upload as FileCollection",
-    )
-    upload_parser.add_argument("file_path", help="Path to the file to upload")
-    upload_parser.set_defaults(func=handle_errors(upload_file))
+    # Data provider commands
+    dataprovider_parser = subparsers.add_parser("dataprovider", help="Data provider operations")
+    dataprovider_subparsers = dataprovider_parser.add_subparsers(dest="action", help="Data provider actions")
+    
+    # dataprovider list
+    dataprovider_list_parser = dataprovider_subparsers.add_parser("list", help="List data providers")
+    dataprovider_list_parser.set_defaults(func=handle_errors(list_data_providers))
+    
+    # dataprovider show
+    dataprovider_show_parser = dataprovider_subparsers.add_parser("show", help="Show data provider details")
+    dataprovider_show_parser.add_argument("id", type=int, help="Data provider ID")
+    dataprovider_show_parser.set_defaults(func=handle_errors(show_data_provider))
 
-    # Create command
-    create_parser = subparsers.add_parser("create", help="Create a new file or tag")
-    create_parser.add_argument("--tag", action="store_true", help="Create a new tag")
-    create_parser.add_argument(
-        "--name", type=str, help="Tag name (required when creating a tag)"
-    )
-    create_parser.add_argument(
-        "--user-id", type=int, help="User ID (required when creating a tag)"
-    )
-    create_parser.add_argument(
-        "--group-id", type=int, help="Group ID (required when creating a tag)"
-    )
+    # Project commands
+    project_parser = subparsers.add_parser("project", help="Project operations")
+    project_subparsers = project_parser.add_subparsers(dest="action", help="Project actions")
+    
+    # project list
+    project_list_parser = project_subparsers.add_parser("list", help="List projects")
+    project_list_parser.set_defaults(func=handle_errors(list_projects))
+
+    # Tool commands
+    tool_parser = subparsers.add_parser("tool", help="Tool operations")
+    tool_subparsers = tool_parser.add_subparsers(dest="action", help="Tool actions")
+    
+    # tool show
+    tool_show_parser = tool_subparsers.add_parser("show", help="Show tool details")
+    tool_show_parser.add_argument("id", type=int, help="Tool ID")
+    tool_show_parser.set_defaults(func=handle_errors(show_tool))
+
+    # Tag commands
+    tag_parser = subparsers.add_parser("tag", help="Tag operations")
+    tag_subparsers = tag_parser.add_subparsers(dest="action", help="Tag actions")
+    
+    # tag show
+    tag_show_parser = tag_subparsers.add_parser("show", help="Show tag details")
+    tag_show_parser.add_argument("id", type=int, help="Tag ID")
+    tag_show_parser.set_defaults(func=handle_errors(show_tag))
+    
+    # tag create
+    tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag")
+    tag_create_parser.add_argument("--name", type=str, required=True, help="Tag name")
+    tag_create_parser.add_argument("--user-id", type=int, required=True, help="User ID")
+    tag_create_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
+    tag_create_parser.set_defaults(func=handle_errors(create_tag))
+
+    # Background activity commands
+    background_parser = subparsers.add_parser("background", help="Background activity operations")
+    background_subparsers = background_parser.add_subparsers(dest="action", help="Background activity actions")
+    
+    # background list
+    background_list_parser = background_subparsers.add_parser("list", help="List background activities")
+    background_list_parser.set_defaults(func=handle_errors(list_background_activitites))
+    
+    # background show
+    background_show_parser = background_subparsers.add_parser("show", help="Show background activity details")
+    background_show_parser.add_argument("id", type=int, help="Background activity ID")
+    background_show_parser.set_defaults(func=handle_errors(show_background_activity))
 
     # MARK: Setup CLI
     args = parser.parse_args()
@@ -137,51 +141,44 @@ def main():
     if not args.command:
         parser.print_help()
         return
+
+    # Handle session commands (no authentication needed for login)
     if args.command == "login":
         return handle_errors(create_session)(args)
 
-    if is_authenticated():
-        if args.command == "logout":
-            return handle_errors(logout_session)(args)
-        elif args.command == "whoami":
-            return handle_errors(whoami_user)(args)
-        elif args.command == "list":
-            if args.project:
-                return handle_errors(list_projects)(args)
-            elif args.files:
-                return handle_errors(list_files)(args)
-            elif args.data_provider:
-                return handle_errors(list_data_providers)(args)
-            elif args.background_activities:
-                return handle_errors(list_background_activitites)(args)
-            else:
-                list_parser.print_help()
-                return 1
-        elif args.command == "show":
-            if args.file:
-                return handle_errors(show_file)(args)
-            elif args.tool:
-                return handle_errors(show_tool)(args)
-            elif args.data_provider:
-                return handle_errors(show_data_provider)(args)
-            elif args.tag:
-                return handle_errors(show_tag)(args)
-            elif args.background_activity:
-                return handle_errors(show_background_activity)(args)
-            else:
-                show_parser.print_help()
-                return 1
-        elif args.command == "upload":
-            return handle_errors(upload_file)(args)
-        elif args.command == "create":
-            if args.tag:
-                return handle_errors(create_tag)(args)
-            else:
-                create_parser.print_help()
-                return 1
+    # All other commands require authentication
+    if not is_authenticated():
+        print("Error: Not authenticated. Please run 'cbrain login' first.")
+        return 1
 
-        if hasattr(args, "func"):
+    # Handle authenticated commands
+    if args.command == "logout":
+        return handle_errors(logout_session)(args)
+    elif args.command == "whoami":
+        return handle_errors(whoami_user)(args)
+    elif args.command in ["file", "dataprovider", "project", "tool", "tag", "background"]:
+        if not hasattr(args, 'action') or not args.action:
+            # Show help for the specific model command
+            if args.command == "file":
+                file_parser.print_help()
+            elif args.command == "dataprovider":
+                dataprovider_parser.print_help()
+            elif args.command == "project":
+                project_parser.print_help()
+            elif args.command == "tool":
+                tool_parser.print_help()
+            elif args.command == "tag":
+                tag_parser.print_help()
+            elif args.command == "background":
+                background_parser.print_help()
+            return 1
+        else:
+            # Execute the function associated with the command
             return args.func(args)
+    
+    # If we get here, something went wrong
+    parser.print_help()
+    return 1
 
 
 if __name__ == "__main__":
