@@ -13,7 +13,7 @@ from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.tags import create_tag, show_tag
 from cbrain_cli.tool import show_tool
 from cbrain_cli.version import whoami_user
-
+from cbrain_cli.task import list_tasks, show_task
 
 def main():
     """
@@ -135,6 +135,21 @@ def main():
     background_show_parser.add_argument("id", type=int, help="Background activity ID")
     background_show_parser.set_defaults(func=handle_errors(show_background_activity))
 
+    # Task commands
+    task_parser = subparsers.add_parser("task", help="Task operations")
+    task_subparsers = task_parser.add_subparsers(dest="action", help="Task actions")
+    
+    # task list
+    task_list_parser = task_subparsers.add_parser("list", help="List tasks")
+    task_list_parser.add_argument("filter_type", nargs='?', choices=['bourreau_id'], help="Filter type (optional)")
+    task_list_parser.add_argument("filter_value", type=int, nargs='?', help="Filter value (required if filter_type is specified)")
+    task_list_parser.set_defaults(func=handle_errors(list_tasks))
+    
+    # task show
+    task_show_parser = task_subparsers.add_parser("show", help="Show task details")
+    task_show_parser.add_argument("task", type=int, help="Task ID")
+    task_show_parser.set_defaults(func=handle_errors(show_task))
+
     # MARK: Setup CLI
     args = parser.parse_args()
 
@@ -156,7 +171,7 @@ def main():
         return handle_errors(logout_session)(args)
     elif args.command == "whoami":
         return handle_errors(whoami_user)(args)
-    elif args.command in ["file", "dataprovider", "project", "tool", "tag", "background"]:
+    elif args.command in ["file", "dataprovider", "project", "tool", "tag", "background", "task"]:
         if not hasattr(args, 'action') or not args.action:
             # Show help for the specific model command
             if args.command == "file":
@@ -171,6 +186,8 @@ def main():
                 tag_parser.print_help()
             elif args.command == "background":
                 background_parser.print_help()
+            elif args.command == "task":
+                task_parser.print_help()
             return 1
         else:
             # Execute the function associated with the command
