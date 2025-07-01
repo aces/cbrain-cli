@@ -10,7 +10,7 @@ from cbrain_cli.dataProviders import show_data_provider
 from cbrain_cli.files import show_file, upload_file
 from cbrain_cli.list import list_data_providers, list_files, list_projects, list_background_activitites, show_background_activity
 from cbrain_cli.sessions import create_session, logout_session
-from cbrain_cli.tags import create_tag, show_tag, list_tags
+from cbrain_cli.tags import create_tag, show_tag, list_tags, update_tag, delete_tag
 from cbrain_cli.tool import show_tool
 from cbrain_cli.version import whoami_user
 from cbrain_cli.task import list_tasks, show_task
@@ -123,6 +123,14 @@ def main():
     # tag create
     tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag (interactive)")
     tag_create_parser.set_defaults(func=handle_errors(create_tag))
+    
+    # tag update
+    tag_update_parser = tag_subparsers.add_parser("update", help="Update an existing tag (interactive)")
+    tag_update_parser.set_defaults(func=handle_errors(update_tag))
+    
+    # tag delete
+    tag_delete_parser = tag_subparsers.add_parser("delete", help="Delete a tag (interactive)")
+    tag_delete_parser.set_defaults(func=handle_errors(delete_tag))
 
     # Background activity commands
     background_parser = subparsers.add_parser("background", help="Background activity operations")

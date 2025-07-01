@@ -201,3 +201,167 @@ def create_tag(args):
             print(f"Tag creation failed with status: {e.code}")
             print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
         return 1
+
+
+def update_tag(args):
+    """
+    Update an existing tag in CBRAIN using interactive user input.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    
+    # Get tag ID to update
+    tag_id_input = input("Enter tag ID to update: ").strip()
+    if not tag_id_input:
+        print("Error: Tag ID is required")
+        return 1
+    
+    try:
+        tag_id = int(tag_id_input)
+    except ValueError:
+        print("Error: Tag ID must be a number")
+        return 1
+    
+    # Get new tag details
+    print(f"\nUpdating tag {tag_id}...")
+    print("Enter new values (press Enter to keep current value):")
+    
+    tag_name = input("Enter new tag name: ").strip()
+    if not tag_name:
+        print("Error: Tag name is required")
+        return 1
+    
+    user_id_input = input("Enter new user ID: ").strip()
+    if not user_id_input:
+        print("Error: User ID is required")
+        return 1
+    
+    try:
+        user_id = int(user_id_input)
+    except ValueError:
+        print("Error: User ID must be a number")
+        return 1
+    
+    group_id_input = input("Enter new group ID: ").strip()
+    if not group_id_input:
+        print("Error: Group ID is required")
+        return 1
+    
+    try:
+        group_id = int(group_id_input)
+    except ValueError:
+        print("Error: Group ID must be a number")
+        return 1
+
+    # Prepare the API request
+    tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
+    headers = auth_headers(api_token)
+    headers["Content-Type"] = "application/json"
+
+    # Prepare the payload
+    payload = {
+        "tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}
+    }
+
+    # Convert payload to JSON
+    json_data = json.dumps(payload).encode("utf-8")
+
+    # Create the request
+    request = urllib.request.Request(
+        tag_endpoint, data=json_data, headers=headers, method="PUT"
+    )
+
+    try:
+        with urllib.request.urlopen(request) as response:
+            if response.status == 200 or response.status == 201:
+                print(f"\nTag {tag_id} updated successfully!")
+                
+                return 0
+            else:
+                print(f"Tag update failed with status: {response.status}")
+                return 1
+
+    except urllib.error.HTTPError as e:
+        try:
+            error_data = e.read().decode("utf-8")
+            error_response = json.loads(error_data)
+            print(f"Tag update failed with status: {e.code}")
+            if e.code == 404:
+                print(f"Error: Tag with ID {tag_id} not found")
+            elif error_response.get("notice"):
+                print(f"Error: {error_response['notice']}")
+            else:
+                print(f"Response: {error_data}")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            print(f"Tag update failed with status: {e.code}")
+            print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
+        return 1
+
+
+def delete_tag(args):
+    """
+    Delete a tag from CBRAIN.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    
+    # Get tag ID to delete
+    tag_id_input = input("Enter tag ID to delete: ").strip()
+    if not tag_id_input:
+        print("Error: Tag ID is required")
+        return 1
+    
+    try:
+        tag_id = int(tag_id_input)
+    except ValueError:
+        print("Error: Tag ID must be a number")
+        return 1
+    
+    # Confirmation prompt
+    confirm = input(f"\nAre you sure you want to delete tag {tag_id}? (y/N): ").strip().lower()
+    if confirm not in ['y', 'yes']:
+        print("Tag deletion cancelled.")
+        return 0
+
+    # Prepare the API request
+    tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
+    headers = auth_headers(api_token)
+
+    # Create the request
+    request = urllib.request.Request(
+        tag_endpoint, data=None, headers=headers, method="DELETE"
+    )
+
+    # Make the request
+    try:
+        with urllib.request.urlopen(request) as response:
+            if response.status == 200 or response.status == 204:
+                print(f"\nTag {tag_id} deleted successfully!")
+                return 0
+            else:
+                print(f"Tag deletion failed with status: {response.status}")
+                return 1
+
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print(f"Error: Tag with ID {tag_id} not found")
+        else:
+            print(f"Tag deletion failed with status: {e.code}")
+            print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
+        return 1
