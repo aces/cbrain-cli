@@ -10,10 +10,11 @@ from cbrain_cli.dataProviders import show_data_provider
 from cbrain_cli.files import show_file, upload_file
 from cbrain_cli.list import list_data_providers, list_files, list_projects, list_background_activitites, show_background_activity
 from cbrain_cli.sessions import create_session, logout_session
-from cbrain_cli.tags import create_tag, show_tag
+from cbrain_cli.tags import create_tag, show_tag, list_tags
 from cbrain_cli.tool import show_tool
 from cbrain_cli.version import whoami_user
 from cbrain_cli.task import list_tasks, show_task
+from cbrain_cli.remote_resources import list_remote_resources, show_remote_resource
 
 def main():
     """
@@ -110,16 +111,17 @@ def main():
     tag_parser = subparsers.add_parser("tag", help="Tag operations")
     tag_subparsers = tag_parser.add_subparsers(dest="action", help="Tag actions")
     
+    # tag list
+    tag_list_parser = tag_subparsers.add_parser("list", help="List tags")
+    tag_list_parser.set_defaults(func=handle_errors(list_tags))
+    
     # tag show
     tag_show_parser = tag_subparsers.add_parser("show", help="Show tag details")
     tag_show_parser.add_argument("id", type=int, help="Tag ID")
     tag_show_parser.set_defaults(func=handle_errors(show_tag))
     
     # tag create
-    tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag")
-    tag_create_parser.add_argument("--name", type=str, required=True, help="Tag name")
-    tag_create_parser.add_argument("--user-id", type=int, required=True, help="User ID")
-    tag_create_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
+    tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag (interactive)")
     tag_create_parser.set_defaults(func=handle_errors(create_tag))
 
     # Background activity commands
@@ -150,6 +152,23 @@ def main():
     task_show_parser.add_argument("task", type=int, help="Task ID")
     task_show_parser.set_defaults(func=handle_errors(show_task))
 
+    # Remote resources commands (plural for listing)
+    remote_resources_parser = subparsers.add_parser("remote_resources", help="Remote resources operations")
+    remote_resources_subparsers = remote_resources_parser.add_subparsers(dest="action", help="Remote resources actions")
+    
+    # remote_resources list
+    remote_resources_list_parser = remote_resources_subparsers.add_parser("list", help="List remote resources")
+    remote_resources_list_parser.set_defaults(func=handle_errors(list_remote_resources))
+
+    # Remote resource commands (singular for show)
+    remote_resource_parser = subparsers.add_parser("remote_resource", help="Remote resource operations")
+    remote_resource_subparsers = remote_resource_parser.add_subparsers(dest="action", help="Remote resource actions")
+    
+    # remote_resource show
+    remote_resource_show_parser = remote_resource_subparsers.add_parser("show", help="Show remote resource details")
+    remote_resource_show_parser.add_argument("remote_resource", type=int, help="Remote resource ID")
+    remote_resource_show_parser.set_defaults(func=handle_errors(show_remote_resource))
+
     # MARK: Setup CLI
     args = parser.parse_args()
 
@@ -157,23 +176,23 @@ def main():
         parser.print_help()
         return
 
-    # Handle session commands (no authentication needed for login)
+    # Handle session commands (no authentication needed for login).
     if args.command == "login":
         return handle_errors(create_session)(args)
 
-    # All other commands require authentication
+    # All other commands require authentication.
     if not is_authenticated():
         print("Error: Not authenticated. Please run 'cbrain login' first.")
         return 1
 
-    # Handle authenticated commands
+    # Handle authenticated commands.
     if args.command == "logout":
         return handle_errors(logout_session)(args)
     elif args.command == "whoami":
         return handle_errors(whoami_user)(args)
-    elif args.command in ["file", "dataprovider", "project", "tool", "tag", "background", "task"]:
+    elif args.command in ["file", "dataprovider", "project", "tool", "tag", "background", "task", "remote_resources", "remote_resource"]:
         if not hasattr(args, 'action') or not args.action:
-            # Show help for the specific model command
+            # Show help for the specific model command.
             if args.command == "file":
                 file_parser.print_help()
             elif args.command == "dataprovider":
@@ -188,12 +207,16 @@ def main():
                 background_parser.print_help()
             elif args.command == "task":
                 task_parser.print_help()
+            elif args.command == "remote_resources":
+                remote_resources_parser.print_help()
+            elif args.command == "remote_resource":
+                remote_resource_parser.print_help()
             return 1
         else:
-            # Execute the function associated with the command
+            # Execute the function associated with the command.
             return args.func(args)
     
-    # If we get here, something went wrong
+    # If we get here, something went wrong.
     parser.print_help()
     return 1
 
