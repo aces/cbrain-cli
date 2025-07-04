@@ -216,10 +216,11 @@ def list_background_activitites(args):
             # Format created_at to show only date and time without timezone
             if created_at:
                 created_at = created_at.split("T")[0] + " " + created_at.split("T")[1].split(".")[0]
-            items_count = len(activity.get("items", []))
+            items = activity.get("items", [])
+            items_str = ",".join(map(str, items)) if items else ""
             num_successes = activity.get("num_successes", 0)
             num_failures = activity.get("num_failures", 0)
-            print(f"{activity_id:<4} {user_id:<8} {resource_id:<12} {status:<12} {created_at:<20} {items_count:<8} {num_successes:<10} {num_failures}")
+            print(f"{activity_id:<4} {user_id:<8} {resource_id:<12} {status:<12} {created_at:<20} {items_str:<8} {num_successes:<10} {num_failures}")
 
     return
 def show_background_activity(args):
@@ -263,24 +264,24 @@ def show_background_activity(args):
             print(json.dumps(activity_data, indent=2))
         else:
             # Detailed format.
-            print(f"id: {activity_data.get('id', 'N/A')}"
-            f"type: {activity_data.get('type', 'N/A')}"
-            f"user_id: {activity_data.get('user_id', 'N/A')}"
-            f"remote_resource_id: {activity_data.get('remote_resource_id', 'N/A')}"
-            f"status: {activity_data.get('status', 'N/A')}"
-            f"handler_lock: {activity_data.get('handler_lock', 'N/A')}"
-            f"items: {activity_data.get('items', [])}"
-            f"current_item: {activity_data.get('current_item', 'N/A')}"
-            f"num_successes: {activity_data.get('num_successes', 'N/A')}"
-            f"num_failures: {activity_data.get('num_failures', 'N/A')}"
-            f"messages: {activity_data.get('messages', [])}"
-            f"options: {activity_data.get('options', {})}"
-            f"created_at: {activity_data.get('created_at', 'N/A')}"
-            f"updated_at: {activity_data.get('updated_at', 'N/A')}"
-            f"start_at: {activity_data.get('start_at', 'N/A')}"
-            f"repeat: {activity_data.get('repeat', 'N/A')}"
-            f"retry_count: {activity_data.get('retry_count', 'N/A')}"
-            f"retry_delay: {activity_data.get('retry_delay', 'N/A')}")
+            print(f"id: {activity_data.get('id', 'N/A')}\n"
+            f"type: {activity_data.get('type', 'N/A')}\n"
+            f"user_id: {activity_data.get('user_id', 'N/A')}\n"
+            f"remote_resource_id: {activity_data.get('remote_resource_id', 'N/A')}\n"
+            f"status: {activity_data.get('status', 'N/A')}\n"
+            f"handler_lock: {activity_data.get('handler_lock', 'N/A')}\n"
+            f"items: {activity_data.get('items', [])}\n"
+            f"current_item: {activity_data.get('current_item', 'N/A')}\n"
+            f"num_successes: {activity_data.get('num_successes', 'N/A')}\n"
+            f"num_failures: {activity_data.get('num_failures', 'N/A')}\n"
+            f"messages: {activity_data.get('messages', [])}\n"
+            f"options: {activity_data.get('options', {})}\n"
+            f"created_at: {activity_data.get('created_at', 'N/A')}\n"
+            f"updated_at: {activity_data.get('updated_at', 'N/A')}\n"
+            f"start_at: {activity_data.get('start_at', 'N/A')}\n"
+            f"repeat: {activity_data.get('repeat', 'N/A')}\n"
+            f"retry_count: {activity_data.get('retry_count', 'N/A')}\n"
+            f"retry_delay: {activity_data.get('retry_delay', 'N/A')}\n")
 
         return 0
 

@@ -7,7 +7,7 @@ import sys
 
 from cbrain_cli.cli_utils import handle_errors, is_authenticated
 from cbrain_cli.dataProviders import show_data_provider
-from cbrain_cli.files import show_file, upload_file
+from cbrain_cli.files import show_file, upload_file, copy_file, move_file
 from cbrain_cli.list import list_data_providers, list_files, list_projects, list_background_activitites, show_background_activity
 from cbrain_cli.projects import switch_project, show_project
 from cbrain_cli.sessions import create_session, logout_session
@@ -77,6 +77,18 @@ def main():
     file_upload_parser.add_argument("--SingleFile", action="store_const", const="SingleFile", dest="file_type", help="Upload as SingleFile")
     file_upload_parser.add_argument("--FileCollection", action="store_const", const="FileCollection", dest="file_type", help="Upload as FileCollection")
     file_upload_parser.set_defaults(func=handle_errors(upload_file))
+    
+    # file copy
+    file_copy_parser = file_subparsers.add_parser("copy", help="Copy a file to another data provider")
+    file_copy_parser.add_argument("--file_id", type=int, required=True, help="File ID to copy")
+    file_copy_parser.add_argument("--data_provider_id_for_mv_cp", type=int, required=True, help="Destination data provider ID")
+    file_copy_parser.set_defaults(func=handle_errors(copy_file))
+    
+    # file move
+    file_move_parser = file_subparsers.add_parser("move", help="Move a file to another data provider")
+    file_move_parser.add_argument("--file_id", type=int, required=True, help="File ID to move")
+    file_move_parser.add_argument("--data_provider_id_for_mv_cp", type=int, required=True, help="Destination data provider ID")
+    file_move_parser.set_defaults(func=handle_errors(move_file))
 
     # Data provider commands
     dataprovider_parser = subparsers.add_parser("dataprovider", help="Data provider operations")
