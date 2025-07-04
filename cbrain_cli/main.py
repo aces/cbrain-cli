@@ -9,6 +9,7 @@ from cbrain_cli.cli_utils import handle_errors, is_authenticated
 from cbrain_cli.dataProviders import show_data_provider
 from cbrain_cli.files import show_file, upload_file
 from cbrain_cli.list import list_data_providers, list_files, list_projects, list_background_activitites, show_background_activity
+from cbrain_cli.projects import switch_project, show_project
 from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.tags import create_tag, show_tag, list_tags, update_tag, delete_tag
 from cbrain_cli.tool import show_tool
@@ -97,6 +98,15 @@ def main():
     # project list
     project_list_parser = project_subparsers.add_parser("list", help="List projects")
     project_list_parser.set_defaults(func=handle_errors(list_projects))
+    
+    # project switch
+    project_switch_parser = project_subparsers.add_parser("switch", help="Switch to a project")
+    project_switch_parser.add_argument("group_id", type=int, help="Project/Group ID")
+    project_switch_parser.set_defaults(func=handle_errors(switch_project))
+    
+    # project show
+    project_show_parser = project_subparsers.add_parser("show", help="Show current project")
+    project_show_parser.set_defaults(func=handle_errors(show_project))
 
     # Tool commands
     tool_parser = subparsers.add_parser("tool", help="Tool operations")
