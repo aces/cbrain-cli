@@ -30,8 +30,7 @@ def show_data_provider(args):
         # Prepare the API request.
         data_provider_endpoint = f"{cbrain_url}/data_providers/{data_provider_id}"
         headers = auth_headers(api_token)
-
-        # Create the request.
+ 
         request = urllib.request.Request(
             data_provider_endpoint, data=None, headers=headers, method="GET"
         )
@@ -108,3 +107,36 @@ def show_data_provider(args):
             )
 
         return 0
+
+def is_alive(args):
+    """
+    Check if a data provider is alive.
+    """
+    is_alive_endpoint = f"{cbrain_url}/data_providers/{args.id}/is_alive"
+    headers = auth_headers(api_token)
+
+    request = urllib.request.Request(
+        is_alive_endpoint, data=None, headers=headers, method="GET"
+    )
+
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        is_alive_data = json.loads(data)
+    print(is_alive_data)
+
+def delete_unregistered_files(args):
+    """
+    Delete unregistered files from a data provider.
+    """
+
+    delete_unregistered_files_endpoint = f"{cbrain_url}/data_providers/{args.id}/delete"
+    headers = auth_headers(api_token)
+
+    request = urllib.request.Request(
+        delete_unregistered_files_endpoint, data=None, headers=headers, method="POST"
+    )
+
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        delete_unregistered_files_data = json.loads(data)
+    print(delete_unregistered_files_data)

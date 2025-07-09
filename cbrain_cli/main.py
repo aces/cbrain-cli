@@ -6,7 +6,7 @@ import argparse
 import sys
 
 from cbrain_cli.cli_utils import handle_errors, is_authenticated
-from cbrain_cli.dataProviders import show_data_provider
+from cbrain_cli.dataProviders import show_data_provider, is_alive, delete_unregistered_files
 from cbrain_cli.files import show_file, upload_file, copy_file, move_file
 from cbrain_cli.list import list_data_providers, list_files, list_projects, list_background_activitites, show_background_activity
 from cbrain_cli.projects import switch_project, show_project
@@ -14,7 +14,7 @@ from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.tags import create_tag, show_tag, list_tags, update_tag, delete_tag
 from cbrain_cli.tool import show_tool
 from cbrain_cli.version import whoami_user
-from cbrain_cli.task import list_tasks, show_task
+from cbrain_cli.task import list_tasks, show_task, operation_task
 from cbrain_cli.remote_resources import list_remote_resources, show_remote_resource
 
 def main():
@@ -103,6 +103,16 @@ def main():
     dataprovider_show_parser.add_argument("id", type=int, help="Data provider ID")
     dataprovider_show_parser.set_defaults(func=handle_errors(show_data_provider))
 
+    # dataprovider is_alive
+    dataprovider_is_alive_parser = dataprovider_subparsers.add_parser("is_alive", help="Check if a data provider is alive")
+    dataprovider_is_alive_parser.add_argument("id", type=int, help="Data provider ID")
+    dataprovider_is_alive_parser.set_defaults(func=handle_errors(is_alive))
+
+    # dataprovider delete_unregistered_files
+    dataprovider_delete_unregistered_files_parser = dataprovider_subparsers.add_parser("delete_unregistered_files", help="Delete unregistered files from a data provider")
+    dataprovider_delete_unregistered_files_parser.add_argument("id", type=int, help="Data provider ID")
+    dataprovider_delete_unregistered_files_parser.set_defaults(func=handle_errors(delete_unregistered_files))
+
     # Project commands
     project_parser = subparsers.add_parser("project", help="Project operations")
     project_subparsers = project_parser.add_subparsers(dest="action", help="Project actions")
@@ -182,6 +192,10 @@ def main():
     task_show_parser.add_argument("task", type=int, help="Task ID")
     task_show_parser.set_defaults(func=handle_errors(show_task))
 
+    # task operation
+    task_operation_parser = task_subparsers.add_parser("operation", help="operation on a task")
+    task_operation_parser.set_defaults(func=handle_errors(operation_task))
+
     # Remote resources commands (plural for listing)
     remote_resources_parser = subparsers.add_parser("remote_resources", help="Remote resources operations")
     remote_resources_subparsers = remote_resources_parser.add_subparsers(dest="action", help="Remote resources actions")
@@ -211,8 +225,7 @@ def main():
         return handle_errors(create_session)(args)
 
     # All other commands require authentication.
-    if not is_authenticated():
-        print("Error: Not authenticated. Please run 'cbrain login' first.")
+    if not is_authenticated():       
         return 1
 
     # Handle authenticated commands.

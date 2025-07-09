@@ -172,3 +172,19 @@ def show_task(args):
         print(params_json)
 
     return 0
+
+def operation_task(args):
+    """
+    Operation on a task.
+    """
+    operate_task_endpoint = f"{cbrain_url}/tasks/operation"
+    headers = auth_headers(api_token)
+
+    request = urllib.request.Request(
+        operate_task_endpoint, data=None, headers=headers, method="POST"
+    )
+
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        operate_task_data = json.loads(data)
+    print(operate_task_data)
