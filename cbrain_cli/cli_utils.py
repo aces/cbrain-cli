@@ -34,7 +34,7 @@ def is_authenticated():
             CREDENTIALS_FILE.unlink()
             return False
     # Check if user is logged in.
-    if not api_token or not cbrain_url:
+    if not api_token or not cbrain_url or not user_id:
         print("Not logged in. Use 'cbrain login' to login first.")
         return False
     return True
