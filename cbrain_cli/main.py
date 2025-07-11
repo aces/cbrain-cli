@@ -80,14 +80,16 @@ def main():
     
     # file copy
     file_copy_parser = file_subparsers.add_parser("copy", help="Copy a file to another data provider")
-    file_copy_parser.add_argument("--file_id", type=int, required=True, help="File ID to copy")
-    file_copy_parser.add_argument("--data_provider_id_for_mv_cp", type=int, required=True, help="Destination data provider ID")
+    file_copy_parser.add_argument("file_id", type=int, help="File ID to copy")
+    file_copy_parser.add_argument("target_data_provider_id", type=int, help="Destination data provider ID")
+    file_copy_parser.add_argument("--target_data_provider", type=int, help="Alternative: destination data provider ID")
     file_copy_parser.set_defaults(func=handle_errors(copy_file))
     
     # file move
     file_move_parser = file_subparsers.add_parser("move", help="Move a file to another data provider")
-    file_move_parser.add_argument("--file_id", type=int, required=True, help="File ID to move")
-    file_move_parser.add_argument("--data_provider_id_for_mv_cp", type=int, required=True, help="Destination data provider ID")
+    file_move_parser.add_argument("file_id", type=int, help="File ID to move")
+    file_move_parser.add_argument("target_data_provider_id", type=int, help="Destination data provider ID")
+    file_move_parser.add_argument("--target_data_provider", type=int, help="Alternative: destination data provider ID")
     file_move_parser.set_defaults(func=handle_errors(move_file))
 
     # Data provider commands

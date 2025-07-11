@@ -196,7 +196,7 @@ def copy_file(args):
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments, including file_id and data_provider_id_for_mv_cp
+        Command line arguments, including file_id and target_data_provider_id or target_data_provider
 
     Returns
     -------
@@ -205,7 +205,8 @@ def copy_file(args):
     """
     # Get the file ID and destination data provider ID
     file_id = getattr(args, "file_id", None)
-    dest_provider_id = getattr(args, "data_provider_id_for_mv_cp", None)
+    # Check for positional argument first, then optional argument
+    dest_provider_id = getattr(args, "target_data_provider_id", None) or getattr(args, "target_data_provider", None)
     
     if not file_id:
         print("Error: File ID is required")
@@ -285,7 +286,7 @@ def move_file(args):
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments, including file_id and data_provider_id_for_mv_cp
+        Command line arguments, including file_id and target_data_provider_id or target_data_provider
 
     Returns
     -------
@@ -294,7 +295,8 @@ def move_file(args):
     """
     # Get the file ID and destination data provider ID
     file_id = getattr(args, "file_id", None)
-    dest_provider_id = getattr(args, "data_provider_id_for_mv_cp", None)
+    # Check for positional argument first, then optional argument
+    dest_provider_id = getattr(args, "target_data_provider_id", None) or getattr(args, "target_data_provider", None)
     
     if not file_id:
         print("Error: File ID is required")
