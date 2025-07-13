@@ -30,7 +30,7 @@ def show_data_provider(args):
         # Prepare the API request.
         data_provider_endpoint = f"{cbrain_url}/data_providers/{data_provider_id}"
         headers = auth_headers(api_token)
- 
+
         request = urllib.request.Request(
             data_provider_endpoint, data=None, headers=headers, method="GET"
         )
@@ -108,6 +108,7 @@ def show_data_provider(args):
 
         return 0
 
+
 def is_alive(args):
     """
     Check if a data provider is alive.
@@ -123,6 +124,7 @@ def is_alive(args):
         data = response.read().decode("utf-8")
         is_alive_data = json.loads(data)
     print(is_alive_data)
+
 
 def delete_unregistered_files(args):
     """

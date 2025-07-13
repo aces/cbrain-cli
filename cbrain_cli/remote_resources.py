@@ -42,10 +42,12 @@ def list_remote_resources(args):
         if not bourreaux_data:
             print("No remote resources found.")
             return
-            
+
         print("REMOTE RESOURCES (EXECUTION SERVERS)")
         print("-" * 80)
-        print(f"{'ID':<6} {'Name':<25} {'User':<6} {'Group':<6} {'Online':<8} {'Read-Only':<10}")
+        print(
+            f"{'ID':<6} {'Name':<25} {'User':<6} {'Group':<6} {'Online':<8} {'Read-Only':<10}"
+        )
         print("-" * 80)
         for bourreau in bourreaux_data:
             bourreau_id = str(bourreau.get("id", ""))
@@ -57,7 +59,9 @@ def list_remote_resources(args):
             group_id = str(bourreau.get("group_id", ""))
             online = "Yes" if bourreau.get("online", False) else "No"
             read_only = "Yes" if bourreau.get("read_only", False) else "No"
-            print(f"{bourreau_id:<6} {bourreau_name:<25} {user_id:<6} {group_id:<6} {online:<8} {read_only:<10}")
+            print(
+                f"{bourreau_id:<6} {bourreau_name:<25} {user_id:<6} {group_id:<6} {online:<8} {read_only:<10}"
+            )
         print("-" * 80)
         print(f"Total: {len(bourreaux_data)} remote resource(s)")
 
@@ -113,7 +117,7 @@ def show_remote_resource(args):
     print(f"Name:                      {bourreau_data.get('name', 'N/A')}")
     print(f"Type:                      {bourreau_data.get('type', 'N/A')}")
     print()
-    
+
     print("OWNERSHIP & ACCESS")
     print("-" * 30)
     print(f"User ID:                   {bourreau_data.get('user_id', 'N/A')}")
@@ -121,5 +125,5 @@ def show_remote_resource(args):
     print(f"Online:                    {bourreau_data.get('online', 'N/A')}")
     print(f"Read Only:                 {bourreau_data.get('read_only', 'N/A')}")
     print()
-    
+
     return 0

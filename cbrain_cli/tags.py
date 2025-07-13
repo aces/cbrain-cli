@@ -42,7 +42,7 @@ def list_tags(args):
         if not tags_data:
             print("No tags found.")
             return
-            
+
         print("TAGS")
         print("-" * 60)
         print(f"{'ID':<6} {'Name':<25} {'User':<6} {'Group':<6}")
@@ -129,33 +129,60 @@ def create_tag(args):
     int
         Exit code (0 for success, 1 for failure)
     """
-     
-    tag_name = input("Enter tag name: ").strip()
-    if not tag_name:
-        print("Error: Tag name is required")
-        return 1
-    
-    user_id_input = input("Enter user ID: ").strip()
-    if not user_id_input:
-        print("Error: User ID is required")
-        return 1
-    
-    try:
-        user_id = int(user_id_input)
-    except ValueError:
-        print("Error: User ID must be a number")
-        return 1
-    
-    group_id_input = input("Enter group ID: ").strip()
-    if not group_id_input:
-        print("Error: Group ID is required")
-        return 1
-    
-    try:
-        group_id = int(group_id_input)
-    except ValueError:
-        print("Error: Group ID must be a number")
-        return 1
+
+    # Check if interactive mode is enabled
+    interactive = getattr(args, "interactive", False)
+
+    # Get tag details
+    if interactive:
+        tag_name = input("Enter tag name: ").strip()
+        if not tag_name:
+            print("Error: Tag name is required")
+            return 1
+
+        user_id_input = input("Enter user ID: ").strip()
+        if not user_id_input:
+            print("Error: User ID is required")
+            return 1
+
+        try:
+            user_id = int(user_id_input)
+        except ValueError:
+            print("Error: User ID must be a number")
+            return 1
+
+        group_id_input = input("Enter group ID: ").strip()
+        if not group_id_input:
+            print("Error: Group ID is required")
+            return 1
+
+        try:
+            group_id = int(group_id_input)
+        except ValueError:
+            print("Error: Group ID must be a number")
+            return 1
+    else:
+        tag_name = getattr(args, "name", None)
+        user_id = getattr(args, "user_id", None)
+        group_id = getattr(args, "group_id", None)
+
+        if not tag_name:
+            print(
+                "Error: Tag name is required. Use --name flag or -i for interactive mode"
+            )
+            return 1
+
+        if not user_id:
+            print(
+                "Error: User ID is required. Use --user-id flag or -i for interactive mode"
+            )
+            return 1
+
+        if not group_id:
+            print(
+                "Error: Group ID is required. Use --group-id flag or -i for interactive mode"
+            )
+            return 1
 
     # Prepare the API request
     tags_endpoint = f"{cbrain_url}/tags"
@@ -163,9 +190,7 @@ def create_tag(args):
     headers["Content-Type"] = "application/json"
 
     # Prepare the payload
-    payload = {
-        "tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}
-    }
+    payload = {"tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}}
 
     # Convert payload to JSON
     json_data = json.dumps(payload).encode("utf-8")
@@ -174,15 +199,15 @@ def create_tag(args):
     request = urllib.request.Request(
         tags_endpoint, data=json_data, headers=headers, method="POST"
     )
- 
+
     # Make the request
     try:
         with urllib.request.urlopen(request) as response:
             data = response.read().decode("utf-8")
- 
+
             if response.status == 200 or response.status == 201:
                 print("TAG CREATED SUCCESSFULLY!")
- 
+
                 return 0
             else:
                 print(f"Tag creation failed with status: {response.status}")
@@ -205,7 +230,7 @@ def create_tag(args):
 
 def update_tag(args):
     """
-    Update an existing tag in CBRAIN using interactive user input.
+    Update an existing tag in CBRAIN.
 
     Parameters
     ----------
@@ -217,49 +242,86 @@ def update_tag(args):
     int
         Exit code (0 for success, 1 for failure)
     """
-    
+
+    # Check if interactive mode is enabled
+    interactive = getattr(args, "interactive", False)
+
     # Get tag ID to update
-    tag_id_input = input("Enter tag ID to update: ").strip()
-    if not tag_id_input:
-        print("Error: Tag ID is required")
+    tag_id = getattr(args, "tag_id", None)
+
+    # If no tag ID provided and not in interactive mode, show error
+    if not tag_id and not interactive:
+        print(
+            "Error: Tag ID is required. Use -i flag for interactive mode or provide tag_id argument"
+        )
         return 1
-    
-    try:
-        tag_id = int(tag_id_input)
-    except ValueError:
-        print("Error: Tag ID must be a number")
-        return 1
-    
+
+    # If no tag ID provided but in interactive mode, ask for it
+    if not tag_id and interactive:
+        tag_id_input = input("Enter tag ID to update: ").strip()
+        if not tag_id_input:
+            print("Error: Tag ID is required")
+            return 1
+
+        try:
+            tag_id = int(tag_id_input)
+        except ValueError:
+            print("Error: Tag ID must be a number")
+            return 1
+
     # Get new tag details
-    print(f"\nUpdating tag {tag_id}...")
-    print("Enter new values (press Enter to keep current value):")
-    
-    tag_name = input("Enter new tag name: ").strip()
-    if not tag_name:
-        print("Error: Tag name is required")
-        return 1
-    
-    user_id_input = input("Enter new user ID: ").strip()
-    if not user_id_input:
-        print("Error: User ID is required")
-        return 1
-    
-    try:
-        user_id = int(user_id_input)
-    except ValueError:
-        print("Error: User ID must be a number")
-        return 1
-    
-    group_id_input = input("Enter new group ID: ").strip()
-    if not group_id_input:
-        print("Error: Group ID is required")
-        return 1
-    
-    try:
-        group_id = int(group_id_input)
-    except ValueError:
-        print("Error: Group ID must be a number")
-        return 1
+    if interactive:
+        print(f"\nUpdating tag {tag_id}...")
+        print("Enter new values:")
+
+        tag_name = input("Enter new tag name: ").strip()
+        if not tag_name:
+            print("Error: Tag name is required")
+            return 1
+
+        user_id_input = input("Enter new user ID: ").strip()
+        if not user_id_input:
+            print("Error: User ID is required")
+            return 1
+
+        try:
+            user_id = int(user_id_input)
+        except ValueError:
+            print("Error: User ID must be a number")
+            return 1
+
+        group_id_input = input("Enter new group ID: ").strip()
+        if not group_id_input:
+            print("Error: Group ID is required")
+            return 1
+
+        try:
+            group_id = int(group_id_input)
+        except ValueError:
+            print("Error: Group ID must be a number")
+            return 1
+    else:
+        tag_name = getattr(args, "name", None)
+        user_id = getattr(args, "user_id", None)
+        group_id = getattr(args, "group_id", None)
+
+        if not tag_name:
+            print(
+                "Error: Tag name is required. Use --name flag or -i for interactive mode"
+            )
+            return 1
+
+        if not user_id:
+            print(
+                "Error: User ID is required. Use --user-id flag or -i for interactive mode"
+            )
+            return 1
+
+        if not group_id:
+            print(
+                "Error: Group ID is required. Use --group-id flag or -i for interactive mode"
+            )
+            return 1
 
     # Prepare the API request
     tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
@@ -267,9 +329,7 @@ def update_tag(args):
     headers["Content-Type"] = "application/json"
 
     # Prepare the payload
-    payload = {
-        "tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}
-    }
+    payload = {"tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}}
 
     # Convert payload to JSON
     json_data = json.dumps(payload).encode("utf-8")
@@ -283,7 +343,7 @@ def update_tag(args):
         with urllib.request.urlopen(request) as response:
             if response.status == 200 or response.status == 201:
                 print(f"\nTag {tag_id} updated successfully!")
-                
+
                 return 0
             else:
                 print(f"Tag update failed with status: {response.status}")
@@ -320,24 +380,43 @@ def delete_tag(args):
     int
         Exit code (0 for success, 1 for failure)
     """
-    
+
+    # Check if interactive mode is enabled
+    interactive = getattr(args, "interactive", False)
+
     # Get tag ID to delete
-    tag_id_input = input("Enter tag ID to delete: ").strip()
-    if not tag_id_input:
-        print("Error: Tag ID is required")
+    tag_id = getattr(args, "tag_id", None)
+
+    # If no tag ID provided and not in interactive mode, show error
+    if not tag_id and not interactive:
+        print(
+            "Error: Tag ID is required. Use -i flag for interactive mode or provide tag_id argument"
+        )
         return 1
-    
-    try:
-        tag_id = int(tag_id_input)
-    except ValueError:
-        print("Error: Tag ID must be a number")
-        return 1
-    
-    # Confirmation prompt
-    confirm = input(f"\nAre you sure you want to delete tag {tag_id}? (y/N): ").strip().lower()
-    if confirm not in ['y', 'yes']:
-        print("Tag deletion cancelled.")
-        return 0
+
+    # If no tag ID provided but in interactive mode, ask for it
+    if not tag_id and interactive:
+        tag_id_input = input("Enter tag ID to delete: ").strip()
+        if not tag_id_input:
+            print("Error: Tag ID is required")
+            return 1
+
+        try:
+            tag_id = int(tag_id_input)
+        except ValueError:
+            print("Error: Tag ID must be a number")
+            return 1
+
+    # Confirmation prompt (always ask in interactive mode, or if no tag ID was provided as argument)
+    if interactive:
+        confirm = (
+            input(f"\nAre you sure you want to delete tag {tag_id}? (y/N): ")
+            .strip()
+            .lower()
+        )
+        if confirm not in ["y", "yes"]:
+            print("Tag deletion cancelled.")
+            return 0
 
     # Prepare the API request
     tag_endpoint = f"{cbrain_url}/tags/{tag_id}"

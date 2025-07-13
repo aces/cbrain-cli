@@ -32,7 +32,7 @@ This CLI tool uses pure Python with no external library dependencies, making ins
    cd cbrain-cli
    ```
 
-2. Run directly: 
+2. Run directly:
    ```bash
    ./cbrain --help # Make the cbrain script executable by `chmod +x cbrain`
    ```

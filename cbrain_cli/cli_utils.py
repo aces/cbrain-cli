@@ -40,6 +40,38 @@ def is_authenticated():
     return True
 
 
+def handle_connection_error(error):
+    """
+    Handle connection errors with informative messages including server URL.
+
+    Parameters
+    ----------
+    error : Exception
+        The connection error that occurred
+
+    Returns
+    -------
+    None
+        Prints appropriate error messages
+    """
+    if isinstance(error, urllib.error.URLError):
+        if "Connection refused" in str(error):
+            print(f"Error: Cannot connect to CBRAIN server at {cbrain_url}")
+            print("Please check if the CBRAIN server is running and accessible.")
+        else:
+            print(f"Connection failed: {error.reason}")
+    elif isinstance(error, urllib.error.HTTPError):
+        print(f"Request failed: HTTP {error.code} - {error.reason}")
+        if error.code == 401:
+            print("Invalid username or password")
+        elif error.code == 404:
+            print("Resource not found")
+        elif error.code == 500:
+            print("Internal server error")
+    else:
+        print(f"Connection error: {str(error)}")
+
+
 def handle_errors(func):
     """
     Decorator to handle common errors for all CLI commands.
@@ -55,12 +87,10 @@ def handle_errors(func):
         try:
             return func(*args, **kwargs)
         except urllib.error.HTTPError as e:
-            print(f"Request failed: HTTP {e.code} - {e.reason}")
-            if e.code == 401:
-                print("Invalid username or password")
+            handle_connection_error(e)
             return 1
         except urllib.error.URLError as e:
-            print(f"Connection failed: {e.reason}")
+            handle_connection_error(e)
             return 1
         except json.JSONDecodeError:
             print("Failed: Invalid response from server")

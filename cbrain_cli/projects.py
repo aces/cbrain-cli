@@ -3,7 +3,7 @@ import urllib.error
 import urllib.request
 
 from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import auth_headers, CREDENTIALS_FILE
+from cbrain_cli.config import CREDENTIALS_FILE, auth_headers
 
 
 def switch_project(args):
@@ -44,26 +44,28 @@ def switch_project(args):
                 group_request = urllib.request.Request(
                     group_endpoint, data=None, headers=headers, method="GET"
                 )
-                
+
                 with urllib.request.urlopen(group_request) as group_response:
                     group_data_text = group_response.read().decode("utf-8")
                     group_data = json.loads(group_data_text)
-                
+
                 # Step 3: Update credentials file with current group_id
                 if CREDENTIALS_FILE.exists():
                     with open(CREDENTIALS_FILE, "r") as f:
                         credentials = json.load(f)
-                    
+
                     credentials["current_group_id"] = group_id
-                    credentials["current_group_name"] = group_data.get("name", "Unknown")
-                    
+                    credentials["current_group_name"] = group_data.get(
+                        "name", "Unknown"
+                    )
+
                     with open(CREDENTIALS_FILE, "w") as f:
                         json.dump(credentials, f, indent=2)
-                
+
                 # Step 4: Display success message
                 group_name = group_data.get("name", "Unknown")
                 print(f'Current project is now "{group_name}" ID={group_id}')
-                
+
                 return 0
             else:
                 print(f"Project switch failed with status: {response.status}")
@@ -98,28 +100,30 @@ def show_project(args):
     """
     with open(CREDENTIALS_FILE, "r") as f:
         credentials = json.load(f)
-    
+
     current_group_id = credentials.get("current_group_id")
     if not current_group_id:
-        print("No current project set. Use 'cbrain project switch <ID>' to set a project.")
+        print(
+            "No current project set. Use 'cbrain project switch <ID>' to set a project."
+        )
         return 0
-    
+
     # Get fresh group details from server
     group_endpoint = f"{cbrain_url}/groups/{current_group_id}"
     headers = auth_headers(api_token)
- 
+
     request = urllib.request.Request(
         group_endpoint, data=None, headers=headers, method="GET"
     )
- 
+
     try:
         with urllib.request.urlopen(request) as response:
             data = response.read().decode("utf-8")
             group_data = json.loads(data)
-            
+
             group_name = group_data.get("name", "Unknown")
             print(f'Current project is "{group_name}" ID={current_group_id}')
-            
+
             return 0
 
     except urllib.error.HTTPError as e:
@@ -135,4 +139,4 @@ def show_project(args):
         return 1
     except Exception as e:
         print(f"Error getting project details: {str(e)}")
-        return 1 
+        return 1

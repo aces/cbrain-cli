@@ -22,7 +22,7 @@ def list_tasks(args):
     """
     # Build query parameters for filtering.
     query_params = {}
-    
+
     # Add filter if provided.
     if hasattr(args, "filter_type") and args.filter_type is not None:
         if args.filter_value is None:
@@ -36,7 +36,7 @@ def list_tasks(args):
 
     # Prepare the API request.
     tasks_endpoint = f"{cbrain_url}/tasks"
-    
+
     # Add query parameters if any filters are provided.
     if query_params:
         query_string = urllib.parse.urlencode(query_params)
@@ -62,8 +62,10 @@ def list_tasks(args):
         if not tasks_data:
             print("No tasks found.")
             return
-            
-        print(f"{'ID':<6} {'Type':<30} {'Status':<12} {'Bourreau':<10} {'User':<6} {'Group':<6}")
+
+        print(
+            f"{'ID':<6} {'Type':<30} {'Status':<12} {'Bourreau':<10} {'User':<6} {'Group':<6}"
+        )
         print("-" * 85)
         for task in tasks_data:
             task_id = str(task.get("id", ""))
@@ -75,7 +77,9 @@ def list_tasks(args):
             bourreau_id = str(task.get("bourreau_id", ""))
             user_id = str(task.get("user_id", ""))
             group_id = str(task.get("group_id", ""))
-            print(f"{task_id:<6} {task_type:<30} {task_status:<12} {bourreau_id:<10} {user_id:<6} {group_id:<6}")
+            print(
+                f"{task_id:<6} {task_type:<30} {task_status:<12} {bourreau_id:<10} {user_id:<6} {group_id:<6}"
+            )
         print("-" * 85)
         print(f"Total: {len(tasks_data)} task(s)")
 
@@ -111,7 +115,7 @@ def show_task(args):
         task_endpoint, data=None, headers=headers, method="GET"
     )
 
-    # Make the request.     
+    # Make the request.
     try:
         with urllib.request.urlopen(request) as response:
             data = response.read().decode("utf-8")
@@ -129,7 +133,7 @@ def show_task(args):
     print(f"Type:                      {task_data.get('type', 'N/A')}")
     print(f"Status:                    {task_data.get('status', 'N/A')}")
     print()
-    
+
     print("OWNERSHIP & ASSIGNMENT")
     print("-" * 30)
     print(f"User ID:                   {task_data.get('user_id', 'N/A')}")
@@ -138,31 +142,35 @@ def show_task(args):
     print(f"Tool Config ID:            {task_data.get('tool_config_id', 'N/A')}")
     print(f"Batch ID:                  {task_data.get('batch_id', 'N/A')}")
     print()
-    
+
     print("EXECUTION INFO")
     print("-" * 30)
     print(f"Run Number:                {task_data.get('run_number', 'N/A')}")
-    print(f"Results Data Provider ID:  {task_data.get('results_data_provider_id', 'N/A')}")
+    print(
+        f"Results Data Provider ID:  {task_data.get('results_data_provider_id', 'N/A')}"
+    )
     print(f"Cluster Workdir Size:      {task_data.get('cluster_workdir_size', 'N/A')}")
     print(f"Workdir Archived:          {task_data.get('workdir_archived', 'N/A')}")
-    print(f"Workdir Archive File ID:   {task_data.get('workdir_archive_userfile_id', 'N/A')}")
+    print(
+        f"Workdir Archive File ID:   {task_data.get('workdir_archive_userfile_id', 'N/A')}"
+    )
     print()
-    
+
     print("TIMESTAMPS")
     print("-" * 30)
     print(f"Created At:                {task_data.get('created_at', 'N/A')}")
     print(f"Updated At:                {task_data.get('updated_at', 'N/A')}")
-    
+
     # Optional fields.
     if task_data.get("description"):
         print()
         print("DESCRIPTION")
         print("-" * 30)
-        description = task_data.get('description').strip()
+        description = task_data.get("description").strip()
         # Handle multi-line descriptions.
-        for line in description.split('\n'):
+        for line in description.split("\n"):
             print(f"{line}")
-    
+
     # Display params if they exist.
     if task_data.get("params"):
         print()
@@ -172,6 +180,7 @@ def show_task(args):
         print(params_json)
 
     return 0
+
 
 def operation_task(args):
     """

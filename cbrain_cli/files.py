@@ -191,27 +191,30 @@ def upload_file(args):
 
 def copy_file(args):
     """
-    Copy a file to a different data provider.
+    Copy files to a different data provider.
 
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments, including file_id and target_data_provider_id or target_data_provider
+        Command line arguments, including file-id (list) and dp-id
 
     Returns
     -------
     int
         Exit code (0 for success, 1 for failure)
     """
-    # Get the file ID and destination data provider ID
-    file_id = getattr(args, "file_id", None)
-    # Check for positional argument first, then optional argument
-    dest_provider_id = getattr(args, "target_data_provider_id", None) or getattr(args, "target_data_provider", None)
-    
-    if not file_id:
-        print("Error: File ID is required")
+    # Get the file IDs and destination data provider ID
+    file_ids = getattr(
+        args, "file_id", None
+    )  # argparse converts hyphens to underscores
+    dest_provider_id = getattr(args, "dp_id", None) or getattr(
+        args, "data_provider_id_for_mv_cp", None
+    )
+
+    if not file_ids:
+        print("Error: File ID(s) are required")
         return 1
-    
+
     if not dest_provider_id:
         print("Error: Destination data provider ID is required")
         return 1
@@ -221,9 +224,9 @@ def copy_file(args):
     headers["Content-Type"] = "application/json"
 
     payload = {
-        "file_ids": [file_id],
+        "file_ids": file_ids,
         "data_provider_id_for_mv_cp": dest_provider_id,
-        "copy": ""  # Empty string indicates copy operation
+        "copy": "",  # Empty string indicates copy operation
     }
 
     json_data = json.dumps(payload).encode("utf-8")
@@ -241,20 +244,20 @@ def copy_file(args):
                 message = response_data.get("message", "").strip()
                 if message:
                     print(message)
-                
+
                 background_activity_id = response_data.get("background_activity_id")
                 if background_activity_id:
                     print(f"Background activity ID: {background_activity_id}")
-                    
+
                     # Fetch and show background activity details using existing function
-                    print()  
-                    
+                    print()
+
                     # Create a mock args object to call the existing show_background_activity function
                     class MockArgs:
                         def __init__(self, activity_id):
                             self.id = activity_id
                             self.json = False
-                    
+
                     mock_args = MockArgs(background_activity_id)
                     show_background_activity(mock_args)
                 else:
@@ -281,27 +284,30 @@ def copy_file(args):
 
 def move_file(args):
     """
-    Move a file to a different data provider.
+    Move files to a different data provider.
 
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments, including file_id and target_data_provider_id or target_data_provider
+        Command line arguments, including file-id (list) and dp-id
 
     Returns
     -------
     int
         Exit code (0 for success, 1 for failure)
     """
-    # Get the file ID and destination data provider ID
-    file_id = getattr(args, "file_id", None)
-    # Check for positional argument first, then optional argument
-    dest_provider_id = getattr(args, "target_data_provider_id", None) or getattr(args, "target_data_provider", None)
-    
-    if not file_id:
-        print("Error: File ID is required")
+    # Get the file IDs and destination data provider ID
+    file_ids = getattr(
+        args, "file_id", None
+    )  # argparse converts hyphens to underscores
+    dest_provider_id = getattr(args, "dp_id", None) or getattr(
+        args, "data_provider_id_for_mv_cp", None
+    )
+
+    if not file_ids:
+        print("Error: File ID(s) are required")
         return 1
-    
+
     if not dest_provider_id:
         print("Error: Destination data provider ID is required")
         return 1
@@ -312,9 +318,9 @@ def move_file(args):
 
     # Prepare the payload for move operation
     payload = {
-        "file_ids": [file_id],
+        "file_ids": file_ids,
         "data_provider_id_for_mv_cp": dest_provider_id,
-        "move": ""  # "move" key indicates move operation
+        "move": "",  # "move" key indicates move operation
     }
 
     json_data = json.dumps(payload).encode("utf-8")
@@ -333,18 +339,18 @@ def move_file(args):
                 message = response_data.get("message", "").strip()
                 if message:
                     print(message)
-                
+
                 background_activity_id = response_data.get("background_activity_id")
                 if background_activity_id:
                     print(f"Background activity ID: {background_activity_id}")
-                    
-                    print() 
-                    
+
+                    print()
+
                     class MockArgs:
                         def __init__(self, activity_id):
                             self.id = activity_id
                             self.json = False
-                    
+
                     mock_args = MockArgs(background_activity_id)
                     show_background_activity(mock_args)
                 else:
@@ -367,6 +373,3 @@ def move_file(args):
             print(f"File move failed with status: {e.code}")
             print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
         return 1
-
-
-
