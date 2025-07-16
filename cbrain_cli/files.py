@@ -114,9 +114,9 @@ def upload_file(args):
     body_parts.append("")
     body_parts.append(str(group_id))
 
-    # Add userfile[type] field.
+    # Add file_type field.
     body_parts.append(f"--{boundary}")
-    body_parts.append('Content-Disposition: form-data; name="userfile[type]"')
+    body_parts.append('Content-Disposition: form-data; name="file_type"')
     body_parts.append("")
     body_parts.append(args.file_type)
 
@@ -138,7 +138,6 @@ def upload_file(args):
     # Complete the multipart body.
     body_end = f"\r\n--{boundary}--\r\n"
 
-    # Combine all parts.
     body = body_text.encode("utf-8") + file_content + body_end.encode("utf-8")
 
     # Prepare headers.
@@ -155,7 +154,6 @@ def upload_file(args):
         f"Uploading {file_name} ({file_size} bytes) to data provider {args.data_provider}..."
     )
 
-    # Make the request.
     try:
         with urllib.request.urlopen(request) as response:
             data = response.read().decode("utf-8")

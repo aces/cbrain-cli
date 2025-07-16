@@ -10,11 +10,11 @@ from cbrain_cli.dataProviders import (
     delete_unregistered_files,
     is_alive,
     show_data_provider,
+    list_data_providers,
 )
 from cbrain_cli.files import copy_file, move_file, show_file, upload_file
 from cbrain_cli.list import (
     list_background_activitites,
-    list_data_providers,
     list_files,
     list_projects,
     show_background_activity,
@@ -84,13 +84,25 @@ def main():
         "--parent-id", type=int, help="Filter files by parent ID"
     )
     file_list_parser.add_argument("--file-type", type=str, help="Filter files by type")
+    file_list_parser.add_argument(
+        "--page", type=int, default=1, help="Page number (default: 1)"
+    )
+    file_list_parser.add_argument(
+        "--per-page", type=int, default=25, help="Number of files per page (5-1000, default: 25)"
+    )
+    file_list_parser.add_argument(
+        "--all", action="store_true", help="List all files across all pages"
+    )
+    file_list_parser.add_argument(
+        "--ids-only", action="store_true", help="Show only file IDs"
+    )
     file_list_parser.set_defaults(func=handle_errors(list_files))
-
+    
     # file show
     file_show_parser = file_subparsers.add_parser("show", help="Show file details")
     file_show_parser.add_argument("file", type=int, help="File ID")
     file_show_parser.set_defaults(func=handle_errors(show_file))
-
+    
     # file upload
     file_upload_parser = file_subparsers.add_parser(
         "upload", help="Upload a file to CBRAIN"
@@ -124,7 +136,7 @@ def main():
         help="Upload as FileCollection",
     )
     file_upload_parser.set_defaults(func=handle_errors(upload_file))
-
+    
     # file copy
     file_copy_parser = file_subparsers.add_parser(
         "copy", help="Copy files to another data provider"
@@ -140,7 +152,7 @@ def main():
         "--dp-id", type=int, required=True, help="Destination data provider ID"
     )
     file_copy_parser.set_defaults(func=handle_errors(copy_file))
-
+    
     # file move
     file_move_parser = file_subparsers.add_parser(
         "move", help="Move files to another data provider"
@@ -164,13 +176,13 @@ def main():
     dataprovider_subparsers = dataprovider_parser.add_subparsers(
         dest="action", help="Data provider actions"
     )
-
+    
     # dataprovider list
     dataprovider_list_parser = dataprovider_subparsers.add_parser(
         "list", help="List data providers"
     )
     dataprovider_list_parser.set_defaults(func=handle_errors(list_data_providers))
-
+    
     # dataprovider show
     dataprovider_show_parser = dataprovider_subparsers.add_parser(
         "show", help="Show data provider details"
@@ -202,18 +214,18 @@ def main():
     project_subparsers = project_parser.add_subparsers(
         dest="action", help="Project actions"
     )
-
+    
     # project list
     project_list_parser = project_subparsers.add_parser("list", help="List projects")
     project_list_parser.set_defaults(func=handle_errors(list_projects))
-
+    
     # project switch
     project_switch_parser = project_subparsers.add_parser(
         "switch", help="Switch to a project"
     )
     project_switch_parser.add_argument("group_id", type=int, help="Project/Group ID")
     project_switch_parser.set_defaults(func=handle_errors(switch_project))
-
+    
     # project show
     project_show_parser = project_subparsers.add_parser(
         "show", help="Show current project"
@@ -223,7 +235,7 @@ def main():
     # Tool commands
     tool_parser = subparsers.add_parser("tool", help="Tool operations")
     tool_subparsers = tool_parser.add_subparsers(dest="action", help="Tool actions")
-
+    
     # tool show
     tool_show_parser = tool_subparsers.add_parser("show", help="Show tool details")
     tool_show_parser.add_argument("id", type=int, help="Tool ID")
@@ -232,7 +244,7 @@ def main():
     # Tag commands
     tag_parser = subparsers.add_parser("tag", help="Tag operations")
     tag_subparsers = tag_parser.add_subparsers(dest="action", help="Tag actions")
-
+    
     # tag list
     tag_list_parser = tag_subparsers.add_parser("list", help="List tags")
     tag_list_parser.set_defaults(func=handle_errors(list_tags))

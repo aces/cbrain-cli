@@ -28,7 +28,7 @@ This CLI tool uses pure Python with no external library dependencies, making ins
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/cbrain-cli.git
+   git clone https://github.com/aces/cbrain-cli.git
    cd cbrain-cli
    ```
 
@@ -46,7 +46,7 @@ For isolated usage:
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
-cbrain whoami -v
+cbrain login
 ```
 
 ## API Reference
