@@ -7,6 +7,7 @@ import urllib.request
 
 from cbrain_cli.cli_utils import api_token, cbrain_url
 from cbrain_cli.config import auth_headers
+from cbrain_cli.list import show_background_activity
 
 
 def show_file(args):
@@ -113,9 +114,9 @@ def upload_file(args):
     body_parts.append("")
     body_parts.append(str(group_id))
 
-    # Add userfile[type] field.
+    # Add file_type field.
     body_parts.append(f"--{boundary}")
-    body_parts.append('Content-Disposition: form-data; name="userfile[type]"')
+    body_parts.append('Content-Disposition: form-data; name="file_type"')
     body_parts.append("")
     body_parts.append(args.file_type)
 
@@ -137,7 +138,6 @@ def upload_file(args):
     # Complete the multipart body.
     body_end = f"\r\n--{boundary}--\r\n"
 
-    # Combine all parts.
     body = body_text.encode("utf-8") + file_content + body_end.encode("utf-8")
 
     # Prepare headers.
@@ -154,7 +154,6 @@ def upload_file(args):
         f"Uploading {file_name} ({file_size} bytes) to data provider {args.data_provider}..."
     )
 
-    # Make the request.
     try:
         with urllib.request.urlopen(request) as response:
             data = response.read().decode("utf-8")
@@ -184,5 +183,191 @@ def upload_file(args):
                 print(f"Response: {error_data}")
         except (json.JSONDecodeError, UnicodeDecodeError):
             print(f"Upload failed with status: {e.code}")
+            print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
+        return 1
+
+
+def copy_file(args):
+    """
+    Copy files to a different data provider.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments, including file-id (list) and dp-id
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    # Get the file IDs and destination data provider ID
+    file_ids = getattr(
+        args, "file_id", None
+    )  # argparse converts hyphens to underscores
+    dest_provider_id = getattr(args, "dp_id", None) or getattr(
+        args, "data_provider_id_for_mv_cp", None
+    )
+
+    if not file_ids:
+        print("Error: File ID(s) are required")
+        return 1
+
+    if not dest_provider_id:
+        print("Error: Destination data provider ID is required")
+        return 1
+
+    change_provider_endpoint = f"{cbrain_url}/userfiles/change_provider"
+    headers = auth_headers(api_token)
+    headers["Content-Type"] = "application/json"
+
+    payload = {
+        "file_ids": file_ids,
+        "data_provider_id_for_mv_cp": dest_provider_id,
+        "copy": "",  # Empty string indicates copy operation
+    }
+
+    json_data = json.dumps(payload).encode("utf-8")
+
+    request = urllib.request.Request(
+        change_provider_endpoint, data=json_data, headers=headers, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            data = response.read().decode("utf-8")
+            response_data = json.loads(data)
+
+            if response.status == 200 or response.status == 201:
+                # Show the message from the API response
+                message = response_data.get("message", "").strip()
+                if message:
+                    print(message)
+
+                background_activity_id = response_data.get("background_activity_id")
+                if background_activity_id:
+                    print(f"Background activity ID: {background_activity_id}")
+
+                    # Fetch and show background activity details using existing function
+                    print()
+
+                    # Create a mock args object to call the existing show_background_activity function
+                    class MockArgs:
+                        def __init__(self, activity_id):
+                            self.id = activity_id
+                            self.json = False
+
+                    mock_args = MockArgs(background_activity_id)
+                    show_background_activity(mock_args)
+                else:
+                    print("File copy initiated successfully")
+                return 0
+            else:
+                print(f"File copy failed with status: {response.status}")
+                return 1
+
+    except urllib.error.HTTPError as e:
+        try:
+            error_data = e.read().decode("utf-8")
+            error_response = json.loads(error_data)
+            print(f"File copy failed with status: {e.code}")
+            if error_response.get("message"):
+                print(f"Error: {error_response['message']}")
+            else:
+                print(f"Response: {error_data}")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            print(f"File copy failed with status: {e.code}")
+            print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
+        return 1
+
+
+def move_file(args):
+    """
+    Move files to a different data provider.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments, including file-id (list) and dp-id
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    # Get the file IDs and destination data provider ID
+    file_ids = getattr(
+        args, "file_id", None
+    )  # argparse converts hyphens to underscores
+    dest_provider_id = getattr(args, "dp_id", None) or getattr(
+        args, "data_provider_id_for_mv_cp", None
+    )
+
+    if not file_ids:
+        print("Error: File ID(s) are required")
+        return 1
+
+    if not dest_provider_id:
+        print("Error: Destination data provider ID is required")
+        return 1
+
+    change_provider_endpoint = f"{cbrain_url}/userfiles/change_provider"
+    headers = auth_headers(api_token)
+    headers["Content-Type"] = "application/json"
+
+    # Prepare the payload for move operation
+    payload = {
+        "file_ids": file_ids,
+        "data_provider_id_for_mv_cp": dest_provider_id,
+        "move": "",  # "move" key indicates move operation
+    }
+
+    json_data = json.dumps(payload).encode("utf-8")
+
+    request = urllib.request.Request(
+        change_provider_endpoint, data=json_data, headers=headers, method="POST"
+    )
+
+    try:
+        with urllib.request.urlopen(request) as response:
+            data = response.read().decode("utf-8")
+            response_data = json.loads(data)
+
+            if response.status == 200 or response.status == 201:
+                # Show the message from the API response
+                message = response_data.get("message", "").strip()
+                if message:
+                    print(message)
+
+                background_activity_id = response_data.get("background_activity_id")
+                if background_activity_id:
+                    print(f"Background activity ID: {background_activity_id}")
+
+                    print()
+
+                    class MockArgs:
+                        def __init__(self, activity_id):
+                            self.id = activity_id
+                            self.json = False
+
+                    mock_args = MockArgs(background_activity_id)
+                    show_background_activity(mock_args)
+                else:
+                    print("File move initiated successfully")
+                return 0
+            else:
+                print(f"File move failed with status: {response.status}")
+                return 1
+
+    except urllib.error.HTTPError as e:
+        try:
+            error_data = e.read().decode("utf-8")
+            error_response = json.loads(error_data)
+            print(f"File move failed with status: {e.code}")
+            if error_response.get("message"):
+                print(f"Error: {error_response['message']}")
+            else:
+                print(f"Response: {error_data}")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            print(f"File move failed with status: {e.code}")
             print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
         return 1

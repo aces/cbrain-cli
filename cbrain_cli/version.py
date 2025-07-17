@@ -1,7 +1,8 @@
 import json
+import urllib.error
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, user_id
+from cbrain_cli.cli_utils import api_token, cbrain_url, handle_connection_error, user_id
 from cbrain_cli.config import CREDENTIALS_FILE, auth_headers
 
 headers = auth_headers(api_token)
@@ -21,9 +22,12 @@ def user_details(user_id):
             user_data = json.loads(response.read().decode("utf-8"))
             return user_data
 
+    except (urllib.error.URLError, urllib.error.HTTPError) as e:
+        handle_connection_error(e)
+        return None
     except Exception as e:
         print(f"Error getting user details: {e}")
-        return 1
+        return None
 
 
 # MARK: Whoami
@@ -37,6 +41,10 @@ def whoami_user(args):
     """
     version = getattr(args, "version", False)
     user_data = user_details(user_id)
+
+    # Check if user_data is valid before proceeding
+    if user_data is None:
+        return 1
 
     if version:
         # Show masked token.
@@ -80,10 +88,15 @@ def whoami_user(args):
                     print("WARNING: Token mismatch - tokens don't match")
 
                 print(f"DEBUG: GET /users/{remote_user_id}")
-                print(
-                    f"DEBUG: Got JSON reply {json.dumps(user_details(remote_user_id))}"
-                )
+                remote_user_data = user_details(remote_user_id)
+                if remote_user_data is not None:
+                    print(f"DEBUG: Got JSON reply {json.dumps(remote_user_data)}")
+                else:
+                    print("DEBUG: Failed to get user details")
 
+        except (urllib.error.URLError, urllib.error.HTTPError) as e:
+            handle_connection_error(e)
+            return 1
         except Exception as e:
             print(f"Error verifying session: {e}")
             return 1
