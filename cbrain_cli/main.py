@@ -5,7 +5,7 @@ Setup and commands for the CBRAIN CLI command line interface.
 import argparse
 import sys
 
-from cbrain_cli.cli_utils import handle_errors, is_authenticated
+from cbrain_cli.cli_utils import handle_errors, is_authenticated, version_info
 from cbrain_cli.data_providers import (
     delete_unregistered_files,
     is_alive,
@@ -15,7 +15,6 @@ from cbrain_cli.data_providers import (
 from cbrain_cli.files import copy_file, move_file, show_file, upload_file, list_files, delete_file
 from cbrain_cli.background_activitites import (
     list_background_activitites,
-    
     show_background_activity,
 )
 from cbrain_cli.projects import show_project, switch_project, list_projects
@@ -48,6 +47,10 @@ def main():
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Version command
+    version_parser = subparsers.add_parser("version", help="Show CLI version")
+    version_parser.set_defaults(func=handle_errors(version_info))
 
     # MARK: Session commands (top-level)
     # Create new session.
@@ -402,6 +405,8 @@ def main():
         return handle_errors(logout_session)(args)
     elif args.command == "whoami":
         return handle_errors(whoami_user)(args)
+    elif args.command == "version":
+        return handle_errors(version_info)(args)
     elif args.command in [
         "file",
         "dataprovider",
