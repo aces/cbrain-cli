@@ -142,7 +142,6 @@ jobs:
           cd ../..
           mkdir -p $HOME/.config/cbrain
           bash .github/workflows/scripts/create_cbrain_test_session.sh >$HOME/.config/cbrain/credentials.json
-          chmod 755 cbrain # temporary; the github repo should have it at 755
           cd capture_tests
           bash run_and_diff_captures
 
