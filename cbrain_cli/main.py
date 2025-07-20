@@ -6,26 +6,25 @@ import argparse
 import sys
 
 from cbrain_cli.cli_utils import handle_errors, is_authenticated
-from cbrain_cli.dataProviders import (
+from cbrain_cli.data_providers import (
     delete_unregistered_files,
     is_alive,
     show_data_provider,
     list_data_providers,
 )
-from cbrain_cli.files import copy_file, move_file, show_file, upload_file
-from cbrain_cli.list import (
+from cbrain_cli.files import copy_file, move_file, show_file, upload_file, list_files, delete_file
+from cbrain_cli.background_activitites import (
     list_background_activitites,
-    list_files,
-    list_projects,
+    
     show_background_activity,
 )
-from cbrain_cli.projects import show_project, switch_project
+from cbrain_cli.projects import show_project, switch_project, list_projects
 from cbrain_cli.remote_resources import list_remote_resources, show_remote_resource
 from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
-from cbrain_cli.task import list_tasks, operation_task, show_task
-from cbrain_cli.tool import show_tool
-from cbrain_cli.version import whoami_user
+from cbrain_cli.tasks import list_tasks, operation_task, show_task
+from cbrain_cli.tools import show_tool
+from cbrain_cli.user import whoami_user
 
 
 def main():
@@ -89,12 +88,6 @@ def main():
     )
     file_list_parser.add_argument(
         "--per-page", type=int, default=25, help="Number of files per page (5-1000, default: 25)"
-    )
-    file_list_parser.add_argument(
-        "--all", action="store_true", help="List all files across all pages"
-    )
-    file_list_parser.add_argument(
-        "--ids-only", action="store_true", help="Show only file IDs"
     )
     file_list_parser.set_defaults(func=handle_errors(list_files))
     
@@ -168,6 +161,17 @@ def main():
         "--dp-id", type=int, required=True, help="Destination data provider ID"
     )
     file_move_parser.set_defaults(func=handle_errors(move_file))
+
+    # file delete
+    file_delete_parser = file_subparsers.add_parser(
+        "delete", help="Delete a file"
+    )
+    file_delete_parser.add_argument(
+        "file_id",
+        type=int,
+        help="ID of the file to delete"
+    )
+    file_delete_parser.set_defaults(func=handle_errors(delete_file))
 
     # Data provider commands
     dataprovider_parser = subparsers.add_parser(
