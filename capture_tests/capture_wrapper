@@ -1,0 +1,113 @@
+#!/bin/bash
+
+#
+# CBRAIN Project
+#
+# Copyright (C) 2008-2025
+# The Royal Institution for the Advancement of Learning
+# McGill University
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see https://www.gnu.org/licenses
+
+# capture_wrapper
+#
+# This script runs several 'cbrain' commands,
+# the main CBRAIN cli client, and captures
+# the stdout and stderr of these commands.
+# The captured outputs are then compared
+# to an 'expected' output capture.
+#
+# This script expects a CBRAIN test server to be
+# already operational and listening on port 3000,
+# and seeded with the test DB seed used by CBRAIN
+# itself for its own API tests.
+#
+# This script is normally invoked by a GitHub runner.
+#
+# Main author: Pierre Rioux <pierre.rioux@mcgill.ca>, July 2025
+
+cbrain_test_file=$(dirname $0)/cbrain_cli_commands
+
+outfile="/tmp/out.$$"
+errfile="/tmp/err.$$"
+
+function cleanup {
+  rm -f $outfile $errfile
+}
+
+#trap cleanup EXIT
+
+function runthis {
+  command="$1"
+
+  # Prep capture
+  rm -f $outfile $errfile
+
+  # Run and capture
+  eval "$command" > $outfile 2> $errfile
+  status=$?
+
+  # Summary
+  echo "############################"
+  echo "Command: $command"
+  echo "Status: $status"
+  stat --printf "Stdout: %s bytes\\n" $outfile
+  stat --printf "Stderr: %s bytes\\n" $errfile
+  echo ""
+
+  # Report STDOUT
+  echo "Stdout:"
+  cat $outfile
+  if ! test -s $outfile ; then
+    echo "(No output)"
+  else
+    lastbyte=$(tail -c 1 $outfile | od -t x1 | head -1)
+    if test "X$lastbyte" != "X0000000 0a" ; then
+      echo ""
+      echo "(Warning: stdout did not end with a newline)"
+    fi
+  fi
+
+  # Report STDERR
+  echo "Stderr:"
+  cat $errfile
+  if ! test -s $errfile ; then
+    echo "(No output)"
+  else
+    lastbyte=$(tail -c 1 $errfile | od -t x1 | head -1)
+    if test "X$lastbyte" != "X0000000 0a" ; then
+      echo ""
+      echo "(Warning: stderr did not end with a newline)"
+    fi
+  fi
+
+  echo ""
+}
+
+echo "############################"
+echo "# Capture wrapper starting #"
+echo "############################"
+echo ""
+
+# Run each command from the cbrain command test script
+# capture what they do, one by one.
+cat $cbrain_test_file | while read line ; do
+  [[ "X$line" =~ ^X\s*$  ]] && continue  # skip blank lines
+  [[ "X$line" =~ ^X\s*\# ]] && continue  # skip comment lines
+  runthis "$line"
+done
+
+echo "############################"
+echo "# Capture wrapper ending   #"
+echo "############################"

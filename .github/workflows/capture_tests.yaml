@@ -1,0 +1,178 @@
+
+###############################################################
+# GitHub Actions Continuous Integration
+#
+# This runs a special 'capture' test script.
+#
+# Most of the actions here are duplicates of the
+# ones for the main CBRAIN server CI tests, because
+# we need to set up our own CBRAIN instance first.
+# So, see also this link for the original:
+#
+# https://github.com/aces/cbrain/blob/master/.github/workflows/cbrain_ci.yaml
+#
+# At the end, a Slack notification can be sent if the
+# GitHub repo secret "SLACK_WEBHOOK" is set to a URL
+# (which you can generate within your SLACK config webpage)
+#
+# Pierre Rioux, July 2025
+###############################################################
+
+name: capture_tests
+on:   [ push, pull_request ]
+jobs:
+  run-tests:
+    name: CBRAIN CLI client tests
+    runs-on: ubuntu-24.04
+    env:
+      RAILS_ENV: test
+
+    ###########################################################
+    services:
+      mariadb:
+        image: mariadb
+        env: # the docker container's autosetup use MYSQL_ variables
+          MYSQL_ROOT_PASSWORD: that_is_nothing
+          MYSQL_DATABASE:      cbrain_test
+          MYSQL_USER:          cbrain_user
+          MYSQL_PASSWORD:      fake_pw_of_course
+        ports:
+        - 3306:3306
+
+    ###########################################################
+    steps:
+
+      ###########################################################
+      - name: Checkout CBRAIN-CLI Codebase
+        uses: actions/checkout@v4
+
+      ###########################################################
+      - name: Checkout CBRAIN Server Codebase
+        uses: actions/checkout@v4
+        with:
+          repository: aces/cbrain
+          path: ./server
+
+      ###########################################################
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.2
+
+      ###########################################################
+      - name: Setup BrainPortal And Bourreau Names
+        working-directory: server
+        run: |
+          bash .github/workflows/scripts/make_cbrain_app_name_rb.sh > BrainPortal/config/initializers/config_portal.rb
+
+      ###########################################################
+      - name: Configure Database Connection
+        working-directory: server
+        env: # keep in sync with the values in the 'services' section above
+          MARIADB_ROOT_PASSWORD: that_is_nothing
+          MARIADB_DATABASE:      cbrain_test
+          MARIADB_USER:          cbrain_user
+          MARIADB_PASSWORD:      fake_pw_of_course
+          MARIADB_HOST:          127.0.0.1
+          MARIADB_PORT:          3306
+        run: |
+          bash .github/workflows/scripts/make_database_yml.sh > BrainPortal/config/database.yml || exit 2
+          sleep 10 # darn...
+          mysql --host ${MARIADB_HOST} --port ${MARIADB_PORT} -u ${MARIADB_USER} -p${MARIADB_PASSWORD} -D ${MARIADB_DATABASE} -e "SHOW TABLES;"
+
+      ###########################################################
+      - name: Reload Cached Gems
+        uses: actions/cache@v3 # speeds up 'Prepare Ruby Gems' below
+        with:
+          path: server/gem-cache
+          key: ubuntu-24-gems-${{ hashFiles('server/BrainPortal/Gemfile') }}
+
+      ###########################################################
+      - name: Prepare Ruby Gems
+        working-directory: server
+        run: |
+          cd BrainPortal                   || exit 2
+          bundle config path ../gem-cache  || exit 3
+          bundle install                   || exit 4
+          cd ../Bourreau                   || exit 2
+          bundle config path ../gem-cache  || exit 3
+          bundle install                   || exit 4
+
+      ###########################################################
+      - name: Configure Plugins
+        working-directory: server/BrainPortal
+        run: |
+          bundle exec rake cbrain:plugins:install:plugins
+
+      ###########################################################
+      - name: Setup Database
+        working-directory: server/BrainPortal
+        run: |
+          bundle exec rake db:create      || exit 3
+          bundle exec rake db:schema:load || exit 4
+
+      ###########################################################
+      - name: Seed Database
+        working-directory: server/BrainPortal
+        run: |
+          bundle exec rake db:seed
+
+      ###########################################################
+      - name: Seed Boureau Test Data
+        working-directory: server/BrainPortal
+        run: |
+          bundle exec rake db:seed:test:bourreau
+
+      ###########################################################
+      - name: Perform Sanity Checks
+        working-directory: server/BrainPortal
+        run: |
+          bundle exec rake db:sanity:check
+
+      ###########################################################
+      # MAIN CLI CLIENT TEST
+      ###########################################################
+      - name: CLI Client Tests
+        id: cbrain_cli
+        run: |
+          cd server/BrainPortal
+          bundle exec rake "db:seed:test:api"      || exit 2
+          bundle exec rails server puma -p 3000 -d || exit 3
+          sleep 5 # we need a better way
+          cd ../..
+          mkdir -p $HOME/.config/cbrain
+          bash .github/workflows/scripts/create_cbrain_test_session.sh >$HOME/.config/cbrain/credentials.json
+          cd capture_tests
+          bash run_and_diff_captures
+
+      ###########################################################
+      - name: Save Error Diffs
+        if: ${{ failure() || success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: git_captures.diff
+          path: capture_tests/git_captures.diff
+          retention-days: 7
+          overwrite: true
+
+      ###########################################################
+      # Final notification
+      ###########################################################
+      #- name: Notify Slack
+      #  if: ${{ failure() || success() }}
+      #  continue-on-error: true
+      #  uses: rtCamp/action-slack-notify@v2
+      #  env:
+      #    SLACK_CHANNEL:  ${{ secrets.SLACK_CHANNEL || 'cbrain_ci' }}
+      #    SLACK_COLOR:    ${{ job.status == 'success' && '#00ff00' || job.status == 'cancelled' && '#ffff00' || '#ff0000' }}
+      #    SLACK_TITLE:    "${{ github.repository }} CI tests: ${{ job.status }}"
+      #    SLACK_USERNAME: "GitHub CI" # Doesn't have to be a real slack user
+      #    SLACK_WEBHOOK:  ${{ secrets.SLACK_WEBHOOK }}
+      #    SLACK_FOOTER:   ""
+      #    SLACK_ICON:     https://github.com/aces/cbrain/raw/master/BrainPortal/public/images/custom_logos/cb-small_white_blue.png
+      #    SLACK_MESSAGE: |
+      #      ```
+      #      CBRAIN CLI capture tests : ${{ steps.cbrain_cli.outcome }}
+      #      ```
+

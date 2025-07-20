@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# This script contains a bunch of CBRAIN cli
+# command that are used as part of a test framework.
+# Each line here is evaluated separately and their
+# result (stdout and stderr) carefully recorded. This
+# is performed by the external wrapper script
+# "capture_wrapper".
+#
+# Original author: Pierre Rioux <pierre.rioux@mcgill.ca>, July 2025
+
+cbrain version
+
+cbrain whoami
+
+cbrain -j whoami
+
+cbrain file list
+
+cbrain -j file list

@@ -1,0 +1,156 @@
+############################
+# Capture wrapper starting #
+############################
+
+############################
+Command: cbrain version
+Status: 0
+Stdout: 30 bytes
+Stderr: 0 bytes
+
+Stdout:
+cbrain cli client version 1.0
+Stderr:
+(No output)
+
+############################
+Command: cbrain whoami
+Status: 0
+Stdout: 65 bytes
+Stderr: 0 bytes
+
+Stdout:
+Current user: norm (Normal User) on server http://localhost:3000
+Stderr:
+(No output)
+
+############################
+Command: cbrain -j whoami
+Status: 0
+Stdout: 65 bytes
+Stderr: 0 bytes
+
+Stdout:
+{ json structure here }
+Stderr:
+(No output)
+
+############################
+Command: cbrain file list
+Status: 0
+Stdout: 237 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID   Type        File Name
+---- ----------- -----------------------
+6    DatFile     binary.dat
+2    TextFile    norm.json
+4    TextFile    todel.txt
+5    TextFile    todelmult.txt
+3    TextFile    tounreg1.txt
+
+Showing page 1 (5 files)
+Stderr:
+(No output)
+
+############################
+Command: cbrain -j file list
+Status: 0
+Stdout: 1764 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 6,
+    "name": "binary.dat",
+    "browse_path": null,
+    "size": 1,
+    "user_id": 2,
+    "parent_id": null,
+    "type": "DatFile",
+    "group_id": 3,
+    "data_provider_id": 15,
+    "group_writable": false,
+    "num_files": 1,
+    "hidden": false,
+    "immutable": false,
+    "archived": false,
+    "description": "binary data"
+  },
+  {
+    "id": 2,
+    "name": "norm.json",
+    "browse_path": null,
+    "size": 25,
+    "user_id": 2,
+    "parent_id": null,
+    "type": "TextFile",
+    "group_id": 3,
+    "data_provider_id": 15,
+    "group_writable": false,
+    "num_files": 1,
+    "hidden": false,
+    "immutable": false,
+    "archived": false,
+    "description": "test file2"
+  },
+  {
+    "id": 4,
+    "name": "todel.txt",
+    "browse_path": null,
+    "size": 11,
+    "user_id": 2,
+    "parent_id": null,
+    "type": "TextFile",
+    "group_id": 3,
+    "data_provider_id": 15,
+    "group_writable": false,
+    "num_files": 1,
+    "hidden": false,
+    "immutable": false,
+    "archived": false,
+    "description": "to unregister"
+  },
+  {
+    "id": 5,
+    "name": "todelmult.txt",
+    "browse_path": null,
+    "size": 11,
+    "user_id": 2,
+    "parent_id": null,
+    "type": "TextFile",
+    "group_id": 3,
+    "data_provider_id": 15,
+    "group_writable": false,
+    "num_files": 1,
+    "hidden": false,
+    "immutable": false,
+    "archived": false,
+    "description": "to unregister"
+  },
+  {
+    "id": 3,
+    "name": "tounreg1.txt",
+    "browse_path": null,
+    "size": 13,
+    "user_id": 2,
+    "parent_id": null,
+    "type": "TextFile",
+    "group_id": 3,
+    "data_provider_id": 15,
+    "group_writable": false,
+    "num_files": 1,
+    "hidden": false,
+    "immutable": false,
+    "archived": false,
+    "description": "to unregister"
+  }
+]
+Stderr:
+(No output)
+
+############################
+# Capture wrapper ending   #
+############################
