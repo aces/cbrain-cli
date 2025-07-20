@@ -27,7 +27,7 @@ Stderr:
 ############################
 Command: cbrain -j whoami
 Status: 0
-Stdout: 65 bytes
+Stdout: 81 bytes
 Stderr: 0 bytes
 
 Stdout:
