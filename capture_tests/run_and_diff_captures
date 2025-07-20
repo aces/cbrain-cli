@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Runs the capture test script, save everything in a file,
+# then run diff on them. Any difference is considered
+# a failure, something to investigate by the developers.
+#
+# Original author: Pierre Rioux <pierre.rioux@mcgill.ca>, July 2025
+
+basename=$(basename $0)
+curdir=$(dirname $(realpath $0)) # .../cbrain-cli/capture_tests
+repodir=$(dirname $curdir)       # .../cbrain-cli
+
+export PATH="$repodir:$PATH" # to find the 'cbrain' command
+cd $curdir
+
+# Utility to help us compare two text files while ignoring
+# unsingificant changes. Adjust as needed.
+function zaptimestamps {
+  infile="$1"
+  outfile="$2"
+  # The substitutions we make, even when non-sensical, allow
+  # us to track what sed rule was applied.
+  sed \
+    -e 's/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/2222-22-22/g'  \
+    -e 's/[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9]*/33:33/g'  \
+    -e 's/[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/44:44/g'         \
+    < $infile > $outfile
+}
+
+# Run tests
+echo "$basename : Starting capture tests"
+bash capture_wrapper > capture_out.txt 2>&1
+
+# Cleanup text files before comparisons
+zaptimestamps expected_captures.txt expected_captures_zapped.txt
+zaptimestamps capture_out.txt       capture_out_zapped.txt
+
+if cmp -s expected_captures_zapped.txt capture_out_zapped.txt ; then
+  echo "$basename : Capture test was successful. No differences found."
+  exit 0 # succeeds the test suite
+fi
+
+echo "$basename : There are differences in the captured outputs"
+cp -f capture_out_zapped.txt expected_captures.txt # crush it locally
+git diff expected_captures.txt > git_captures.diff # will be saved as a github artifact
+
+echo "### GIT DIFF OUTPUT STARTS HERE ###"
+cat git_captures.diff
+echo "### GIT DIFF OUTPUT ENDS HERE ###"
+
+exit 1 # fails the test suite
+
