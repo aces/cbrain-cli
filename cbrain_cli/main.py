@@ -23,7 +23,7 @@ from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
 from cbrain_cli.tasks import list_tasks, operation_task, show_task
 from cbrain_cli.tools import show_tool
-from cbrain_cli.user import whoami_user
+from cbrain_cli.users import whoami_user
 
 
 def main():
