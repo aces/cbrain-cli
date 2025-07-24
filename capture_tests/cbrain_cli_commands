@@ -7,14 +7,107 @@
 # is performed by the external wrapper script
 # "capture_wrapper".
 #
+# The content of the test database, at the beginning of
+# this test, is expected to match what was seeded
+# by the CBRAIN test API code, as seen in
+#
+# https://github.com/aces/cbrain/blob/master/BrainPortal/db/seeds_test_api.rb
+#
 # Original author: Pierre Rioux <pierre.rioux@mcgill.ca>, July 2025
 
-cbrain version
+# Version commands
+cbrain        version
+cbrain --json version
 
-cbrain whoami
+# Connection commands
+cbrain        whoami
+cbrain --json whoami
 
-cbrain -j whoami
+# Project commands
+cbrain         project list
+cbrain --json  project list
+cbrain --jsonl project list
 
-cbrain file list
+cbrain         project show 3   # Group 'norm', personal project of normal user 'norm'
+cbrain --json  project show 3
+cbrain --jsonl project show 3
 
-cbrain -j file list
+cbrain         project show 2   # Group 'admin, personal project of admin; this should FAIL
+cbrain --json  project show 2
+cbrain --jsonl project show 2
+
+cbrain         project switch 2
+cbrain --json  project switch 2
+cbrain --jsonl project switch 2
+
+cbrain         project switch all  # the special 'all' project
+cbrain --json  project switch all
+cbrain --jsonl project switch all
+
+# File commands
+cbrain         file list
+cbrain --json  file list
+cbrain --jsonl file list
+
+cbrain         file show 2   # file 'norm.json'
+cbrain --json  file show 2
+cbrain --jsonl file show 2
+
+cbrain         file show 1   # admin file 'admin.txt'; should FAIL
+cbrain --json  file show 1
+cbrain --jsonl file show 1
+
+# Tool commands
+cbrain         tool list
+cbrain --json  tool list
+cbrain --jsonl tool list
+
+cbrain         tool show 17  # 'SimpleMonitor'
+cbrain --json  tool show 17
+cbrain --jsonl tool show 17
+
+# ToolConfig commands
+cbrain         toolconfig list
+cbrain --json  toolconfig list
+cbrain --jsonl toolconfig list
+
+cbrain         toolconfig show 20  # SimpleMonitor on Bourreau 13
+cbrain --json  toolconfig show 20
+cbrain --jsonl toolconfig show 20
+
+# Tag commands
+cbrain         tag list
+cbrain --json  tag list
+cbrain --jsonl tag list
+
+cbrain         tag show 21  # 'tag1'
+cbrain --json  tag show 21
+cbrain --jsonl tag show 21
+
+# Task commands
+cbrain         task list
+cbrain --json  task list
+cbrain --jsonl task list
+
+cbrain         task show 2  # SimpleMonitor, Completed
+cbrain --json  task show 2
+cbrain --jsonl task show 2
+
+# Bourreau (RemoteResource) commands
+cbrain         remote-resource list
+cbrain --json  remote-resource list
+cbrain --jsonl remote-resource list
+
+cbrain         remote-resource show 13  # 'TestExec'
+cbrain --json  remote-resource show 13
+cbrain --jsonl remote-resource show 13
+
+# DataProvider commands
+cbrain         data-provider list
+cbrain --json  data-provider list
+cbrain --jsonl data-provider list
+
+cbrain         data-provider show 15  # 'TestDP'
+cbrain --json  data-provider show 15
+cbrain --jsonl data-provider show 15
+
