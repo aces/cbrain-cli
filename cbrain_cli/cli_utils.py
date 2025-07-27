@@ -103,3 +103,20 @@ def handle_errors(func):
             return 1
 
     return wrapper
+
+def version_info(args):
+    """
+    Display the CLI version information.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    print("cbrain cli client version 1.0")
+    return 0

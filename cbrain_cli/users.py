@@ -46,6 +46,16 @@ def whoami_user(args):
     if user_data is None:
         return 1
 
+    # Handle JSON output first
+    if getattr(args, "json", False):
+        output = {
+            "login": user_data["login"],
+            "full_name": user_data["full_name"],
+            "server": cbrain_url
+        }
+        print(json.dumps(output))
+        return 0
+
     if version:
         # Show masked token.
         masked_token = (
