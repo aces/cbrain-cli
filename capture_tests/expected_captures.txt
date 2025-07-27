@@ -31,7 +31,11 @@ Stdout: 81 bytes
 Stderr: 0 bytes
 
 Stdout:
-{"login": "norm", "full_name": "Normal User", "server": "http://localhost:3000"}
+{
+  "login": "norm",
+  "full_name": "Normal User",
+  "server": "http://localhost:3000"
+}
 Stderr:
 (No output)
 
