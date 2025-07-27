@@ -2,6 +2,7 @@ import datetime
 import functools
 import json
 import urllib.error
+import pkg_resources
 
 from cbrain_cli.config import CREDENTIALS_FILE
 
@@ -118,5 +119,25 @@ def version_info(args):
     int
         Exit code (0 for success, 1 for failure)
     """
-    print("cbrain cli client version 1.0")
+    try:
+        version = pkg_resources.get_distribution('cbrain-cli').version
+        print(f"cbrain cli client version {version}")
+        return 0
+    except pkg_resources.DistributionNotFound:
+        print("Warning: Could not determine version. Package may not be installed properly.")
+        return 1
+
+def json_printer(data):
+    """
+    Print data in JSON format.
+    """
+    print(json.dumps(data, indent=2))
+    return 0
+
+def jsonl_printer(data):
+    """
+    Print data in JSONL format.
+    """
+    for item in data:
+        print(json.dumps(item))
     return 0

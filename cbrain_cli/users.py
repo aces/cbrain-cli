@@ -2,7 +2,7 @@ import json
 import urllib.error
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, handle_connection_error, user_id
+from cbrain_cli.cli_utils import api_token, cbrain_url, handle_connection_error, user_id, json_printer
 from cbrain_cli.config import CREDENTIALS_FILE, auth_headers
 
 headers = auth_headers(api_token)
@@ -53,7 +53,7 @@ def whoami_user(args):
             "full_name": user_data["full_name"],
             "server": cbrain_url
         }
-        print(json.dumps(output))
+        json_printer(output)
         return 0
 
     if version:

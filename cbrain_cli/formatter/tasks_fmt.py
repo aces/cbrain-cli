@@ -1,59 +1,16 @@
 import json
-import urllib.parse
-import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import auth_headers
-
-
-def list_tasks(args):
+def print_task_data(tasks_data, args):
     """
-    List all tasks from CBRAIN.
+    Print task data in either JSON or table format.
 
     Parameters
     ----------
+    tasks_data : list
+        List of task data dictionaries
     args : argparse.Namespace
-        Command line arguments, including the --json flag and optional bourreau_id filter
-
-    Returns
-    -------
-    int
-        Exit code (0 for success, 1 for failure)
+        Command line arguments, including the --json flag
     """
-    # Build query parameters for filtering.
-    query_params = {}
-
-    # Add filter if provided.
-    if hasattr(args, "filter_type") and args.filter_type is not None:
-        if args.filter_value is None:
-            print("Error: Filter value is required when filter type is specified")
-            return 1
-        if args.filter_type == "bourreau_id":
-            query_params["bourreau_id"] = str(args.filter_value)
-    elif hasattr(args, "filter_value") and args.filter_value is not None:
-        print("Error: Filter type is required when filter value is specified")
-        return 1
-
-    # Prepare the API request.
-    tasks_endpoint = f"{cbrain_url}/tasks"
-
-    # Add query parameters if any filters are provided.
-    if query_params:
-        query_string = urllib.parse.urlencode(query_params)
-        tasks_endpoint = f"{tasks_endpoint}?{query_string}"
-
-    headers = auth_headers(api_token)
-
-    # Create the request.
-    request = urllib.request.Request(
-        tasks_endpoint, data=None, headers=headers, method="GET"
-    )
-
-    # Make the request.
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        tasks_data = json.loads(data)
-
     # Output in requested format.
     if getattr(args, "json", False):
         print(json.dumps(tasks_data, indent=2))
@@ -85,50 +42,21 @@ def list_tasks(args):
 
     return
 
-
-def show_task(args):
+def print_task_details(task_data, args):
     """
-    Show detailed information about a specific task from CBRAIN.
+    Print detailed information about a specific task.
 
     Parameters
     ----------
+    task_data : dict
+        Dictionary containing task details
     args : argparse.Namespace
-        Command line arguments, including the task argument with task_id
-
-    Returns
-    -------
-    int
-        Exit code (0 for success, 1 for failure)
+        Command line arguments, including the --json flag
     """
-    # Get the task ID from the task argument.
-    task_id = getattr(args, "task", None)
-    if not task_id:
-        print("Error: Task ID is required")
-        return 1
+    if getattr(args, "json", False):
+        print(json.dumps(task_data, indent=2))
+        return
 
-    # Prepare the API request.
-    task_endpoint = f"{cbrain_url}/tasks/{task_id}"
-    headers = auth_headers(api_token)
-
-    # Create the request.
-    request = urllib.request.Request(
-        task_endpoint, data=None, headers=headers, method="GET"
-    )
-
-    # Make the request.
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            task_data = json.loads(data)
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Task with ID {task_id} not found")
-            return 1
-        else:
-            print(f"Error: HTTP {e.code} - {e.reason}")
-            return 1
-
-    # Output the task details.
     print(f"ID:                        {task_data.get('id', 'N/A')}")
     print(f"Type:                      {task_data.get('type', 'N/A')}")
     print(f"Status:                    {task_data.get('status', 'N/A')}")
@@ -177,23 +105,4 @@ def show_task(args):
         print("PARAMETERS")
         print("-" * 30)
         params_json = json.dumps(task_data.get("params"), indent=2)
-        print(params_json)
-
-    return 0
-
-
-def operation_task(args):
-    """
-    Operation on a task.
-    """
-    operate_task_endpoint = f"{cbrain_url}/tasks/operation"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(
-        operate_task_endpoint, data=None, headers=headers, method="POST"
-    )
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        operate_task_data = json.loads(data)
-    print(operate_task_data)
+        print(params_json) 
