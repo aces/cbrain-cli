@@ -15,10 +15,22 @@ cbrain project show
 cbrain --json dataprovider list
 ```
 
-## Prerequisites
+## CBRAIN Access Options
 
-Before using this CLI, you need to have a CBRAIN service running locally. Follow the setup instructions at:
-- [CBRAIN GitHub Repository](https://github.com/aces/cbrain)
+There are two main ways to access CBRAIN:
+
+1. **McGill Production Portal** (Recommended for Regular Users)
+   - Access the McGill-supported CBRAIN production portal at: https://portal.cbrain.mcgill.ca/
+   - No local installation required
+   - Web-based interface for most common operations
+
+2. **Custom/Development Setup**
+   - Deploy CBRAIN on your lab cluster, cloud, or virtual machine
+   - Suitable for organizations wanting their own CBRAIN instance
+   - Local installation only needed for:
+     - CLI software developers
+     - Power users developing/debugging custom CLI scripts
+   - Follow setup instructions at [CBRAIN GitHub Repository](https://github.com/aces/cbrain) if you need a local instance
 
 ## Installation
 
@@ -46,8 +58,19 @@ For isolated usage:
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
+```
+
+### Initial Setup
+
+After installation, you need to login to your CBRAIN instance:
+
+```bash
 cbrain login
 ```
+
+When prompted for "Enter CBRAIN server URL prefix", enter:
+- For McGill Production Portal: `https://portal.cbrain.mcgill.ca`
+- For custom setup: Your CBRAIN instance URL
 
 ## API Reference
 
