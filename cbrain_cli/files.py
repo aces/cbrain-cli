@@ -7,7 +7,7 @@ import urllib.request
 
 from cbrain_cli.cli_utils import api_token, cbrain_url
 from cbrain_cli.config import auth_headers
-from cbrain_cli.list import show_background_activity
+from cbrain_cli.background_activitites import show_background_activity
 
 
 def show_file(args):
@@ -369,5 +369,139 @@ def move_file(args):
                 print(f"Response: {error_data}")
         except (json.JSONDecodeError, UnicodeDecodeError):
             print(f"File move failed with status: {e.code}")
+            print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
+        return 1
+
+
+def list_files(args):
+    """
+    List all files from CBRAIN.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments, including the --json flag, filter options, and pagination
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    # Validate per_page parameter
+    per_page = getattr(args, "per_page", 25)
+    if per_page < 5 or per_page > 1000:
+        print("Error: per-page must be between 5 and 1000")
+        return 1
+
+    # Build query parameters for filtering
+    query_params = {}
+
+    # Add filter parameters if provided
+    if hasattr(args, "group_id") and args.group_id is not None:
+        query_params["group_id"] = str(args.group_id)
+
+    if hasattr(args, "dp_id") and args.dp_id is not None:
+        query_params["data_provider_id"] = str(args.dp_id)
+
+    if hasattr(args, "user_id") and args.user_id is not None:
+        query_params["user_id"] = str(args.user_id)
+
+    if hasattr(args, "parent_id") and args.parent_id is not None:
+        query_params["parent_id"] = str(args.parent_id)
+
+    if hasattr(args, "file_type") and args.file_type is not None:
+        query_params["type"] = args.file_type
+
+    page = getattr(args, "page", 1)
+    if page < 1:
+        print("Error: page must be 1 or greater")
+        return 1
+        
+    query_params["page"] = str(page)
+    query_params["per_page"] = str(per_page)
+    
+    userfiles_endpoint = f"{cbrain_url}/userfiles"
+    query_string = urllib.parse.urlencode(query_params)
+    userfiles_endpoint = f"{userfiles_endpoint}?{query_string}"
+    
+    headers = auth_headers(api_token)
+    request = urllib.request.Request(
+        userfiles_endpoint, data=None, headers=headers, method="GET"
+    )
+    
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        files_data = json.loads(data)
+
+    if getattr(args, "json", False):
+        print(json.dumps(files_data, indent=2))
+    else:
+        print("ID   Type        File Name")
+        print("---- ----------- -----------------------")
+        for file_item in files_data:
+            file_id = file_item.get("id", "")
+            file_type = file_item.get("type", "")
+            file_name = file_item.get("name", "")
+            print(f"{file_id:<4} {file_type:<11} {file_name}")
+        
+        print(f"\nShowing page {page} ({len(files_data)} files)")
+
+    return
+
+
+def delete_file(args):
+    """
+    Delete a file from CBRAIN.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments, including the file_id argument
+
+    Returns
+    -------
+    int
+        Exit code (0 for success, 1 for failure)
+    """
+    # Get the file ID from the argument.
+    file_id = getattr(args, "file_id", None)
+    if not file_id:
+        print("Error: File ID is required")
+        return 1
+
+    delete_endpoint = f"{cbrain_url}/userfiles/delete_files"
+    headers = auth_headers(api_token)
+    headers["Content-Type"] = "application/json"
+
+    payload = {
+        "file_ids": [str(file_id)]
+    }
+
+    json_data = json.dumps(payload).encode("utf-8")
+
+    request = urllib.request.Request(
+        delete_endpoint, data=json_data, headers=headers, method="DELETE"
+    )
+
+    try:
+        with urllib.request.urlopen(request) as response:
+            if response.status == 200 or response.status == 204:
+                print(response.read().decode("utf-8"))
+                return 0
+            else:
+                print(f"File deletion failed with status: {response.status}")
+                return 1
+
+    except urllib.error.HTTPError as e:
+        try:
+            error_data = e.read().decode("utf-8")
+            error_response = json.loads(error_data)
+            print(f"File deletion failed with status: {e.code}")
+            if error_response.get("message"):
+                print(f"Error: {error_response['message']}")
+            else:
+                print(f"Response: {error_data}")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            print(f"File deletion failed with status: {e.code}")
             print(f"Response: {e.read().decode('utf-8', errors='ignore')}")
         return 1
