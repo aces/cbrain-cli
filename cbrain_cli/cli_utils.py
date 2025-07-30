@@ -119,13 +119,14 @@ def version_info(args):
     int
         Exit code (0 for success, 1 for failure)
     """
-    try:
-        cbrain_cli_version = importlib.metadata.version('cbrain-cli') 
-        print(f"cbrain cli client version {cbrain_cli_version}")
-        return 0
-    except importlib.metadata.PackageNotFoundError:
-        print("Warning: Could not determine version. Package may not be installed properly.")
-        return 1
+    print("cbrain cli client version 1.0")
+    # try:
+    #     cbrain_cli_version = importlib.metadata.version('cbrain-cli') 
+    #     print(f"cbrain cli client version {cbrain_cli_version}")
+    #     return 0
+    # except importlib.metadata.PackageNotFoundError:
+    #     print("Warning: Could not determine version. Package may not be installed properly.")
+    #     return 1
 
 def json_printer(data):
     """
