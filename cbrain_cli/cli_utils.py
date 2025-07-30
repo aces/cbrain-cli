@@ -2,7 +2,7 @@ import datetime
 import functools
 import json
 import urllib.error
-import pkg_resources
+import importlib.metadata
 
 from cbrain_cli.config import CREDENTIALS_FILE
 
@@ -120,10 +120,10 @@ def version_info(args):
         Exit code (0 for success, 1 for failure)
     """
     try:
-        version = pkg_resources.get_distribution('cbrain-cli').version
-        print(f"cbrain cli client version {version}")
+        cbrain_cli_version = importlib.metadata.version('cbrain-cli') 
+        print(f"cbrain cli client version {cbrain_cli_version}")
         return 0
-    except pkg_resources.DistributionNotFound:
+    except importlib.metadata.PackageNotFoundError:
         print("Warning: Could not determine version. Package may not be installed properly.")
         return 1
 
