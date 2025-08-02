@@ -1,5 +1,7 @@
 import json
 
+from cbrain_cli.cli_utils import json_printer, jsonl_printer
+
 def print_task_data(tasks_data, args):
     """
     Print task data in either JSON or table format.
@@ -11,9 +13,12 @@ def print_task_data(tasks_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    # Output in requested format.
     if getattr(args, "json", False):
-        print(json.dumps(tasks_data, indent=2))
+        json_printer(tasks_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(tasks_data)
+        return
     else:
         # Table format.
         if not tasks_data:
@@ -54,7 +59,10 @@ def print_task_details(task_data, args):
         Command line arguments, including the --json flag
     """
     if getattr(args, "json", False):
-        print(json.dumps(task_data, indent=2))
+        json_printer(task_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(task_data)
         return
 
     print(f"ID:                        {task_data.get('id', 'N/A')}")

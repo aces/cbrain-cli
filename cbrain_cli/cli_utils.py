@@ -2,7 +2,7 @@ import datetime
 import functools
 import json
 import urllib.error
-import importlib.metadata
+# import importlib.metadata
 
 from cbrain_cli.config import CREDENTIALS_FILE
 
@@ -138,7 +138,12 @@ def json_printer(data):
 def jsonl_printer(data):
     """
     Print data in JSONL format.
+    Each object is printed as a single line of JSON with no indentation.
+    For lists, each object is separated by newlines with no commas or enclosing brackets.
     """
-    for item in data:
-        print(json.dumps(item))
+    if isinstance(data, list):
+        for item in data:
+            print(json.dumps(item, separators=(',', ':')))
+    else:
+        print(json.dumps(data, separators=(',', ':')))
     return 0

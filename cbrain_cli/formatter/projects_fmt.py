@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer
 
 def print_projects_list(projects_data, args):
     """
@@ -11,17 +11,20 @@ def print_projects_list(projects_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
+    formatted_data = [
+        {
+            "id": project.get("id"),
+            "type": project.get("type"),
+            "name": project.get("name"),
+        }
+        for project in projects_data
+    ]
+
     if getattr(args, "json", False):
-        formatted_data = []
-        for project in projects_data:
-            formatted_data.append(
-                {
-                    "id": project.get("id"),
-                    "type": project.get("type"),
-                    "name": project.get("name"),
-                }
-            )
         json_printer(formatted_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(formatted_data)
         return
 
     print("ID Type        Project Name")

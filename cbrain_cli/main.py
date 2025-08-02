@@ -56,6 +56,10 @@ def main():
         "-j", "--json", action="store_true", help="Output in JSON format"
     )
     parser.add_argument(
+        "-jl","--jsonl", action="store_true", help="Output in JSONL format (one JSON object per line)"
+    )
+
+    parser.add_argument(
         "-i",
         "--interactive",
         action="store_true",

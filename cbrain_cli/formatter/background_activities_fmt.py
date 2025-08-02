@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer 
 
 def print_activities_list(activities_data, args):
     """
@@ -13,6 +13,9 @@ def print_activities_list(activities_data, args):
     """
     if getattr(args, "json", False):
         json_printer(activities_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(activities_data)
         return
 
     print(
@@ -55,6 +58,9 @@ def print_activity_details(activity_data, args):
     """
     if getattr(args, "json", False):
         json_printer(activity_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(activity_data)
         return
 
     print(

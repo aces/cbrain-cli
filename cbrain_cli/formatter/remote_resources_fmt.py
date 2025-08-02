@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer
 
 def print_resources_list(resources_data, args):
     """
@@ -13,6 +13,9 @@ def print_resources_list(resources_data, args):
     """
     if getattr(args, "json", False):
         json_printer(resources_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(resources_data)
         return
 
     # Table format.
@@ -55,6 +58,9 @@ def print_resource_details(resource_data, args):
     """
     if getattr(args, "json", False):
         json_printer(resource_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(resource_data)
         return
 
     print("REMOTE RESOURCE DETAILS")

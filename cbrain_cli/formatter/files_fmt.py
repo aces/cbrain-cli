@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer
 
 def print_file_details(file_data, args):
     """
@@ -14,7 +14,9 @@ def print_file_details(file_data, args):
     if getattr(args, "json", False):
         json_printer(file_data)
         return
-
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(file_data)
+        return
     print(
         f"id: {file_data.get('id', 'N/A')}\n"
         f"type: {file_data.get('type', 'N/A')}\n"
@@ -50,6 +52,9 @@ def print_files_list(files_data, page, args):
     """
     if getattr(args, "json", False):
         json_printer(files_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(files_data)
         return
 
     print("ID   Type        File Name")

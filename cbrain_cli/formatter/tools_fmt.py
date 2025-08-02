@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer
 
 def print_tool_details(tool_data, args):
     """
@@ -14,7 +14,9 @@ def print_tool_details(tool_data, args):
     if getattr(args, "json", False):
         json_printer(tool_data)
         return
-
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(tool_data)
+        return
     print(
         f"id: {tool_data.get('id', 'N/A')}\n"
         f"name: {tool_data.get('name', 'N/A')}\n"
@@ -38,6 +40,9 @@ def print_tools_list(tools_data, args):
     """
     if getattr(args, "json", False):
         json_printer(tools_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(tools_data)
         return
 
     if not tools_data:

@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer
+from cbrain_cli.cli_utils import json_printer,jsonl_printer
 
 def print_provider_details(provider_data, args):
     """
@@ -13,6 +13,9 @@ def print_provider_details(provider_data, args):
     """
     if getattr(args, "json", False):
         json_printer(provider_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(provider_data)
         return
 
     print(
@@ -47,6 +50,9 @@ def print_providers_list(providers_data, args):
     """
     if getattr(args, "json", False):
         json_printer(providers_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(providers_data)
         return
  
     print(
