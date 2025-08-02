@@ -2,6 +2,7 @@ import datetime
 import functools
 import json
 import urllib.error
+# import importlib.metadata
 
 from cbrain_cli.config import CREDENTIALS_FILE
 
@@ -119,4 +120,30 @@ def version_info(args):
         Exit code (0 for success, 1 for failure)
     """
     print("cbrain cli client version 1.0")
+    # try:
+    #     cbrain_cli_version = importlib.metadata.version('cbrain-cli') 
+    #     print(f"cbrain cli client version {cbrain_cli_version}")
+    #     return 0
+    # except importlib.metadata.PackageNotFoundError:
+    #     print("Warning: Could not determine version. Package may not be installed properly.")
+    #     return 1
+
+def json_printer(data):
+    """
+    Print data in JSON format.
+    """
+    print(json.dumps(data, indent=2))
+    return 0
+
+def jsonl_printer(data):
+    """
+    Print data in JSONL format.
+    Each object is printed as a single line of JSON with no indentation.
+    For lists, each object is separated by newlines with no commas or enclosing brackets.
+    """
+    if isinstance(data, list):
+        for item in data:
+            print(json.dumps(item, separators=(',', ':')))
+    else:
+        print(json.dumps(data, separators=(',', ':')))
     return 0
