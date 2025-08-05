@@ -30,7 +30,7 @@ def create_session(args):
         return 1
 
     # Get user input.
-    cbrain_url = input("Enter CBRAIN server URL prefix: ").strip()
+    cbrain_url = input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()
     if not cbrain_url:
         cbrain_url = DEFAULT_BASE_URL
 

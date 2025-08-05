@@ -32,6 +32,8 @@ from cbrain_cli.formatter.tasks_fmt import print_task_data, print_task_details
 from cbrain_cli.data.projects import show_project, switch_project, list_projects
 from cbrain_cli.formatter.projects_fmt import print_projects_list, print_current_project, print_no_project
 from cbrain_cli.data.remote_resources import list_remote_resources, show_remote_resource
+from cbrain_cli.data.tool_configs import list_tool_configs, tool_config_boutiques_descriptor, show_tool_config
+from cbrain_cli.formatter.tool_configs_fmt import print_tool_configs_list, print_boutiques_descriptor, print_tool_config_details
 from cbrain_cli.formatter.remote_resources_fmt import print_resources_list, print_resource_details
 from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.data.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
@@ -272,6 +274,24 @@ def main():
     tool_list_parser = tool_subparsers.add_parser("list", help="List all tools")
     tool_list_parser.set_defaults(func=handle_errors(lambda args: print_tools_list(show_tool(args), args) if show_tool(args) else None))
 
+    ## MARK: Tool-configs commands
+    tool_configs_parser = subparsers.add_parser("tool-configs", help="Tool configuration operations")
+    tool_configs_subparsers = tool_configs_parser.add_subparsers(dest="action", help="Tool configuration actions")
+    
+    # tool-configs list
+    tool_configs_list_parser = tool_configs_subparsers.add_parser("list", help="List all tool configurations")
+    tool_configs_list_parser.set_defaults(func=handle_errors(lambda args: print_tool_configs_list(list_tool_configs(args), args)))
+
+    # tool-configs show
+    tool_configs_show_parser = tool_configs_subparsers.add_parser("show", help="Show tool configuration details")
+    tool_configs_show_parser.add_argument("id", type=int, help="Tool configuration ID")
+    tool_configs_show_parser.set_defaults(func=handle_errors(lambda args: print_tool_config_details(show_tool_config(args), args) if show_tool_config(args) else None))
+
+    # tool-configs boutiques-descriptor
+    tool_configs_boutiques_parser = tool_configs_subparsers.add_parser("boutiques-descriptor", help="Get Boutiques descriptor for a tool configuration")
+    tool_configs_boutiques_parser.add_argument("id", type=int, help="Tool configuration ID")
+    tool_configs_boutiques_parser.set_defaults(func=handle_errors(lambda args: print_boutiques_descriptor(tool_config_boutiques_descriptor(args), args) if tool_config_boutiques_descriptor(args) else None))
+
     # Tag commands
     tag_parser = subparsers.add_parser("tag", help="Tag operations")
     tag_subparsers = tag_parser.add_subparsers(dest="action", help="Tag actions")
@@ -436,6 +456,7 @@ def main():
         "dataprovider",
         "project",
         "tool",
+        "tool-configs",
         "tag",
         "background",
         "task",
@@ -452,6 +473,8 @@ def main():
                 project_parser.print_help()
             elif args.command == "tool":
                 tool_parser.print_help()
+            elif args.command == "tool-configs":
+                tool_configs_parser.print_help()
             elif args.command == "tag":
                 tag_parser.print_help()
             elif args.command == "background":

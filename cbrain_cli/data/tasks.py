@@ -33,8 +33,7 @@ def list_tasks(args):
     elif hasattr(args, "filter_value") and args.filter_value is not None:
         print("Error: Filter type is required when filter value is specified")
         return 1
-
-    # Prepare the API request.
+ 
     tasks_endpoint = f"{cbrain_url}/tasks"
 
     # Add query parameters if any filters are provided.
