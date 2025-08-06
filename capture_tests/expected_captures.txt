@@ -42,7 +42,7 @@ Stderr:
 ############################
 Command: cbrain file list
 Status: 0
-Stdout: 237 bytes
+Stdout: 211 bytes
 Stderr: 0 bytes
 
 Stdout:
