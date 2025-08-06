@@ -39,7 +39,7 @@ from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.data.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
 from cbrain_cli.formatter.tags_fmt import print_tags_list, print_tag_details, print_tag_operation_result
 from cbrain_cli.data.tasks import list_tasks, operation_task, show_task
-from cbrain_cli.data.tools import show_tool
+from cbrain_cli.data.tools import list_tools
 from cbrain_cli.formatter.tools_fmt import print_tool_details, print_tools_list 
 from cbrain_cli.users import whoami_user
 
@@ -114,7 +114,7 @@ def main():
     file_list_parser.add_argument(
         "--per-page", type=int, default=25, help="Number of files per page (5-1000, default: 25)"
     )
-    file_list_parser.set_defaults(func=handle_errors(lambda args: print_files_list(*list_files(args), args) if list_files(args) else None))
+    file_list_parser.set_defaults(func=handle_errors(lambda args: print_files_list(list_files(args), args) if list_files(args) else None))
     
     # file show
     file_show_parser = file_subparsers.add_parser("show", help="Show file details")
@@ -212,6 +212,12 @@ def main():
     )
     dataprovider_list_parser.set_defaults(func=handle_errors(lambda args: print_providers_list(list_data_providers(args), args)))
     
+    dataprovider_list_parser.add_argument(
+        "--page", type=int, default=1, help="Page number (default: 1)"
+    )
+    dataprovider_list_parser.add_argument(
+        "--per-page", type=int, default=25, help="Number of data providers per page (5-1000, default: 25)"
+    )
     # dataprovider show
     dataprovider_show_parser = dataprovider_subparsers.add_parser(
         "show", help="Show data provider details"
@@ -268,11 +274,17 @@ def main():
     # tool show
     tool_show_parser = tool_subparsers.add_parser("show", help="Show tool details")
     tool_show_parser.add_argument("id", type=int, help="Tool ID")
-    tool_show_parser.set_defaults(func=handle_errors(lambda args: print_tool_details(show_tool(args), args) if show_tool(args) else None))
+    tool_show_parser.set_defaults(func=handle_errors(lambda args: print_tool_details(list_tools(args), args) if list_tools(args) else None))
 
     # tool list (reusing show_tool without id)
     tool_list_parser = tool_subparsers.add_parser("list", help="List all tools")
-    tool_list_parser.set_defaults(func=handle_errors(lambda args: print_tools_list(show_tool(args), args) if show_tool(args) else None))
+    tool_list_parser.add_argument(
+        "--page", type=int, default=1, help="Page number (default: 1)"
+    )
+    tool_list_parser.add_argument(
+        "--per-page", type=int, default=25, help="Number of tools per page (5-1000, default: 25)"
+    )
+    tool_list_parser.set_defaults(func=handle_errors(lambda args: print_tools_list(list_tools(args), args) if list_tools(args) else None))
 
     ## MARK: Tool-configs commands
     tool_configs_parser = subparsers.add_parser("tool-configs", help="Tool configuration operations")
@@ -281,6 +293,13 @@ def main():
     # tool-configs list
     tool_configs_list_parser = tool_configs_subparsers.add_parser("list", help="List all tool configurations")
     tool_configs_list_parser.set_defaults(func=handle_errors(lambda args: print_tool_configs_list(list_tool_configs(args), args)))
+
+    tool_configs_list_parser.add_argument(
+        "--page", type=int, default=1, help="Page number (default: 1)"
+    )
+    tool_configs_list_parser.add_argument(
+        "--per-page", type=int, default=25, help="Number of tool configurations per page (5-1000, default: 25)"
+    )
 
     # tool-configs show
     tool_configs_show_parser = tool_configs_subparsers.add_parser("show", help="Show tool configuration details")
@@ -299,6 +318,13 @@ def main():
     # tag list
     tag_list_parser = tag_subparsers.add_parser("list", help="List tags")
     tag_list_parser.set_defaults(func=handle_errors(lambda args: print_tags_list(list_tags(args), args)))
+
+    tag_list_parser.add_argument(
+        "--page", type=int, default=1, help="Page number (default: 1)"
+    )
+    tag_list_parser.add_argument(
+        "--per-page", type=int, default=25, help="Number of tags per page (5-1000, default: 25)"
+    )
 
     # tag show
     tag_show_parser = tag_subparsers.add_parser("show", help="Show tag details")
@@ -378,6 +404,12 @@ def main():
     task_list_parser = task_subparsers.add_parser("list", help="List tasks")
     task_list_parser.add_argument(
         "filter_type", nargs="?", choices=["bourreau-id"], help="Filter type (optional)"
+    )
+    task_list_parser.add_argument(
+        "--page", type=int, default=1, help="Page number (default: 1)"
+    )
+    task_list_parser.add_argument(
+        "--per-page", type=int, default=25, help="Number of tasks per page (5-1000, default: 25)"
     )
     task_list_parser.add_argument(
         "filter_value",

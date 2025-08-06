@@ -2,7 +2,7 @@ import json
 import urllib.error
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
+from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
 from cbrain_cli.config import auth_headers
 
 
@@ -67,7 +67,12 @@ def list_data_providers(args):
     list
         List of data provider dictionaries
     """
+    query_params = {}
+    query_params = pagination(args,query_params)
+
     data_providers_endpoint = f"{cbrain_url}/data_providers"
+    query_string = urllib.parse.urlencode(query_params)
+    data_providers_endpoint = f"{data_providers_endpoint}?{query_string}"
     headers = auth_headers(api_token)
 
     request = urllib.request.Request(

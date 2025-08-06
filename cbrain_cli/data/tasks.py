@@ -2,7 +2,7 @@ import json
 import urllib.parse
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, json_printer
+from cbrain_cli.cli_utils import api_token, cbrain_url, json_printer, pagination
 from cbrain_cli.config import auth_headers
 
 
@@ -33,10 +33,11 @@ def list_tasks(args):
     elif hasattr(args, "filter_value") and args.filter_value is not None:
         print("Error: Filter type is required when filter value is specified")
         return 1
+    
+    query_params = pagination(args,query_params)
  
     tasks_endpoint = f"{cbrain_url}/tasks"
 
-    # Add query parameters if any filters are provided.
     if query_params:
         query_string = urllib.parse.urlencode(query_params)
         tasks_endpoint = f"{tasks_endpoint}?{query_string}"

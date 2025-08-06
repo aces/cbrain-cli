@@ -147,3 +147,22 @@ def jsonl_printer(data):
     else:
         print(json.dumps(data, separators=(',', ':')))
     return 0
+
+def pagination(args,query_params):
+    """
+    Validate the per_page parameter.
+    """
+    per_page = getattr(args, "per_page", 25)
+    if per_page < 5 or per_page > 1000:
+        print("Error: per-page must be between 5 and 1000")
+        return None
+    
+    page = getattr(args, "page", 1)
+    if page < 1:
+        print("Error: page must be 1 or greater")
+        return None
+        
+    query_params["page"] = str(page)
+    query_params["per_page"] = str(per_page)
+
+    return query_params

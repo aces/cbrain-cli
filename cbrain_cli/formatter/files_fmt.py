@@ -37,7 +37,7 @@ def print_file_details(file_data, args):
     if file_data.get("archived"):
         print(f"archived: {file_data.get('archived')}")
 
-def print_files_list(files_data, page, args):
+def print_files_list(files_data, args):
     """
     Print list of files in table format.
 
@@ -45,8 +45,6 @@ def print_files_list(files_data, page, args):
     ----------
     files_data : list
         List of file dictionaries
-    page : int
-        Current page number
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
@@ -65,8 +63,6 @@ def print_files_list(files_data, page, args):
         file_name = file_item.get("name", "")
         print(f"{file_id:<4} {file_type:<11} {file_name}")
     
-    print(f"\nShowing page {page} ({len(files_data)} files)")
-
 def print_upload_result(response_data, response_status, file_name, file_size, data_provider_id):
     """
     Print the result of a file upload operation.

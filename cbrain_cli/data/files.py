@@ -5,10 +5,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
+from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
 from cbrain_cli.config import auth_headers
-from cbrain_cli.data.background_activitites import show_background_activity
-
+ 
 
 def show_file(args):
     """
@@ -282,12 +281,6 @@ def list_files(args):
     tuple
         (files_data, page) or None if error
     """
-    # Validate per_page parameter
-    per_page = getattr(args, "per_page", 25)
-    if per_page < 5 or per_page > 1000:
-        print("Error: per-page must be between 5 and 1000")
-        return None
-
     # Build query parameters for filtering
     query_params = {}
 
@@ -307,14 +300,8 @@ def list_files(args):
     if hasattr(args, "file_type") and args.file_type is not None:
         query_params["type"] = args.file_type
 
-    page = getattr(args, "page", 1)
-    if page < 1:
-        print("Error: page must be 1 or greater")
-        return None
-        
-    query_params["page"] = str(page)
-    query_params["per_page"] = str(per_page)
-    
+    query_params= pagination(args,query_params)
+
     userfiles_endpoint = f"{cbrain_url}/userfiles"
     query_string = urllib.parse.urlencode(query_params)
     userfiles_endpoint = f"{userfiles_endpoint}?{query_string}"
@@ -328,7 +315,7 @@ def list_files(args):
         data = response.read().decode("utf-8")
         files_data = json.loads(data)
 
-    return files_data, page
+    return files_data 
 
 
 def delete_file(args):

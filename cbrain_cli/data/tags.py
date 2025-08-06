@@ -2,7 +2,7 @@ import json
 import urllib.error
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
+from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
 from cbrain_cli.config import auth_headers
 from cbrain_cli.formatter.tags_fmt import print_interactive_prompts
 
@@ -21,7 +21,12 @@ def list_tags(args):
     list
         List of tag dictionaries
     """
+    query_params = {}
+    query_params = pagination(args,query_params)
+
     tags_endpoint = f"{cbrain_url}/tags"
+    query_string = urllib.parse.urlencode(query_params)
+    tags_endpoint = f"{tags_endpoint}?{query_string}"
     headers = auth_headers(api_token)
 
     request = urllib.request.Request(

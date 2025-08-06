@@ -1,11 +1,11 @@
 import json
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
+from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
 from cbrain_cli.config import auth_headers
 
 
-def show_tool(args):
+def list_tools(args):
     """
     Get tool details or list of all tools.
 
@@ -23,9 +23,12 @@ def show_tool(args):
     """
     # Get the tool ID from the -id argument if provided.
     tool_id = getattr(args, "id", None)
+    query_params = {}
+    query_params = pagination(args,query_params)
 
-    # Always use the tools endpoint (no individual tool endpoint available).
     tools_endpoint = f"{cbrain_url}/tools"
+    query_string = urllib.parse.urlencode(query_params)
+    tools_endpoint = f"{tools_endpoint}?{query_string}"
     headers = auth_headers(api_token)
 
     request = urllib.request.Request(

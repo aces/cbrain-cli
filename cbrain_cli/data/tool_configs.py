@@ -2,7 +2,7 @@ import json
 import urllib.parse
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url 
+from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
 from cbrain_cli.config import auth_headers
 
 
@@ -18,7 +18,12 @@ def list_tool_configs(args):
     list
         A list of tool configurations, each represented as a dictionary containing configuration details.
     """ 
+    query_params = {}
+    query_params = pagination(args,query_params)
+    
     tool_configs_endpoint = f"{cbrain_url}/tool_configs"
+    query_string = urllib.parse.urlencode(query_params)
+    tool_configs_endpoint = f"{tool_configs_endpoint}?{query_string}"
     headers = auth_headers(api_token)
 
     request = urllib.request.Request(
