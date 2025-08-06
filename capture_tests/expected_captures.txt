@@ -53,8 +53,7 @@ ID   Type        File Name
 4    TextFile    todel.txt
 5    TextFile    todelmult.txt
 3    TextFile    tounreg1.txt
-
-Showing page 1 (5 files)
+ 
 Stderr:
 (No output)
 
