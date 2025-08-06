@@ -27,18 +27,22 @@ Stderr:
 ############################
 Command: cbrain -j whoami
 Status: 0
-Stdout: 81 bytes
+Stdout: 89 bytes
 Stderr: 0 bytes
 
 Stdout:
-{"login": "norm", "full_name": "Normal User", "server": "http://localhost:3000"}
+{
+  "login": "norm",
+  "full_name": "Normal User",
+  "server": "http://localhost:3000"
+}
 Stderr:
 (No output)
 
 ############################
 Command: cbrain file list
 Status: 0
-Stdout: 237 bytes
+Stdout: 211 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -49,8 +53,6 @@ ID   Type        File Name
 4    TextFile    todel.txt
 5    TextFile    todelmult.txt
 3    TextFile    tounreg1.txt
-
-Showing page 1 (5 files)
 Stderr:
 (No output)
 
