@@ -42,17 +42,17 @@ Stderr:
 ############################
 Command: cbrain file list
 Status: 0
-Stdout: 211 bytes
+Stdout: 162 bytes
 Stderr: 0 bytes
 
 Stdout:
-ID   Type        File Name
----- ----------- -----------------------
-6    DatFile     binary.dat
-2    TextFile    norm.json
-4    TextFile    todel.txt
-5    TextFile    todelmult.txt
-3    TextFile    tounreg1.txt
+ID Type     File Name
+-- -------- ---------
+6  DatFile  binary.dat
+2  TextFile norm.json
+4  TextFile todel.txt
+5  TextFile todelmult.txt
+3  TextFile tounreg1.txt
 Stderr:
 (No output)
 
