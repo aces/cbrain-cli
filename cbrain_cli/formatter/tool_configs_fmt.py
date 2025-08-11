@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
 
 def print_tool_configs_list(tool_configs, args):
     """
@@ -10,29 +10,32 @@ def print_tool_configs_list(tool_configs, args):
     elif getattr(args, "jsonl", False):
         jsonl_printer(tool_configs)
         return
-    else:
-        # Table format.
-        if not tool_configs:
-            print("No tool configurations found.")
-            return
 
-        print(f"{'ID':<6} {'Version':<12} {'Tool ID':<8} {'Bourreau':<10} {'Group':<6} {'CPUs':<6} {'Description':<30}")
-        print("-" * 85)
-        for config in tool_configs:
-            config_id = str(config.get("id", ""))
-            version = str(config.get("version_name", ""))
-            tool_id = str(config.get("tool_id", ""))
-            bourreau_id = str(config.get("bourreau_id", ""))
-            group_id = str(config.get("group_id", ""))
-            ncpus = str(config.get("ncpus", "1"))
-            description = config.get("description", "")
-            # Truncate long descriptions
-            if len(description) > 29:
-                description = description[:26] + "..."
-            
-            print(f"{config_id:<6} {version:<12} {tool_id:<8} {bourreau_id:<10} {group_id:<6} {ncpus:<6} {description:<30}")
-        print("-" * 85)
-        print(f"Total: {len(tool_configs)} configuration(s)")
+    if not tool_configs:
+        print("No tool configurations found.")
+        return
+
+    # Prepare data for better display
+    formatted_configs = []
+    for config in tool_configs:
+        formatted_config = {
+            "id": config.get("id", ""),
+            "version_name": config.get("version_name", ""),
+            "tool_id": config.get("tool_id", ""),
+            "bourreau_id": config.get("bourreau_id", ""),
+            "group_id": config.get("group_id", ""),
+            "ncpus": config.get("ncpus", "1"),
+            "description": config.get("description", "")
+        }
+        formatted_configs.append(formatted_config)
+    
+    # Use the reusable dynamic table formatter
+    dynamic_table_print(formatted_configs, 
+                       ["id", "version_name", "tool_id", "bourreau_id", "group_id", "ncpus", "description"],
+                       ["ID", "Version", "Tool ID", "Bourreau", "Group", "CPUs", "Description"])
+    
+    print("-" * 85)
+    print(f"Total: {len(tool_configs)} configuration(s)")
 
 def print_tool_config_details(tool_config, args):
     """

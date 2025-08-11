@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
 
 def print_file_details(file_data, args):
     """
@@ -55,13 +55,8 @@ def print_files_list(files_data, args):
         jsonl_printer(files_data)
         return
 
-    print("ID   Type        File Name")
-    print("---- ----------- -----------------------")
-    for file_item in files_data:
-        file_id = file_item.get("id", "")
-        file_type = file_item.get("type", "")
-        file_name = file_item.get("name", "")
-        print(f"{file_id:<4} {file_type:<11} {file_name}")
+    # Use the reusable dynamic table formatter
+    dynamic_table_print(files_data, ["id", "type", "name"], ["ID", "Type", "File Name"])
     
 def print_upload_result(response_data, response_status, file_name, file_size, data_provider_id):
     """

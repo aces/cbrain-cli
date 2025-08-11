@@ -166,3 +166,73 @@ def pagination(args,query_params):
     query_params["per_page"] = str(per_page)
 
     return query_params
+
+def dynamic_table_print(data, columns, headers=None):
+    """
+    Print data in a dynamically-sized table format with proper column alignment.
+    
+    Parameters
+    ----------
+    data : list of dict
+        List of dictionaries containing the data to display
+    columns : list of str
+        List of column keys to extract from each data dictionary
+    headers : list of str, optional
+        List of header names. If None, uses the column keys as headers
+        
+    Returns
+    -------
+    None
+        Prints the formatted table to stdout
+        
+    Examples
+    --------
+    >>> data = [
+    ...     {"id": 1234567, "type": "ReconAllCrossSectionalOutput", "name": "file1.txt"},
+    ...     {"id": 5, "type": "SingleFile", "name": "demo.txt"}
+    ... ]
+    >>> dynamic_table_print(data, ["id", "type", "name"], ["ID", "Type", "File Name"])
+    """
+    if not data:
+        print("No data found.")
+        return
+        
+    # Use column keys as headers if none provided
+    if headers is None:
+        headers = columns
+        
+    if len(headers) != len(columns):
+        raise ValueError("Number of headers must match number of columns")
+    
+    # Calculate dynamic column widths based on actual data and headers
+    column_widths = []
+    for i, (column, header) in enumerate(zip(columns, headers)):
+        # Get max width needed for this column (data + header)
+        max_data_width = max(len(str(item.get(column, ""))) for item in data)
+        max_width = max(max_data_width, len(str(header)))
+        column_widths.append(max_width)
+    
+    # Print header with dynamic spacing
+    header_parts = []
+    separator_parts = []
+    for i, (header, width) in enumerate(zip(headers, column_widths)):
+        if i == len(headers) - 1:  # Last column doesn't need right padding
+            header_parts.append(str(header))
+            separator_parts.append("-" * len(str(header)))
+        else:
+            header_parts.append(f"{header:<{width}}")
+            separator_parts.append("-" * width)
+    
+    print(" ".join(header_parts))
+    print(" ".join(separator_parts))
+    
+    # Print each row with dynamic spacing
+    for item in data:
+        row_parts = []
+        for i, (column, width) in enumerate(zip(columns, column_widths)):
+            value = str(item.get(column, ""))
+            if i == len(columns) - 1:  # Last column doesn't need right padding
+                row_parts.append(value)
+            else:
+                row_parts.append(f"{value:<{width}}")
+        print(" ".join(row_parts))

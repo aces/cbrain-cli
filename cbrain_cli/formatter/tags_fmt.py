@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer,jsonl_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
 
 def print_tags_list(tags_data, args):
     """
@@ -18,24 +18,16 @@ def print_tags_list(tags_data, args):
         jsonl_printer(tags_data)
         return
 
-    # Table format.
     if not tags_data:
         print("No tags found.")
         return
 
     print("TAGS")
     print("-" * 60)
-    print(f"{'ID':<6} {'Name':<25} {'User':<6} {'Group':<6}")
-    print("-" * 60)
-    for tag in tags_data:
-        tag_id = str(tag.get("id", ""))
-        tag_name = tag.get("name", "")
-        # Truncate long names.
-        if len(tag_name) > 24:
-            tag_name = tag_name[:21] + "..."
-        user_id = str(tag.get("user_id", ""))
-        group_id = str(tag.get("group_id", ""))
-        print(f"{tag_id:<6} {tag_name:<25} {user_id:<6} {group_id:<6}")
+    
+    # Use the reusable dynamic table formatter
+    dynamic_table_print(tags_data, ["id", "name", "user_id", "group_id"], ["ID", "Name", "User", "Group"])
+    
     print("-" * 60)
     print(f"Total: {len(tags_data)} tag(s)")
 
@@ -59,10 +51,16 @@ def print_tag_details(tag_data, args):
 
     print("TAG DETAILS")
     print("-" * 30)
-    print(f"ID:                        {tag_data.get('id', 'N/A')}")
-    print(f"Name:                      {tag_data.get('name', 'N/A')}")
-    print(f"User ID:                   {tag_data.get('user_id', 'N/A')}")
-    print(f"Group ID:                  {tag_data.get('group_id', 'N/A')}")
+    
+    # Prepare tag details as key-value pairs for table display
+    tag_details = [
+        {"field": "ID", "value": str(tag_data.get('id', 'N/A'))},
+        {"field": "Name", "value": str(tag_data.get('name', 'N/A'))},
+        {"field": "User ID", "value": str(tag_data.get('user_id', 'N/A'))},
+        {"field": "Group ID", "value": str(tag_data.get('group_id', 'N/A'))}
+    ]
+    
+    dynamic_table_print(tag_details, ["field", "value"], ["Field", "Value"])
 
 def print_tag_operation_result(operation, tag_id=None, success=True, error_msg=None, response_status=None):
     """

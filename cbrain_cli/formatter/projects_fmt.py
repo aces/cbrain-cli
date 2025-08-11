@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
 
 def print_projects_list(projects_data, args):
     """
@@ -27,13 +27,7 @@ def print_projects_list(projects_data, args):
         jsonl_printer(formatted_data)
         return
 
-    print("ID Type        Project Name")
-    print("-- ----------- ----------------")
-    for project in projects_data:
-        project_id = project.get("id", "")
-        project_type = project.get("type", "")
-        project_name = project.get("name", "")
-        print(f"{project_id:<2} {project_type:<11} {project_name}")
+    dynamic_table_print(projects_data, ["id", "type", "name"], ["ID", "Type", "Project Name"])
 
 def print_current_project(project_data):
     """

@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
 
 def print_resources_list(resources_data, args):
     """
@@ -18,30 +18,30 @@ def print_resources_list(resources_data, args):
         jsonl_printer(resources_data)
         return
 
-    # Table format.
     if not resources_data:
         print("No remote resources found.")
         return
 
     print("REMOTE RESOURCES (EXECUTION SERVERS)")
     print("-" * 80)
-    print(
-        f"{'ID':<6} {'Name':<25} {'User':<6} {'Group':<6} {'Online':<8} {'Read-Only':<10}"
-    )
-    print("-" * 80)
-    for bourreau in resources_data:
-        bourreau_id = str(bourreau.get("id", ""))
-        bourreau_name = bourreau.get("name", "")
-        # Truncate long names.
-        if len(bourreau_name) > 24:
-            bourreau_name = bourreau_name[:21] + "..."
-        user_id = str(bourreau.get("user_id", ""))
-        group_id = str(bourreau.get("group_id", ""))
-        online = "Yes" if bourreau.get("online", False) else "No"
-        read_only = "Yes" if bourreau.get("read_only", False) else "No"
-        print(
-            f"{bourreau_id:<6} {bourreau_name:<25} {user_id:<6} {group_id:<6} {online:<8} {read_only:<10}"
-        )
+    
+    # Prepare data with formatted boolean values for better display
+    formatted_resources = []
+    for resource in resources_data:
+        formatted_resource = {
+            "id": resource.get("id", ""),
+            "name": resource.get("name", ""),
+            "user_id": resource.get("user_id", ""),
+            "group_id": resource.get("group_id", ""),
+            "online": "Yes" if resource.get("online", False) else "No",
+            "read_only": "Yes" if resource.get("read_only", False) else "No"
+        }
+        formatted_resources.append(formatted_resource)
+    
+    dynamic_table_print(formatted_resources, 
+                       ["id", "name", "user_id", "group_id", "online", "read_only"],
+                       ["ID", "Name", "User", "Group", "Online", "Read-Only"])
+    
     print("-" * 80)
     print(f"Total: {len(resources_data)} remote resource(s)")
 
@@ -65,15 +65,27 @@ def print_resource_details(resource_data, args):
 
     print("REMOTE RESOURCE DETAILS")
     print("-" * 30)
-    print(f"ID:                        {resource_data.get('id', 'N/A')}")
-    print(f"Name:                      {resource_data.get('name', 'N/A')}")
-    print(f"Type:                      {resource_data.get('type', 'N/A')}")
+    
+    # Prepare basic details as key-value pairs for table display
+    basic_details = [
+        {"field": "ID", "value": str(resource_data.get('id', 'N/A'))},
+        {"field": "Name", "value": str(resource_data.get('name', 'N/A'))},
+        {"field": "Type", "value": str(resource_data.get('type', 'N/A'))}
+    ]
+    
+    dynamic_table_print(basic_details, ["field", "value"], ["Field", "Value"])
     print()
 
     print("OWNERSHIP & ACCESS")
     print("-" * 30)
-    print(f"User ID:                   {resource_data.get('user_id', 'N/A')}")
-    print(f"Group ID:                  {resource_data.get('group_id', 'N/A')}")
-    print(f"Online:                    {resource_data.get('online', 'N/A')}")
-    print(f"Read Only:                 {resource_data.get('read_only', 'N/A')}")
+    
+    # Prepare ownership details as key-value pairs for table display
+    ownership_details = [
+        {"field": "User ID", "value": str(resource_data.get('user_id', 'N/A'))},
+        {"field": "Group ID", "value": str(resource_data.get('group_id', 'N/A'))},
+        {"field": "Online", "value": str(resource_data.get('online', 'N/A'))},
+        {"field": "Read Only", "value": str(resource_data.get('read_only', 'N/A'))}
+    ]
+    
+    dynamic_table_print(ownership_details, ["field", "value"], ["Field", "Value"])
     print() 

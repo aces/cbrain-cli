@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer
+from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
 
 def print_tool_details(tool_data, args):
     """
@@ -17,15 +17,22 @@ def print_tool_details(tool_data, args):
     elif getattr(args, "jsonl", False):
         jsonl_printer(tool_data)
         return
-    print(
-        f"id: {tool_data.get('id', 'N/A')}\n"
-        f"name: {tool_data.get('name', 'N/A')}\n"
-        f"user_id: {tool_data.get('user_id', 'N/A')}\n"
-        f"group_id: {tool_data.get('group_id', 'N/A')}\n"
-        f"category: {tool_data.get('category', 'N/A')}\n"
-        f"description: {tool_data.get('description', 'N/A')}\n"
-        f"url: {tool_data.get('url', 'N/A')}\n"
-    )
+
+    print("TOOL DETAILS")
+    print("-" * 30)
+    
+    # Prepare tool details as key-value pairs for table display
+    tool_details = [
+        {"field": "ID", "value": str(tool_data.get('id', 'N/A'))},
+        {"field": "Name", "value": str(tool_data.get('name', 'N/A'))},
+        {"field": "User ID", "value": str(tool_data.get('user_id', 'N/A'))},
+        {"field": "Group ID", "value": str(tool_data.get('group_id', 'N/A'))},
+        {"field": "Category", "value": str(tool_data.get('category', 'N/A'))},
+        {"field": "Description", "value": str(tool_data.get('description', 'N/A'))},
+        {"field": "URL", "value": str(tool_data.get('url', 'N/A'))}
+    ]
+    
+    dynamic_table_print(tool_details, ["field", "value"], ["Field", "Value"])
 
 def print_tools_list(tools_data, args):
     """
@@ -50,12 +57,9 @@ def print_tools_list(tools_data, args):
         return
 
     print(f"Found {len(tools_data)} tools:")
-    print(f"{'ID':<5} {'Name':<20} {'Category':<20} {'Description':<30}")
+    
+    # Use the reusable dynamic table formatter
+    dynamic_table_print(tools_data, ["id", "name", "category", "description"], ["ID", "Name", "Category", "Description"])
+    
     print("-" * 80)
-    for tool in tools_data:
-        tool_id = str(tool.get("id", "N/A"))
-        name = tool.get("name", "N/A")[:19]
-        category = tool.get("category", "N/A")[:19]
-        description = tool.get("description", "N/A")[:29]
-        print(f"{tool_id:<5} {name:<20} {category:<20} {description:<30}")
  
