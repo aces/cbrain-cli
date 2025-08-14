@@ -167,7 +167,17 @@ def pagination(args,query_params):
 
     return query_params
 
-def dynamic_table_print(data, columns, headers=None):
+def dynamic_table_print(
+    data,
+    columns,
+    headers=None,
+    wrap_columns=None,
+    max_total_width=None,
+    max_column_widths=None,
+    indent_wrapped=True,
+    max_row_lines=None,
+    preserve_blank_lines=False,
+):
     """
     Print data in a dynamically-sized table format with proper column alignment.
     
@@ -196,43 +206,129 @@ def dynamic_table_print(data, columns, headers=None):
     if not data:
         print("No data found.")
         return
-        
+
+    # Lazy imports to avoid adding global deps when not needed
+    import shutil
+    import textwrap
+
     # Use column keys as headers if none provided
     if headers is None:
         headers = columns
         
     if len(headers) != len(columns):
         raise ValueError("Number of headers must match number of columns")
-    
-    # Calculate dynamic column widths based on actual data and headers
-    column_widths = []
-    for i, (column, header) in enumerate(zip(columns, headers)):
-        # Get max width needed for this column (data + header)
+
+    wrap_columns = set(wrap_columns or [])
+    max_column_widths = max_column_widths or {}
+
+    # Determine target total width (terminal width by default)
+    if max_total_width is None:
+        try:
+            max_total_width = shutil.get_terminal_size(fallback=(120, 24)).columns
+        except Exception:
+            max_total_width = 120
+
+    # Compute base widths for non-wrapped columns; headers included
+    base_widths = []
+    for column, header in zip(columns, headers):
         max_data_width = max(len(str(item.get(column, ""))) for item in data)
-        max_width = max(max_data_width, len(str(header)))
-        column_widths.append(max_width)
-    
-    # Print header with dynamic spacing
+        width = max(max_data_width, len(str(header)))
+        # Apply per-column maximums if provided
+        if column in max_column_widths:
+            width = min(width, int(max_column_widths[column]))
+        base_widths.append(width)
+
+    # If wrapping is requested, allocate space to wrapped columns within terminal width
+    spaces_between = max(len(columns) - 1, 0)  # single space between columns
+    non_wrapped_indices = [i for i, c in enumerate(columns) if c not in wrap_columns]
+    wrapped_indices = [i for i, c in enumerate(columns) if c in wrap_columns]
+
+    column_widths = list(base_widths)
+
+    if wrapped_indices:
+        non_wrapped_total = sum(base_widths[i] for i in non_wrapped_indices)
+        available_for_wrapped = max_total_width - non_wrapped_total - spaces_between
+        # Distribute available width across wrapped columns (usually one).
+        num_wrapped = max(len(wrapped_indices), 1)
+        per_wrapped = max(1, available_for_wrapped // num_wrapped)
+        for idx in wrapped_indices:
+            header_len = len(str(headers[idx]))
+            # Try to stay within terminal width budget; if header is larger we accept overflow.
+            column_widths[idx] = max(per_wrapped, header_len)
+
+    # Print header and matching separator
     header_parts = []
     separator_parts = []
-    for i, (header, width) in enumerate(zip(headers, column_widths)):
-        if i == len(headers) - 1:  # Last column doesn't need right padding
-            header_parts.append(str(header))
-            separator_parts.append("-" * len(str(header)))
-        else:
-            header_parts.append(f"{header:<{width}}")
-            separator_parts.append("-" * width)
-    
+    for header, width in zip(headers, column_widths):
+        header_parts.append(f"{str(header):<{width}}")
+        separator_parts.append("-" * width)
+
     print(" ".join(header_parts))
     print(" ".join(separator_parts))
-    
-    # Print each row with dynamic spacing
+
+    # Print each row with wrapping where requested.
     for item in data:
-        row_parts = []
-        for i, (column, width) in enumerate(zip(columns, column_widths)):
-            value = str(item.get(column, ""))
-            if i == len(columns) - 1:  # Last column doesn't need right padding
-                row_parts.append(value)
+        wrapped_cells = []
+        max_lines = 1
+        for col, width in zip(columns, column_widths):
+            raw_value = str(item.get(col, ""))
+            if col in wrap_columns and width > 0:
+                # Preserve explicit newlines by wrapping each paragraph separately.
+                paragraphs = str(raw_value).splitlines() or [""]
+                lines: list[str] = []
+                for para in paragraphs:
+                    if para == "":
+                        if preserve_blank_lines:
+                            lines.append("")
+                        continue
+                    lines.extend(textwrap.wrap(
+                        para,
+                        width=width,
+                        replace_whitespace=False,
+                        drop_whitespace=False,
+                        break_long_words=True,
+                        break_on_hyphens=True,
+                    ))
+                wrapped = lines if lines else [""]
             else:
-                row_parts.append(f"{value:<{width}}")
-        print(" ".join(row_parts))
+                wrapped = [raw_value]
+            wrapped_cells.append(wrapped)
+            if len(wrapped) > max_lines:
+                max_lines = len(wrapped)
+
+        # Determine how many lines we will display for this row.
+        visible_lines = max_lines if max_row_lines is None else min(max_lines, int(max_row_lines))
+
+        # Emit lines for the tallest wrapped cell (capped by visible_lines).
+        for line_idx in range(visible_lines):
+            row_parts = []
+            for (col, width), cell_lines in zip(zip(columns, column_widths), wrapped_cells):
+                text = cell_lines[line_idx] if line_idx < len(cell_lines) else ""
+                truncated_here = False
+
+                # Indent continuation lines for wrapped columns.
+                if line_idx > 0 and indent_wrapped and col in wrap_columns:
+                    indent = "  " if width > 2 else ""
+                    text = indent + text
+
+                # If this is the last visible line and there are more lines, append ellipsis
+                if col in wrap_columns and line_idx == visible_lines - 1 and len(cell_lines) > visible_lines:
+                    truncated_here = True
+
+                # Ensure we do not overflow column width; append ellipsis if truncated.
+                if len(text) > width:
+                    # Hard truncate to width
+                    text = text[:width]
+                    truncated_here = True
+
+                if truncated_here and width >= 1:
+                    # Add an ellipsis within the width, prefer '...' but scale down if tight.
+                    ellipsis = "..." if width >= 3 else "." * width
+                    # Reserve space for ellipsis when possible.
+                    if width >= 3:
+                        text = text[: max(0, width - len(ellipsis))] + ellipsis
+                    else:
+                        text = ellipsis
+
+                row_parts.append(f"{text:<{width}}")
+            print(" ".join(row_parts).rstrip())

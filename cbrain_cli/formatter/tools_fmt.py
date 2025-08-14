@@ -57,9 +57,19 @@ def print_tools_list(tools_data, args):
         return
 
     print(f"Found {len(tools_data)} tools:")
-    
-    # Use the reusable dynamic table formatter
-    dynamic_table_print(tools_data, ["id", "name", "category", "description"], ["ID", "Name", "Category", "Description"])
-    
+
+    # Use the reusable dynamic table formatter with wrapping for long descriptions.
+    # - Wrap the 'description' column to fit terminal width.
+    # - Constrain 'ID' to the max width needed for IDs visible; other columns can grow.
+    dynamic_table_print(
+        tools_data,
+        ["id", "name", "category", "description"],
+        ["ID", "Name", "Category", "Description"],
+        wrap_columns=["description"],
+        max_column_widths={"id": 8},
+        indent_wrapped=True,
+        max_row_lines=3,
+    )
+
     print("-" * 80)
  
