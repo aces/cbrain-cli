@@ -17,14 +17,14 @@ def switch_project(args):
 
     Returns
     -------
-    int
-        Exit code (0 for success, 1 for failure)
+    dict or None
+        Dictionary containing project details if successful, None otherwise
     """
     # Get the group ID from the group_id argument
     group_id = getattr(args, "group_id", None)
     if not group_id:
         print("Error: Group ID is required")
-        return 1
+        return None
 
     # Step 1: Call the switch API
     switch_endpoint = f"{cbrain_url}/groups/switch?id={group_id}"
@@ -62,14 +62,10 @@ def switch_project(args):
                     with open(CREDENTIALS_FILE, "w") as f:
                         json.dump(credentials, f, indent=2)
 
-                # Step 4: Display success message
-                group_name = group_data.get("name", "Unknown")
-                print(f'Current project is now "{group_name}" ID={group_id}')
-
-                return 0
+                return group_data
             else:
                 print(f"Project switch failed with status: {response.status}")
-                return 1
+                return None
 
     except urllib.error.HTTPError as e:
         if e.code == 404:
@@ -78,15 +74,15 @@ def switch_project(args):
             print(f"Error: Access denied to project {group_id}")
         else:
             print(f"Project switch failed with status: {e.code}")
-        return 1
+        return None
     except Exception as e:
         print(f"Error switching project: {str(e)}")
-        return 1
+        return None
 
 
 def show_project(args):
     """
-    Show the current project/group from credentials.
+    Get the current project/group from credentials.
 
     Parameters
     ----------
@@ -95,18 +91,15 @@ def show_project(args):
 
     Returns
     -------
-    int
-        Exit code (0 for success, 1 for failure)
+    dict or None
+        Dictionary containing project details if successful, None if no project set
     """
     with open(CREDENTIALS_FILE, "r") as f:
         credentials = json.load(f)
 
     current_group_id = credentials.get("current_group_id")
     if not current_group_id:
-        print(
-            "No current project set. Use 'cbrain project switch <ID>' to set a project."
-        )
-        return 0
+        return None
 
     # Get fresh group details from server
     group_endpoint = f"{cbrain_url}/groups/{current_group_id}"
@@ -120,11 +113,7 @@ def show_project(args):
         with urllib.request.urlopen(request) as response:
             data = response.read().decode("utf-8")
             group_data = json.loads(data)
-
-            group_name = group_data.get("name", "Unknown")
-            print(f'Current project is "{group_name}" ID={current_group_id}')
-
-            return 0
+            return group_data
 
     except urllib.error.HTTPError as e:
         if e.code == 404:
@@ -136,15 +125,15 @@ def show_project(args):
                 json.dump(credentials, f, indent=2)
         else:
             print(f"Error getting project details: HTTP {e.code}")
-        return 1
+        return None
     except Exception as e:
         print(f"Error getting project details: {str(e)}")
-        return 1
+        return None
 
 
 def list_projects(args):
     """
-    List all projects/groups from CBRAIN.
+    Get list of all projects/groups from CBRAIN.
 
     Parameters
     ----------
@@ -153,10 +142,9 @@ def list_projects(args):
 
     Returns
     -------
-    int
-        Exit code (0 for success, 1 for failure)
+    list
+        List of project dictionaries
     """
-
     # Prepare the API request.
     groups_endpoint = f"{cbrain_url}/groups"
     headers = auth_headers(api_token)
@@ -171,27 +159,4 @@ def list_projects(args):
         data = response.read().decode("utf-8")
         projects_data = json.loads(data)
 
-    # Output in requested format.
-    if getattr(args, "json", False):
-        # JSON format.
-        formatted_data = []
-        for project in projects_data:
-            formatted_data.append(
-                {
-                    "id": project.get("id"),
-                    "type": project.get("type"),
-                    "name": project.get("name"),
-                }
-            )
-        print(json.dumps(formatted_data, indent=2))
-    else:
-        # Table format.
-        print("ID Type        Project Name")
-        print("-- ----------- ----------------")
-        for project in projects_data:
-            project_id = project.get("id", "")
-            project_type = project.get("type", "")
-            project_name = project.get("name", "")
-            print(f"{project_id:<2} {project_type:<11} {project_name}")
-
-    return
+    return projects_data
