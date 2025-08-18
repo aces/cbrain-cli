@@ -62,9 +62,8 @@ def upload_file(args):
         print(f"Error: File not found: {args.file_path}")
         return None
 
-    # Handle the case where group_id might be passed with hyphens.
-    if hasattr(args, "group_id") and args.group_id:
-        group_id = args.group_id
+    # Get group_id from args
+    group_id = args.group_id
 
     # Get file information.
     file_name = os.path.basename(args.file_path)

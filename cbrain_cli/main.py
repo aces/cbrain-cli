@@ -153,7 +153,7 @@ def main():
         dest="file_type",
         help="Upload as FileCollection",
     )
-    file_upload_parser.set_defaults(func=handle_errors(lambda args: print_upload_result(*upload_file(args)) if upload_file(args) else None))
+    file_upload_parser.set_defaults(func=handle_errors(lambda args: print_upload_result(*result) if (result := upload_file(args)) else None))
     
     # file copy
     file_copy_parser = file_subparsers.add_parser(
