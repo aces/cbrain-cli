@@ -430,27 +430,19 @@ def main():
     )
     task_operation_parser.set_defaults(func=handle_errors(operation_task))
 
-    # Remote resources commands (plural for listing)
-    remote_resources_parser = subparsers.add_parser(
-        "remote-resource", help="Remote resources operations"
-    )
-    remote_resources_subparsers = remote_resources_parser.add_subparsers(
-        dest="action", help="Remote resources actions"
-    )
-
-    # remote-resource list
-    remote_resources_list_parser = remote_resources_subparsers.add_parser(
-        "list", help="List remote resources"
-    )
-    remote_resources_list_parser.set_defaults(func=handle_errors(lambda args: print_resources_list(list_remote_resources(args), args)))
-
-    # Remote resource commands (singular for show)
+    # Remote resource commands
     remote_resource_parser = subparsers.add_parser(
         "remote-resource", help="Remote resource operations"
     )
     remote_resource_subparsers = remote_resource_parser.add_subparsers(
         dest="action", help="Remote resource actions"
     )
+
+    # remote-resource list
+    remote_resource_list_parser = remote_resource_subparsers.add_parser(
+        "list", help="List remote resources"
+    )
+    remote_resource_list_parser.set_defaults(func=handle_errors(lambda args: print_resources_list(list_remote_resources(args), args)))
 
     # remote-resource show
     remote_resource_show_parser = remote_resource_subparsers.add_parser(
@@ -493,7 +485,6 @@ def main():
         "background",
         "task",
         "remote-resource",
-        "remote-resource",
     ]:
         if not hasattr(args, "action") or not args.action:
             # Show help for the specific model command.
@@ -513,8 +504,6 @@ def main():
                 background_parser.print_help()
             elif args.command == "task":
                 task_parser.print_help()
-            elif args.command == "remote-resource":
-                remote_resources_parser.print_help()
             elif args.command == "remote-resource":
                 remote_resource_parser.print_help()
             return 1
