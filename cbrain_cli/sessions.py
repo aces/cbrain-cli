@@ -22,7 +22,7 @@ def create_session(args):
     Returns
     -------
     None
-        A command is ran via inputs from the user.
+        A command is run via inputs from the user.
     """
 
     if CREDENTIALS_FILE.exists():
@@ -95,7 +95,7 @@ def logout_session(args):
     Returns
     -------
     None
-        A command is ran via inputs from the user.
+        A command is run via inputs from the user.
     """
 
     if not cbrain_url or not api_token:

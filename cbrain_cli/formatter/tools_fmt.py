@@ -36,7 +36,7 @@ def print_tool_details(tool_data, args):
 
 def print_tools_list(tools_data, args):
     """
-    Print list of tools in table format.
+    Print table of tools.
 
     Parameters
     ----------

@@ -2,7 +2,7 @@ from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_prin
 
 def print_resources_list(resources_data, args):
     """
-    Print list of remote resources in table format.
+    Print table of remote resources.
 
     Parameters
     ----------

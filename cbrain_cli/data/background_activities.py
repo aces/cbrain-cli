@@ -6,7 +6,7 @@ from cbrain_cli.cli_utils import api_token, cbrain_url
 from cbrain_cli.config import auth_headers
 
 
-def list_background_activitites(args):
+def list_background_activities(args):
     """
     Get list of all background activities from CBRAIN.
 

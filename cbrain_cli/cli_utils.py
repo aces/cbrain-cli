@@ -80,7 +80,7 @@ def handle_errors(func):
     Returns
     -------
     None
-        A command is ran via inputs from the user.
+        A command is run via inputs from the user.
     """
 
     @functools.wraps(func)
@@ -133,7 +133,6 @@ def json_printer(data):
     Print data in JSON format.
     """
     print(json.dumps(data, indent=2))
-    return 0
 
 def jsonl_printer(data):
     """
@@ -146,7 +145,6 @@ def jsonl_printer(data):
             print(json.dumps(item, separators=(',', ':')))
     else:
         print(json.dumps(data, separators=(',', ':')))
-    return 0
 
 def pagination(args,query_params):
     """

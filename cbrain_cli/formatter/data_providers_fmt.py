@@ -65,7 +65,7 @@ def print_provider_details(provider_data, args):
 
 def print_providers_list(providers_data, args):
     """
-    Print list of data providers in table format.
+    Print table of data providers.
 
     Parameters
     ----------

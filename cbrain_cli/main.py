@@ -20,8 +20,8 @@ from cbrain_cli.formatter.files_fmt import (
     print_upload_result,
     print_move_copy_result,
 )
-from cbrain_cli.data.background_activitites import (
-    list_background_activitites,
+from cbrain_cli.data.background_activities import (
+    list_background_activities,
     show_background_activity,
 )
 from cbrain_cli.formatter.background_activities_fmt import (
@@ -51,7 +51,7 @@ def main():
     Returns
     -------
     None
-        A command is ran via inputs from the user.
+        A command is run via inputs from the user.
     """
     parser = argparse.ArgumentParser(description="CBRAIN CLI")
     parser.add_argument(
@@ -387,7 +387,7 @@ def main():
     background_list_parser = background_subparsers.add_parser(
         "list", help="List background activities"
     )
-    background_list_parser.set_defaults(func=handle_errors(lambda args: print_activities_list(list_background_activitites(args), args) if list_background_activitites(args) else None))
+    background_list_parser.set_defaults(func=handle_errors(lambda args: print_activities_list(list_background_activities(args), args) if list_background_activities(args) else None))
 
     # background show
     background_show_parser = background_subparsers.add_parser(

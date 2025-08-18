@@ -2,7 +2,7 @@ from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_prin
 
 def print_activities_list(activities_data, args):
     """
-    Print list of background activities in table format.
+    Print table of background activities.
 
     Parameters
     ----------

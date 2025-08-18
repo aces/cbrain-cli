@@ -39,7 +39,7 @@ def print_file_details(file_data, args):
 
 def print_files_list(files_data, args):
     """
-    Print list of files in table format.
+    Print table of files.
 
     Parameters
     ----------

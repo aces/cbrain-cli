@@ -2,7 +2,7 @@ from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_prin
 
 def print_tags_list(tags_data, args):
     """
-    Print list of tags in table format.
+    Print table of tags.
 
     Parameters
     ----------

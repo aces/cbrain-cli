@@ -2,7 +2,7 @@ from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_prin
 
 def print_projects_list(projects_data, args):
     """
-    Print list of projects in table format.
+    Print table of projects.
 
     Parameters
     ----------
