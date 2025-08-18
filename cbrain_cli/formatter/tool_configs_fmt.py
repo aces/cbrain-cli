@@ -28,11 +28,17 @@ def print_tool_configs_list(tool_configs, args):
             "description": config.get("description", "")
         }
         formatted_configs.append(formatted_config)
-    
-    # Use the reusable dynamic table formatter
-    dynamic_table_print(formatted_configs, 
-                       ["id", "version_name", "tool_id", "bourreau_id", "group_id", "ncpus", "description"],
-                       ["ID", "Version", "Tool ID", "Bourreau", "Group", "CPUs", "Description"])
+  
+    dynamic_table_print(
+        formatted_configs,
+        ["id", "version_name", "tool_id", "bourreau_id", "group_id", "ncpus", "description"],
+        ["ID", "Version", "Tool ID", "Bourreau", "Group", "CPUs", "Description"],
+        wrap_columns=["description"],
+        max_column_widths={"id": 8, "version_name": 12, "tool_id": 8, "bourreau_id": 10, "group_id": 6, "ncpus": 4},
+        indent_wrapped=True,
+        max_row_lines=3,
+        preserve_blank_lines=False,
+    )
     
     print("-" * 85)
     print(f"Total: {len(tool_configs)} configuration(s)")
