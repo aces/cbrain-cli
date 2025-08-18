@@ -286,11 +286,11 @@ def main():
     )
     tool_list_parser.set_defaults(func=handle_errors(lambda args: print_tools_list(list_tools(args), args) if list_tools(args) else None))
 
-    ## MARK: Tool-configs commands
-    tool_configs_parser = subparsers.add_parser("tool-configs", help="Tool configuration operations")
+    ## MARK: tool-config commands
+    tool_configs_parser = subparsers.add_parser("tool-config", help="Tool configuration operations")
     tool_configs_subparsers = tool_configs_parser.add_subparsers(dest="action", help="Tool configuration actions")
     
-    # tool-configs list
+    # tool-config list
     tool_configs_list_parser = tool_configs_subparsers.add_parser("list", help="List all tool configurations")
     tool_configs_list_parser.set_defaults(func=handle_errors(lambda args: print_tool_configs_list(list_tool_configs(args), args)))
 
@@ -301,12 +301,12 @@ def main():
         "--per-page", type=int, default=25, help="Number of tool configurations per page (5-1000, default: 25)"
     )
 
-    # tool-configs show
+    # tool-config show
     tool_configs_show_parser = tool_configs_subparsers.add_parser("show", help="Show tool configuration details")
     tool_configs_show_parser.add_argument("id", type=int, help="Tool configuration ID")
     tool_configs_show_parser.set_defaults(func=handle_errors(lambda args: print_tool_config_details(show_tool_config(args), args) if show_tool_config(args) else None))
 
-    # tool-configs boutiques-descriptor
+    # tool-config boutiques-descriptor
     tool_configs_boutiques_parser = tool_configs_subparsers.add_parser("boutiques-descriptor", help="Get Boutiques descriptor for a tool configuration")
     tool_configs_boutiques_parser.add_argument("id", type=int, help="Tool configuration ID")
     tool_configs_boutiques_parser.set_defaults(func=handle_errors(lambda args: print_boutiques_descriptor(tool_config_boutiques_descriptor(args), args) if tool_config_boutiques_descriptor(args) else None))
@@ -432,13 +432,13 @@ def main():
 
     # Remote resources commands (plural for listing)
     remote_resources_parser = subparsers.add_parser(
-        "remote-resources", help="Remote resources operations"
+        "remote-resource", help="Remote resources operations"
     )
     remote_resources_subparsers = remote_resources_parser.add_subparsers(
         dest="action", help="Remote resources actions"
     )
 
-    # remote-resources list
+    # remote-resource list
     remote_resources_list_parser = remote_resources_subparsers.add_parser(
         "list", help="List remote resources"
     )
@@ -488,11 +488,11 @@ def main():
         "dataprovider",
         "project",
         "tool",
-        "tool-configs",
+        "tool-config",
         "tag",
         "background",
         "task",
-        "remote-resources",
+        "remote-resource",
         "remote-resource",
     ]:
         if not hasattr(args, "action") or not args.action:
@@ -505,7 +505,7 @@ def main():
                 project_parser.print_help()
             elif args.command == "tool":
                 tool_parser.print_help()
-            elif args.command == "tool-configs":
+            elif args.command == "tool-config":
                 tool_configs_parser.print_help()
             elif args.command == "tag":
                 tag_parser.print_help()
@@ -513,7 +513,7 @@ def main():
                 background_parser.print_help()
             elif args.command == "task":
                 task_parser.print_help()
-            elif args.command == "remote-resources":
+            elif args.command == "remote-resource":
                 remote_resources_parser.print_help()
             elif args.command == "remote-resource":
                 remote_resource_parser.print_help()
