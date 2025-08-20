@@ -49,4 +49,3 @@ cat git_captures.diff
 echo "### GIT DIFF OUTPUT ENDS HERE ###"
 
 exit 1 # fails the test suite
-

@@ -22,7 +22,7 @@ def create_session(args):
     Returns
     -------
     None
-        A command is ran via inputs from the user.
+        A command is run via inputs from the user.
     """
 
     if CREDENTIALS_FILE.exists():
@@ -30,7 +30,7 @@ def create_session(args):
         return 1
 
     # Get user input.
-    cbrain_url = input("Enter CBRAIN server URL prefix: ").strip()
+    cbrain_url = input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()
     if not cbrain_url:
         cbrain_url = DEFAULT_BASE_URL
 
@@ -95,7 +95,7 @@ def logout_session(args):
     Returns
     -------
     None
-        A command is ran via inputs from the user.
+        A command is run via inputs from the user.
     """
 
     if not cbrain_url or not api_token:

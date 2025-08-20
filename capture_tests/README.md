@@ -19,4 +19,3 @@ the file .github/workflows/capture_tests.yaml
 ### Credits
 
 Pierre Rioux <pierre.rioux@mcgill.ca>, July 2025
-
