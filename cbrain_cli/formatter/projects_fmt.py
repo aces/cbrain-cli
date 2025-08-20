@@ -1,4 +1,5 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
+from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+
 
 def print_projects_list(projects_data, args):
     """
@@ -29,6 +30,7 @@ def print_projects_list(projects_data, args):
 
     dynamic_table_print(projects_data, ["id", "type", "name"], ["ID", "Type", "Project Name"])
 
+
 def print_current_project(project_data):
     """
     Print current project details.
@@ -41,6 +43,7 @@ def print_current_project(project_data):
     group_name = project_data.get("name", "Unknown")
     group_id = project_data.get("id")
     print(f'Current project is "{group_name}" ID={group_id}')
+
 
 def print_no_project():
     """

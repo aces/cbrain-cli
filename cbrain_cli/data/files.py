@@ -7,7 +7,7 @@ import urllib.request
 
 from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
 from cbrain_cli.config import auth_headers
- 
+
 
 def show_file(args):
     """
@@ -32,9 +32,7 @@ def show_file(args):
     userfile_endpoint = f"{cbrain_url}/userfiles/{file_id}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        userfile_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(userfile_endpoint, data=None, headers=headers, method="GET")
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
@@ -60,6 +58,10 @@ def upload_file(args):
     # Check if file exists.
     if not os.path.exists(args.file_path):
         print(f"Error: File not found: {args.file_path}")
+        return None
+
+    if args.group_id is None:
+        print("Error: Group ID is required")
         return None
 
     # Get group_id from args
@@ -100,9 +102,7 @@ def upload_file(args):
 
     # Add file data.
     body_parts.append(f"--{boundary}")
-    body_parts.append(
-        f'Content-Disposition: form-data; name="upload_file"; filename="{file_name}"'
-    )
+    body_parts.append(f'Content-Disposition: form-data; name="upload_file"; filename="{file_name}"')
     body_parts.append(f"Content-Type: {mime_type}")
     body_parts.append("")
 
@@ -125,9 +125,7 @@ def upload_file(args):
 
     # Create the request.
     upload_endpoint = f"{cbrain_url}/userfiles"
-    request = urllib.request.Request(
-        upload_endpoint, data=body, headers=headers, method="POST"
-    )
+    request = urllib.request.Request(upload_endpoint, data=body, headers=headers, method="POST")
 
     try:
         with urllib.request.urlopen(request) as response:
@@ -299,22 +297,20 @@ def list_files(args):
     if hasattr(args, "file_type") and args.file_type is not None:
         query_params["type"] = args.file_type
 
-    query_params= pagination(args,query_params)
+    query_params = pagination(args, query_params)
 
     userfiles_endpoint = f"{cbrain_url}/userfiles"
     query_string = urllib.parse.urlencode(query_params)
     userfiles_endpoint = f"{userfiles_endpoint}?{query_string}"
-    
+
     headers = auth_headers(api_token)
-    request = urllib.request.Request(
-        userfiles_endpoint, data=None, headers=headers, method="GET"
-    )
-    
+    request = urllib.request.Request(userfiles_endpoint, data=None, headers=headers, method="GET")
+
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
         files_data = json.loads(data)
 
-    return files_data 
+    return files_data
 
 
 def delete_file(args):
@@ -341,9 +337,7 @@ def delete_file(args):
     headers = auth_headers(api_token)
     headers["Content-Type"] = "application/json"
 
-    payload = {
-        "file_ids": [str(file_id)]
-    }
+    payload = {"file_ids": [str(file_id)]}
 
     json_data = json.dumps(payload).encode("utf-8")
 
@@ -358,7 +352,7 @@ def delete_file(args):
                 response_data = json.loads(data)
             except json.JSONDecodeError:
                 response_data = data
-            return response_data 
+            return response_data
 
     except urllib.error.HTTPError as e:
         try:

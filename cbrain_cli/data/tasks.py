@@ -33,9 +33,9 @@ def list_tasks(args):
     elif hasattr(args, "filter_value") and args.filter_value is not None:
         print("Error: Filter type is required when filter value is specified")
         return 1
-    
-    query_params = pagination(args,query_params)
- 
+
+    query_params = pagination(args, query_params)
+
     tasks_endpoint = f"{cbrain_url}/tasks"
 
     if query_params:
@@ -44,15 +44,14 @@ def list_tasks(args):
 
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        tasks_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(tasks_endpoint, data=None, headers=headers, method="GET")
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
         tasks_data = json.loads(data)
 
     return tasks_data
+
 
 def show_task(args):
     """
@@ -77,9 +76,7 @@ def show_task(args):
     task_endpoint = f"{cbrain_url}/tasks/{task_id}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        task_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(task_endpoint, data=None, headers=headers, method="GET")
 
     try:
         with urllib.request.urlopen(request) as response:

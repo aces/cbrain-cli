@@ -1,4 +1,5 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
+from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+
 
 def print_tags_list(tags_data, args):
     """
@@ -24,12 +25,15 @@ def print_tags_list(tags_data, args):
 
     print("TAGS")
     print("-" * 60)
-    
+
     # Use the reusable dynamic table formatter
-    dynamic_table_print(tags_data, ["id", "name", "user_id", "group_id"], ["ID", "Name", "User", "Group"])
-    
+    dynamic_table_print(
+        tags_data, ["id", "name", "user_id", "group_id"], ["ID", "Name", "User", "Group"]
+    )
+
     print("-" * 60)
     print(f"Total: {len(tags_data)} tag(s)")
+
 
 def print_tag_details(tag_data, args):
     """
@@ -51,18 +55,21 @@ def print_tag_details(tag_data, args):
 
     print("TAG DETAILS")
     print("-" * 30)
-    
+
     # Prepare tag details as key-value pairs for table display
     tag_details = [
-        {"field": "ID", "value": str(tag_data.get('id', 'N/A'))},
-        {"field": "Name", "value": str(tag_data.get('name', 'N/A'))},
-        {"field": "User ID", "value": str(tag_data.get('user_id', 'N/A'))},
-        {"field": "Group ID", "value": str(tag_data.get('group_id', 'N/A'))}
+        {"field": "ID", "value": str(tag_data.get("id", "N/A"))},
+        {"field": "Name", "value": str(tag_data.get("name", "N/A"))},
+        {"field": "User ID", "value": str(tag_data.get("user_id", "N/A"))},
+        {"field": "Group ID", "value": str(tag_data.get("group_id", "N/A"))},
     ]
-    
+
     dynamic_table_print(tag_details, ["field", "value"], ["Field", "Value"])
 
-def print_tag_operation_result(operation, tag_id=None, success=True, error_msg=None, response_status=None):
+
+def print_tag_operation_result(
+    operation, tag_id=None, success=True, error_msg=None, response_status=None
+):
     """
     Print result of a tag operation (create, update, delete).
 
@@ -92,6 +99,7 @@ def print_tag_operation_result(operation, tag_id=None, success=True, error_msg=N
         else:
             print(f"Tag {operation} failed with status: {response_status}")
 
+
 def print_interactive_prompts(operation="create"):
     """
     Print interactive prompts for tag operations.
@@ -113,7 +121,9 @@ def print_interactive_prompts(operation="create"):
             return None
         try:
             tag_id = int(tag_id_input)
-            confirm = input(f"\nAre you sure you want to delete tag {tag_id}? (y/N): ").strip().lower()
+            confirm = (
+                input(f"\nAre you sure you want to delete tag {tag_id}? (y/N): ").strip().lower()
+            )
             if confirm not in ["y", "yes"]:
                 print("Tag deletion cancelled.")
                 return None
@@ -165,9 +175,4 @@ def print_interactive_prompts(operation="create"):
         print("Error: Group ID must be a number")
         return None
 
-    return {
-        "tag_id": tag_id,
-        "tag_name": tag_name,
-        "user_id": user_id,
-        "group_id": group_id
-    } 
+    return {"tag_id": tag_id, "tag_name": tag_name, "user_id": user_id, "group_id": group_id}

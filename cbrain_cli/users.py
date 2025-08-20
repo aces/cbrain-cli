@@ -2,7 +2,13 @@ import json
 import urllib.error
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, handle_connection_error, user_id, json_printer
+from cbrain_cli.cli_utils import (
+    api_token,
+    cbrain_url,
+    handle_connection_error,
+    json_printer,
+    user_id,
+)
 from cbrain_cli.config import CREDENTIALS_FILE, auth_headers
 
 headers = auth_headers(api_token)
@@ -51,7 +57,7 @@ def whoami_user(args):
         output = {
             "login": user_data["login"],
             "full_name": user_data["full_name"],
-            "server": cbrain_url
+            "server": cbrain_url,
         }
         json_printer(output)
         return 0
@@ -65,9 +71,7 @@ def whoami_user(args):
         )
 
         print(f"DEBUG: Found credentials {CREDENTIALS_FILE}")
-        print(
-            f"DEBUG: User in credentials: {user_data['login']} on server {cbrain_url}"
-        )
+        print(f"DEBUG: User in credentials: {user_data['login']} on server {cbrain_url}")
         print(f"DEBUG: Token found: {masked_token}")
         print("DEBUG: Verifying token...")
         print("DEBUG: GET /session")
@@ -75,9 +79,7 @@ def whoami_user(args):
         # Verify token by making a session request.
         session_endpoint = f"{cbrain_url}/session"
 
-        session_request = urllib.request.Request(
-            session_endpoint, headers=headers, method="GET"
-        )
+        session_request = urllib.request.Request(session_endpoint, headers=headers, method="GET")
 
         try:
             with urllib.request.urlopen(session_request) as response:
@@ -90,9 +92,7 @@ def whoami_user(args):
                 remote_token = session_data.get("cbrain_api_token")
 
                 if str(remote_user_id) != str(user_id):
-                    print(
-                        f"WARNING: User ID mismatch - Local: {user_id}, Remote: {remote_user_id}"
-                    )
+                    print(f"WARNING: User ID mismatch - Local: {user_id}, Remote: {remote_user_id}")
 
                 if remote_token != api_token:
                     print("WARNING: Token mismatch - tokens don't match")
@@ -111,6 +111,4 @@ def whoami_user(args):
             print(f"Error verifying session: {e}")
             return 1
 
-    print(
-        f"Current user: {user_data['login']} ({user_data['full_name']}) on server {cbrain_url}"
-    )
+    print(f"Current user: {user_data['login']} ({user_data['full_name']}) on server {cbrain_url}")

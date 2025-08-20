@@ -2,13 +2,13 @@ import datetime
 import functools
 import json
 import urllib.error
-# import importlib.metadata
 
+# import importlib.metadata
 from cbrain_cli.config import CREDENTIALS_FILE
 
 try:
     # MARK: Credentials.
-    with open(CREDENTIALS_FILE, "r") as f:
+    with open(CREDENTIALS_FILE) as f:
         credentials = json.load(f)
 
     # Get credentials.
@@ -105,6 +105,7 @@ def handle_errors(func):
 
     return wrapper
 
+
 def version_info(args):
     """
     Display the CLI version information.
@@ -121,18 +122,20 @@ def version_info(args):
     """
     print("cbrain cli client version 1.0")
     # try:
-    #     cbrain_cli_version = importlib.metadata.version('cbrain-cli') 
+    #     cbrain_cli_version = importlib.metadata.version('cbrain-cli')
     #     print(f"cbrain cli client version {cbrain_cli_version}")
     #     return 0
     # except importlib.metadata.PackageNotFoundError:
     #     print("Warning: Could not determine version. Package may not be installed properly.")
     #     return 1
 
+
 def json_printer(data):
     """
     Print data in JSON format.
     """
     print(json.dumps(data, indent=2))
+
 
 def jsonl_printer(data):
     """
@@ -142,11 +145,12 @@ def jsonl_printer(data):
     """
     if isinstance(data, list):
         for item in data:
-            print(json.dumps(item, separators=(',', ':')))
+            print(json.dumps(item, separators=(",", ":")))
     else:
-        print(json.dumps(data, separators=(',', ':')))
+        print(json.dumps(data, separators=(",", ":")))
 
-def pagination(args,query_params):
+
+def pagination(args, query_params):
     """
     Validate the per_page parameter.
     """
@@ -154,16 +158,17 @@ def pagination(args,query_params):
     if per_page < 5 or per_page > 1000:
         print("Error: per-page must be between 5 and 1000")
         return None
-    
+
     page = getattr(args, "page", 1)
     if page < 1:
         print("Error: page must be 1 or greater")
         return None
-        
+
     query_params["page"] = str(page)
     query_params["per_page"] = str(per_page)
 
     return query_params
+
 
 def dynamic_table_print(
     data,
@@ -178,7 +183,7 @@ def dynamic_table_print(
 ):
     """
     Print data in a dynamically-sized table format with proper column alignment.
-    
+
     Parameters
     ----------
     data : list of dict
@@ -187,12 +192,12 @@ def dynamic_table_print(
         List of column keys to extract from each data dictionary
     headers : list of str, optional
         List of header names. If None, uses the column keys as headers
-        
+
     Returns
     -------
     None
         Prints the formatted table to stdout
-        
+
     Examples
     --------
     >>> data = [
@@ -212,7 +217,7 @@ def dynamic_table_print(
     # Use column keys as headers if none provided
     if headers is None:
         headers = columns
-        
+
     if len(headers) != len(columns):
         raise ValueError("Number of headers must match number of columns")
 
@@ -279,14 +284,16 @@ def dynamic_table_print(
                         if preserve_blank_lines:
                             lines.append("")
                         continue
-                    lines.extend(textwrap.wrap(
-                        para,
-                        width=width,
-                        replace_whitespace=False,
-                        drop_whitespace=False,
-                        break_long_words=True,
-                        break_on_hyphens=True,
-                    ))
+                    lines.extend(
+                        textwrap.wrap(
+                            para,
+                            width=width,
+                            replace_whitespace=False,
+                            drop_whitespace=False,
+                            break_long_words=True,
+                            break_on_hyphens=True,
+                        )
+                    )
                 wrapped = lines if lines else [""]
             else:
                 wrapped = [raw_value]
@@ -310,7 +317,11 @@ def dynamic_table_print(
                     text = indent + text
 
                 # If this is the last visible line and there are more lines, append ellipsis
-                if col in wrap_columns and line_idx == visible_lines - 1 and len(cell_lines) > visible_lines:
+                if (
+                    col in wrap_columns
+                    and line_idx == visible_lines - 1
+                    and len(cell_lines) > visible_lines
+                ):
                     truncated_here = True
 
                 # Ensure we do not overflow column width; append ellipsis if truncated.

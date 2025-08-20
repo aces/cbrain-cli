@@ -1,4 +1,5 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
+from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+
 
 def print_tool_configs_list(tool_configs, args):
     """
@@ -25,23 +26,31 @@ def print_tool_configs_list(tool_configs, args):
             "bourreau_id": config.get("bourreau_id", ""),
             "group_id": config.get("group_id", ""),
             "ncpus": config.get("ncpus", "1"),
-            "description": config.get("description", "")
+            "description": config.get("description", ""),
         }
         formatted_configs.append(formatted_config)
-  
+
     dynamic_table_print(
         formatted_configs,
         ["id", "version_name", "tool_id", "bourreau_id", "group_id", "ncpus", "description"],
         ["ID", "Version", "Tool ID", "Bourreau", "Group", "CPUs", "Description"],
         wrap_columns=["description"],
-        max_column_widths={"id": 8, "version_name": 12, "tool_id": 8, "bourreau_id": 10, "group_id": 6, "ncpus": 4},
+        max_column_widths={
+            "id": 8,
+            "version_name": 12,
+            "tool_id": 8,
+            "bourreau_id": 10,
+            "group_id": 6,
+            "ncpus": 4,
+        },
         indent_wrapped=True,
         max_row_lines=3,
         preserve_blank_lines=False,
     )
-    
+
     print("-" * 85)
     print(f"Total: {len(tool_configs)} configuration(s)")
+
 
 def print_tool_config_details(tool_config, args):
     """
@@ -51,6 +60,7 @@ def print_tool_config_details(tool_config, args):
         print("No tool configuration found.")
         return
     json_printer(tool_config)
+
 
 def print_boutiques_descriptor(boutiques_descriptor, args):
     """

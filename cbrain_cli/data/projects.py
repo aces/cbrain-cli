@@ -31,9 +31,7 @@ def switch_project(args):
     headers = auth_headers(api_token)
 
     # Create the request
-    request = urllib.request.Request(
-        switch_endpoint, data=None, headers=headers, method="POST"
-    )
+    request = urllib.request.Request(switch_endpoint, data=None, headers=headers, method="POST")
 
     # Make the switch request
     try:
@@ -51,13 +49,11 @@ def switch_project(args):
 
                 # Step 3: Update credentials file with current group_id
                 if CREDENTIALS_FILE.exists():
-                    with open(CREDENTIALS_FILE, "r") as f:
+                    with open(CREDENTIALS_FILE) as f:
                         credentials = json.load(f)
 
                     credentials["current_group_id"] = group_id
-                    credentials["current_group_name"] = group_data.get(
-                        "name", "Unknown"
-                    )
+                    credentials["current_group_name"] = group_data.get("name", "Unknown")
 
                     with open(CREDENTIALS_FILE, "w") as f:
                         json.dump(credentials, f, indent=2)
@@ -94,7 +90,7 @@ def show_project(args):
     dict or None
         Dictionary containing project details if successful, None if no project set
     """
-    with open(CREDENTIALS_FILE, "r") as f:
+    with open(CREDENTIALS_FILE) as f:
         credentials = json.load(f)
 
     current_group_id = credentials.get("current_group_id")
@@ -105,9 +101,7 @@ def show_project(args):
     group_endpoint = f"{cbrain_url}/groups/{current_group_id}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        group_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(group_endpoint, data=None, headers=headers, method="GET")
 
     try:
         with urllib.request.urlopen(request) as response:
@@ -150,9 +144,7 @@ def list_projects(args):
     headers = auth_headers(api_token)
 
     # Create the request.
-    request = urllib.request.Request(
-        groups_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(groups_endpoint, data=None, headers=headers, method="GET")
 
     # Make the request.
     with urllib.request.urlopen(request) as response:

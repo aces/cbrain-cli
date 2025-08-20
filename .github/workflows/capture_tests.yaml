@@ -175,4 +175,3 @@ jobs:
       #      ```
       #      CBRAIN CLI capture tests : ${{ steps.cbrain_cli.outcome }}
       #      ```
-

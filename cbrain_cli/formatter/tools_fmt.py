@@ -1,4 +1,5 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
+from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+
 
 def print_tool_details(tool_data, args):
     """
@@ -20,19 +21,20 @@ def print_tool_details(tool_data, args):
 
     print("TOOL DETAILS")
     print("-" * 30)
-    
+
     # Prepare tool details as key-value pairs for table display
     tool_details = [
-        {"field": "ID", "value": str(tool_data.get('id', 'N/A'))},
-        {"field": "Name", "value": str(tool_data.get('name', 'N/A'))},
-        {"field": "User ID", "value": str(tool_data.get('user_id', 'N/A'))},
-        {"field": "Group ID", "value": str(tool_data.get('group_id', 'N/A'))},
-        {"field": "Category", "value": str(tool_data.get('category', 'N/A'))},
-        {"field": "Description", "value": str(tool_data.get('description', 'N/A'))},
-        {"field": "URL", "value": str(tool_data.get('url', 'N/A'))}
+        {"field": "ID", "value": str(tool_data.get("id", "N/A"))},
+        {"field": "Name", "value": str(tool_data.get("name", "N/A"))},
+        {"field": "User ID", "value": str(tool_data.get("user_id", "N/A"))},
+        {"field": "Group ID", "value": str(tool_data.get("group_id", "N/A"))},
+        {"field": "Category", "value": str(tool_data.get("category", "N/A"))},
+        {"field": "Description", "value": str(tool_data.get("description", "N/A"))},
+        {"field": "URL", "value": str(tool_data.get("url", "N/A"))},
     ]
-    
+
     dynamic_table_print(tool_details, ["field", "value"], ["Field", "Value"])
+
 
 def print_tools_list(tools_data, args):
     """
@@ -72,4 +74,3 @@ def print_tools_list(tools_data, args):
     )
 
     print("-" * 80)
- 

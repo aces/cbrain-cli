@@ -24,16 +24,14 @@ def list_tools(args):
     # Get the tool ID from the -id argument if provided.
     tool_id = getattr(args, "id", None)
     query_params = {}
-    query_params = pagination(args,query_params)
+    query_params = pagination(args, query_params)
 
     tools_endpoint = f"{cbrain_url}/tools"
     query_string = urllib.parse.urlencode(query_params)
     tools_endpoint = f"{tools_endpoint}?{query_string}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        tools_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(tools_endpoint, data=None, headers=headers, method="GET")
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")

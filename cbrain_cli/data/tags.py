@@ -22,16 +22,14 @@ def list_tags(args):
         List of tag dictionaries
     """
     query_params = {}
-    query_params = pagination(args,query_params)
+    query_params = pagination(args, query_params)
 
     tags_endpoint = f"{cbrain_url}/tags"
     query_string = urllib.parse.urlencode(query_params)
     tags_endpoint = f"{tags_endpoint}?{query_string}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        tags_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(tags_endpoint, data=None, headers=headers, method="GET")
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
@@ -63,9 +61,7 @@ def show_tag(args):
     tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        tag_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(tag_endpoint, data=None, headers=headers, method="GET")
 
     try:
         with urllib.request.urlopen(request) as response:
@@ -132,9 +128,7 @@ def create_tag(args):
     payload = {"tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}}
     json_data = json.dumps(payload).encode("utf-8")
 
-    request = urllib.request.Request(
-        tags_endpoint, data=json_data, headers=headers, method="POST"
-    )
+    request = urllib.request.Request(tags_endpoint, data=json_data, headers=headers, method="POST")
 
     try:
         with urllib.request.urlopen(request) as response:
@@ -181,7 +175,10 @@ def update_tag(args):
     else:
         tag_id = getattr(args, "tag_id", None)
         if not tag_id:
-            print("Error: Tag ID is required. Use -i flag for interactive mode or provide tag_id argument")
+            print(
+                "Error: Tag ID is required. Use -i flag for interactive mode "
+                "or provide tag_id argument"
+            )
             return None, False, None, None
 
         tag_name = getattr(args, "name", None)
@@ -209,9 +206,7 @@ def update_tag(args):
     payload = {"tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}}
     json_data = json.dumps(payload).encode("utf-8")
 
-    request = urllib.request.Request(
-        tag_endpoint, data=json_data, headers=headers, method="PUT"
-    )
+    request = urllib.request.Request(tag_endpoint, data=json_data, headers=headers, method="PUT")
 
     try:
         with urllib.request.urlopen(request) as response:
@@ -258,16 +253,17 @@ def delete_tag(args):
     else:
         tag_id = getattr(args, "tag_id", None)
         if not tag_id:
-            print("Error: Tag ID is required. Use -i flag for interactive mode or provide tag_id argument")
+            print(
+                "Error: Tag ID is required. Use -i flag for interactive mode "
+                "or provide tag_id argument"
+            )
             return False, None, None
 
     # Prepare the API request
     tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        tag_endpoint, data=None, headers=headers, method="DELETE"
-    )
+    request = urllib.request.Request(tag_endpoint, data=None, headers=headers, method="DELETE")
 
     try:
         with urllib.request.urlopen(request) as response:

@@ -10,17 +10,18 @@ def list_tool_configs(args):
     """
     Lists all tool configurations available in the system.
 
-    Sends a GET request to the tool configurations endpoint to retrieve 
+    Sends a GET request to the tool configurations endpoint to retrieve
     a list of all tool configurations. The response is then parsed and returned as a JSON object.
 
     Returns
     -------
     list
-        A list of tool configurations, each represented as a dictionary containing configuration details.
-    """ 
+        A list of tool configurations, each represented as a dictionary containing
+        configuration details.
+    """
     query_params = {}
-    query_params = pagination(args,query_params)
-    
+    query_params = pagination(args, query_params)
+
     tool_configs_endpoint = f"{cbrain_url}/tool_configs"
     query_string = urllib.parse.urlencode(query_params)
     tool_configs_endpoint = f"{tool_configs_endpoint}?{query_string}"
@@ -40,7 +41,7 @@ def show_tool_config(args):
     """
     Retrieves detailed information about a specific tool configuration.
 
-    Detailed information about a specific tool configuration. 
+    Detailed information about a specific tool configuration.
 
     Returns
     -------
@@ -58,13 +59,14 @@ def show_tool_config(args):
         data = response.read().decode("utf-8")
         response_data = json.loads(data)
         return response_data
-    
+
+
 def tool_config_boutiques_descriptor(args):
     """
     Retrieves the Boutiques descriptor for a specific tool configuration.
 
-    Sends a GET request to the tool configuration Boutiques descriptor endpoint 
-    to retrieve the descriptor for a specific tool configuration. 
+    Sends a GET request to the tool configuration Boutiques descriptor endpoint
+    to retrieve the descriptor for a specific tool configuration.
     The response is then parsed and returned as a JSON object.
 
     Returns
@@ -72,7 +74,9 @@ def tool_config_boutiques_descriptor(args):
     dict
         A dictionary containing the Boutiques descriptor for the specified tool configuration.
     """
-    tool_config_boutiques_descriptor_endpoint = f"{cbrain_url}/tool_configs/{args.id}/boutiques_descriptor"
+    tool_config_boutiques_descriptor_endpoint = (
+        f"{cbrain_url}/tool_configs/{args.id}/boutiques_descriptor"
+    )
     headers = auth_headers(api_token)
 
     request = urllib.request.Request(
@@ -82,5 +86,4 @@ def tool_config_boutiques_descriptor(args):
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
         response_data = json.loads(data)
-        return response_data    
-
+        return response_data

@@ -1,4 +1,5 @@
-from cbrain_cli.cli_utils import json_printer, jsonl_printer, dynamic_table_print
+from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+
 
 def print_file_details(file_data, args):
     """
@@ -37,6 +38,7 @@ def print_file_details(file_data, args):
     if file_data.get("archived"):
         print(f"archived: {file_data.get('archived')}")
 
+
 def print_files_list(files_data, args):
     """
     Print table of files.
@@ -57,7 +59,8 @@ def print_files_list(files_data, args):
 
     # Use the reusable dynamic table formatter
     dynamic_table_print(files_data, ["id", "type", "name"], ["ID", "Type", "File Name"])
-    
+
+
 def print_upload_result(response_data, response_status, file_name, file_size, data_provider_id):
     """
     Print the result of a file upload operation.
@@ -75,9 +78,7 @@ def print_upload_result(response_data, response_status, file_name, file_size, da
     data_provider_id : int
         ID of the data provider
     """
-    print(
-        f"Uploading {file_name} ({file_size} bytes) to data provider {data_provider_id}..."
-    )
+    print(f"Uploading {file_name} ({file_size} bytes) to data provider {data_provider_id}...")
 
     if response_status == 200 or response_status == 201:
         print("File uploaded successfully!")
@@ -89,6 +90,7 @@ def print_upload_result(response_data, response_status, file_name, file_size, da
             print(f"Error: {response_data['notice']}")
         else:
             print(f"Response: {response_data}")
+
 
 def print_move_copy_result(response_data, response_status, operation="move"):
     """

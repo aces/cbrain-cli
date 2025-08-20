@@ -23,9 +23,7 @@ def list_remote_resources(args):
     bourreaux_endpoint = f"{cbrain_url}/bourreaux"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        bourreaux_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(bourreaux_endpoint, data=None, headers=headers, method="GET")
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
@@ -57,9 +55,7 @@ def show_remote_resource(args):
     bourreau_endpoint = f"{cbrain_url}/bourreaux/{resource_id}"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        bourreau_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(bourreau_endpoint, data=None, headers=headers, method="GET")
 
     try:
         with urllib.request.urlopen(request) as response:

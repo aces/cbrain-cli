@@ -68,7 +68,7 @@ def list_data_providers(args):
         List of data provider dictionaries
     """
     query_params = {}
-    query_params = pagination(args,query_params)
+    query_params = pagination(args, query_params)
 
     data_providers_endpoint = f"{cbrain_url}/data_providers"
     query_string = urllib.parse.urlencode(query_params)
@@ -98,14 +98,12 @@ def is_alive(args):
     is_alive_endpoint = f"{cbrain_url}/data_providers/{args.id}/is_alive"
     headers = auth_headers(api_token)
 
-    request = urllib.request.Request(
-        is_alive_endpoint, data=None, headers=headers, method="GET"
-    )
+    request = urllib.request.Request(is_alive_endpoint, data=None, headers=headers, method="GET")
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
         is_alive_data = json.loads(data)
-    
+
     return is_alive_data
 
 
@@ -128,5 +126,5 @@ def delete_unregistered_files(args):
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
         delete_unregistered_files_data = json.loads(data)
-    
+
     return delete_unregistered_files_data
