@@ -46,7 +46,7 @@ Stdout: 170 bytes
 Stderr: 0 bytes
 
 Stdout:
-ID Type     File Name
+ID Type     File Name    
 -- -------- -------------
 6  DatFile  binary.dat
 2  TextFile norm.json
