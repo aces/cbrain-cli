@@ -1,0 +1,75 @@
+
+#
+# This script just creates the
+# content of the credentials.json file
+# needed by the 'cbrain' command line program;
+# the token in there is one of those used
+# in the CBRAIN api test framework, only
+# valid within the test database set up there.
+#
+
+# The tree tokens used by the test suite;
+# for the moment we only use the NORM one
+ADMIN_TOKEN="0123456789abcdef0123456789abcdef";
+NORMAL_TOKEN="0123456789abcdeffedcba9876543210";
+DEL_TOKEN="0123456789abcdefffffffffffffffff";
+
+# cbrain client JSON file with credentials to update
+cbrain_cred_file=$HOME/.config/cbrain/credentials.json
+
+# Timestamp as expected by the cbrain client program
+timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
+
+# What session to create is first argument,
+# one of admin norm or normdel; if nothing is
+# provided, the effect will be to empty out
+# the content of the credentials.json file,
+# thus logging out the cbrain command.
+testses="$1"
+
+# Stdout from now on goes into the JSON
+exec 1> $cbrain_cred_file
+
+# Session for normal user
+if test "X$1" = "Xnorm" ; then
+  cat <<CREDJSON
+{
+  "cbrain_url": "http://localhost:3000",
+  "api_token":  "$NORMAL_TOKEN",
+  "user_id":    2,
+  "timestamp":  "$timestamp"
+}
+CREDJSON
+fi
+
+# Session for admin user
+if test "X$1" = "Xadmin" ; then
+  cat <<CREDJSON
+{
+  "cbrain_url": "http://localhost:3000",
+  "api_token":  "$ADMIN_TOKEN",
+  "user_id":    1,
+  "timestamp":  "$timestamp"
+}
+CREDJSON
+fi
+
+# Session for normal user, for delete session test
+if test "X$1" = "Xnormdel" ; then
+  cat <<CREDJSON
+{
+  "cbrain_url": "http://localhost:3000",
+  "api_token":  "$DEL_TOKEN",
+  "user_id":    2,
+  "timestamp":  "$timestamp"
+}
+CREDJSON
+fi
+
+# Close stdout forever until the end of all time and space and burgers
+exec 1>& -
+
+# Remove outright if it's empty
+if ! test -s "$cbrain_cred_file" ; then
+  rm -f "$cbrain_cred_file"
+fi

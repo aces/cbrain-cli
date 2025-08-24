@@ -141,7 +141,6 @@ jobs:
           sleep 5 # we need a better way
           cd ../..
           mkdir -p $HOME/.config/cbrain
-          bash .github/workflows/scripts/create_cbrain_test_session.sh >$HOME/.config/cbrain/credentials.json
           cd capture_tests
           bash run_and_diff_captures
 

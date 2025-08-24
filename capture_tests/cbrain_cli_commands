@@ -15,6 +15,12 @@
 #
 # Original author: Pierre Rioux <pierre.rioux@mcgill.ca>, July 2025
 
+# ------------------
+# Not logged in
+# ------------------
+
+./switch_session NONE
+
 # Version commands
 cbrain        version
 cbrain --json version
@@ -23,91 +29,139 @@ cbrain --json version
 cbrain        whoami
 cbrain --json whoami
 
-# Project commands
-cbrain         project list
-cbrain --json  project list
-cbrain --jsonl project list
+# ------------------
+# As normal user
+# ------------------
 
-cbrain         project show 3   # Group 'norm', personal project of normal user 'norm'
-cbrain --json  project show 3
-cbrain --jsonl project show 3
+./switch_session norm # logged in a normal user 'norm', id=2
 
-cbrain         project show 2   # Group 'admin, personal project of admin; this should FAIL
-cbrain --json  project show 2
-cbrain --jsonl project show 2
+# Version commands
+cbrain        version
+cbrain --json version
 
-cbrain         project switch 2
-cbrain --json  project switch 2
-cbrain --jsonl project switch 2
+# Connection commands
+cbrain        whoami
+cbrain --json whoami
 
-cbrain         project switch all  # the special 'all' project
-cbrain --json  project switch all
-cbrain --jsonl project switch all
-
-# File commands
-cbrain         file list
-cbrain --json  file list
-cbrain --jsonl file list
-
-cbrain         file show 2   # file 'norm.json'
-cbrain --json  file show 2
-cbrain --jsonl file show 2
-
-cbrain         file show 1   # admin file 'admin.txt'; should FAIL
-cbrain --json  file show 1
-cbrain --jsonl file show 1
-
-# Tool commands
-cbrain         tool list
-cbrain --json  tool list
-cbrain --jsonl tool list
-
-cbrain         tool show 17  # 'SimpleMonitor'
-cbrain --json  tool show 17
-cbrain --jsonl tool show 17
-
-# ToolConfig commands
-cbrain         toolconfig list
-cbrain --json  toolconfig list
-cbrain --jsonl toolconfig list
-
-cbrain         toolconfig show 20  # SimpleMonitor on Bourreau 13
-cbrain --json  toolconfig show 20
-cbrain --jsonl toolconfig show 20
-
-# Tag commands
-cbrain         tag list
-cbrain --json  tag list
-cbrain --jsonl tag list
-
-cbrain         tag show 21  # 'tag1'
-cbrain --json  tag show 21
-cbrain --jsonl tag show 21
-
-# Task commands
-cbrain         task list
-cbrain --json  task list
-cbrain --jsonl task list
-
-cbrain         task show 2  # SimpleMonitor, Completed
-cbrain --json  task show 2
-cbrain --jsonl task show 2
-
-# Bourreau (RemoteResource) commands
+# Bourreaux
 cbrain         remote-resource list
 cbrain --json  remote-resource list
 cbrain --jsonl remote-resource list
 
-cbrain         remote-resource show 13  # 'TestExec'
+cbrain         remote-resource show 13
 cbrain --json  remote-resource show 13
 cbrain --jsonl remote-resource show 13
 
-# DataProvider commands
-cbrain         data-provider list
-cbrain --json  data-provider list
-cbrain --jsonl data-provider list
+# Data Providers
+cbrain         dataprovider list
+cbrain --json  dataprovider list
+cbrain --jsonl dataprovider list
 
-cbrain         data-provider show 15  # 'TestDP'
-cbrain --json  data-provider show 15
-cbrain --jsonl data-provider show 15
+cbrain         dataprovider show 15
+cbrain --json  dataprovider show 15
+cbrain --jsonl dataprovider show 15
+
+# Projects (groups)
+cbrain         project list
+cbrain --json  project list
+cbrain --jsonl project list
+
+cbrain         project show 10
+cbrain --json  project show 10
+cbrain --jsonl project show 10
+
+cbrain         project switch 10
+cbrain --json  project switch 10
+cbrain --jsonl project switch 10
+
+cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
+cbrain --json  project switch all
+cbrain --jsonl project switch all
+cbrain         project switch 3 # need to reset for rest of test to work
+
+# Tags
+cbrain         tag list
+cbrain --json  tag list
+cbrain --jsonl tag list
+
+cbrain         tag show 21
+cbrain --json  tag show 21
+cbrain --jsonl tag show 21
+
+cbrain         tag show   99
+cbrain         tag update 99 --name Renamed --user-id 2 --group-id 3
+cbrain         tag show   99
+cbrain         tag delete 99
+
+cbrain         tag create --name NewTag1 --user-id 2 --group-id 3
+cbrain --json  tag create --name NewTag2 --user-id 2 --group-id 3
+cbrain --jsonl tag create --name NewTag3 --user-id 2 --group-id 3
+
+# Tasks
+# NOTE: we needed to reset the current project to 3 above,
+# until 'group switch all' is implemented; this means only
+# tasks in group 3 are shown below, but that's OK, that's
+# what's in the test DB anyway
+cbrain         task list
+cbrain --json  task list
+cbrain --jsonl task list
+
+cbrain         task show 2
+cbrain --json  task show 2
+cbrain --jsonl task show 2
+
+# Not yet implemented
+cbrain         task operation   # should provide error message
+
+# ToolConfigs, as admin user
+./switch_session admin
+cbrain         tool-config list
+cbrain --json  tool-config list
+cbrain --jsonl tool-config list
+
+cbrain         tool-config show 19 # not visible to normal user norm
+cbrain --json  tool-config show 19
+cbrain --jsonl tool-config show 19
+
+# ToolConfigs, as normal user
+./switch_session norm
+cbrain         tool-config list
+cbrain --json  tool-config list
+cbrain --jsonl tool-config list
+
+cbrain         tool-config show 19 # visible to user admin
+cbrain --json  tool-config show 19
+cbrain --jsonl tool-config show 19
+
+# Tools
+cbrain         tool list
+cbrain --json  tool list
+cbrain --jsonl tool list
+
+cbrain         tool show 17
+cbrain --json  tool show 17
+cbrain --jsonl tool show 17
+
+# Background activities
+cbrain         background list
+cbrain --json  background list
+cbrain --jsonl background list
+
+cbrain         background show 43
+cbrain --json  background show 43
+cbrain --jsonl background show 43
+
+# Userfiles
+cbrain         file list
+cbrain --json  file list
+cbrain --jsonl file list
+
+cbrain         file show 2
+cbrain --json  file show 2
+cbrain --jsonl file show 2
+
+cbrain         file delete 5
+
+cbrain         file move --file-id 2 --dp-id 15
+#cbrain --json  file move --file-id 2 --dp-id 15
 

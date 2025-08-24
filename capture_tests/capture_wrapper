@@ -62,8 +62,12 @@ function runthis {
   echo "############################"
   echo "Command: $command"
   echo "Status: $status"
-  stat --printf "Stdout: %s bytes\\n" $outfile
-  stat --printf "Stderr: %s bytes\\n" $errfile
+  # Linux version of stat command
+  test -e /etc/os-release && stat --printf 'Stdout: %s bytes\n' $outfile
+  test -e /etc/os-release && stat --printf 'Stderr: %s bytes\n' $errfile
+  # Mac OS version of stat command
+  test -e /etc/os-release || stat -f       'Stdout: %z bytes'   $outfile
+  test -e /etc/os-release || stat -f       'Stderr: %z bytes'   $errfile
   echo ""
 
   # Report STDOUT
@@ -72,8 +76,8 @@ function runthis {
   if ! test -s $outfile ; then
     echo "(No output)"
   else
-    lastbyte=$(tail -c 1 $outfile | od -t x1 | head -1)
-    if test "X$lastbyte" != "X0000000 0a" ; then
+    lastbyte=$(tail -c 1 $outfile | od -t x1 | head -1 | tr -d ' ')
+    if test "X$lastbyte" != "X00000000a" ; then
       echo ""
       echo "(Warning: stdout did not end with a newline)"
     fi
@@ -85,8 +89,8 @@ function runthis {
   if ! test -s $errfile ; then
     echo "(No output)"
   else
-    lastbyte=$(tail -c 1 $errfile | od -t x1 | head -1)
-    if test "X$lastbyte" != "X0000000 0a" ; then
+    lastbyte=$(tail -c 1 $errfile | od -t x1 | head -1 | tr -d ' ')
+    if test "X$lastbyte" != "X00000000a" ; then
       echo ""
       echo "(Warning: stderr did not end with a newline)"
     fi
