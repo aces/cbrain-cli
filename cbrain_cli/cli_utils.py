@@ -1,4 +1,3 @@
-import datetime
 import functools
 import json
 import urllib.error
@@ -27,13 +26,6 @@ def is_authenticated():
     """
     Check if the user is authenticated.
     """
-
-    if cbrain_timestamp:
-        timestamp_obj = datetime.datetime.fromisoformat(cbrain_timestamp)
-        if datetime.datetime.now() - timestamp_obj > datetime.timedelta(days=1):
-            print("Session expired. Please log in again using 'cbrain login'.")
-            CREDENTIALS_FILE.unlink()
-            return False
     # Check if user is logged in.
     if not api_token or not cbrain_url or not user_id:
         print("Not logged in. Use 'cbrain login' to login first.")
