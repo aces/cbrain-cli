@@ -33,47 +33,28 @@ def switch_project(args):
     # Create the request
     request = urllib.request.Request(switch_endpoint, data=None, headers=headers, method="POST")
 
-    # Make the switch request
-    try:
-        with urllib.request.urlopen(request) as response:
-            if response.status == 200:
-                # Step 2: Get group details
-                group_endpoint = f"{cbrain_url}/groups/{group_id}"
-                group_request = urllib.request.Request(
-                    group_endpoint, data=None, headers=headers, method="GET"
-                )
+    with urllib.request.urlopen(request):
+        group_endpoint = f"{cbrain_url}/groups/{group_id}"
+        group_request = urllib.request.Request(
+            group_endpoint, data=None, headers=headers, method="GET"
+        )
 
-                with urllib.request.urlopen(group_request) as group_response:
-                    group_data_text = group_response.read().decode("utf-8")
-                    group_data = json.loads(group_data_text)
+        with urllib.request.urlopen(group_request) as group_response:
+            group_data_text = group_response.read().decode("utf-8")
+            group_data = json.loads(group_data_text)
 
-                # Step 3: Update credentials file with current group_id
-                if CREDENTIALS_FILE.exists():
-                    with open(CREDENTIALS_FILE) as f:
-                        credentials = json.load(f)
+        # Step 3: Update credentials file with current group_id
+        if CREDENTIALS_FILE.exists():
+            with open(CREDENTIALS_FILE) as f:
+                credentials = json.load(f)
 
-                    credentials["current_group_id"] = group_id
-                    credentials["current_group_name"] = group_data.get("name", "Unknown")
+            credentials["current_group_id"] = group_id
+            credentials["current_group_name"] = group_data.get("name", "Unknown")
 
-                    with open(CREDENTIALS_FILE, "w") as f:
-                        json.dump(credentials, f, indent=2)
+            with open(CREDENTIALS_FILE, "w") as f:
+                json.dump(credentials, f, indent=2)
 
-                return group_data
-            else:
-                print(f"Project switch failed with status: {response.status}")
-                return None
-
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Project with ID {group_id} not found")
-        elif e.code == 403:
-            print(f"Error: Access denied to project {group_id}")
-        else:
-            print(f"Project switch failed with status: {e.code}")
-        return None
-    except Exception as e:
-        print(f"Error switching project: {str(e)}")
-        return None
+        return group_data
 
 
 def show_project(args):
@@ -117,12 +98,9 @@ def show_project(args):
             credentials.pop("current_group_name", None)
             with open(CREDENTIALS_FILE, "w") as f:
                 json.dump(credentials, f, indent=2)
+            return None
         else:
-            print(f"Error getting project details: HTTP {e.code}")
-        return None
-    except Exception as e:
-        print(f"Error getting project details: {str(e)}")
-        return None
+            raise
 
 
 def list_projects(args):

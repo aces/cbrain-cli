@@ -57,15 +57,7 @@ def show_remote_resource(args):
 
     request = urllib.request.Request(bourreau_endpoint, data=None, headers=headers, method="GET")
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            bourreau_data = json.loads(data)
-            return bourreau_data
-
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Remote resource with ID {resource_id} not found")
-        else:
-            print(f"Error: HTTP {e.code} - {e.reason}")
-        return None
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        bourreau_data = json.loads(data)
+    return bourreau_data
