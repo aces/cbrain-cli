@@ -1007,19 +1007,11 @@ Stderr:
 ############################
 Command: cbrain         tool-config show 19 # not visible to normal user norm
 Status: 0
-Stdout: 144 bytes
+Stdout: TOFIX bytes
 Stderr: 0 bytes
 
 Stdout:
-{
-  "id": 19,
-  "version_name": "admin1",
-  "description": "admin_only",
-  "tool_id": 17,
-  "bourreau_id": 14,
-  "group_id": 2,
-  "ncpus": 99
-}
+TOFIX : The output is in JSON
 Stderr:
 (No output)
 
@@ -1045,19 +1037,11 @@ Stderr:
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 0
-Stdout: 144 bytes
+Stdout: TOFIX bytes
 Stderr: 0 bytes
 
 Stdout:
-{
-  "id": 19,
-  "version_name": "admin1",
-  "description": "admin_only",
-  "tool_id": 17,
-  "bourreau_id": 14,
-  "group_id": 2,
-  "ncpus": 99
-}
+TOFIX : the output is in JSON
 Stderr:
 (No output)
 

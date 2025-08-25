@@ -165,3 +165,6 @@ cbrain         file delete 5
 cbrain         file move --file-id 2 --dp-id 15
 #cbrain --json  file move --file-id 2 --dp-id 15
 
+# Logging out
+cbrain         logout
+
