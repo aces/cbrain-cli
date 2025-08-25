@@ -9,7 +9,7 @@ Stdout: 0 bytes
 Stderr: 0 bytes
 
 Stdout:
-
+(No output)
 Stderr:
 (No output)
 
@@ -129,7 +129,7 @@ ID Name            User Group Online Read-Only
 -- --------------- ---- ----- ------ ---------
 13 TestExec        1    1     Yes    No
 14 OfflineTestExec 1    1     No     No
-1  Bianca          1    1     Yes    No
+1  TestPortal      1    1     Yes    No
 --------------------------------------------------------------------------------
 Total: 3 remote resource(s)
 Stderr:
@@ -138,7 +138,7 @@ Stderr:
 ############################
 Command: cbrain --json  remote-resource list
 Status: 0
-Stdout: 487 bytes
+Stdout: 491 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -163,7 +163,7 @@ Stdout:
   },
   {
     "id": 1,
-    "name": "Bianca",
+    "name": "TestPortal",
     "user_id": 1,
     "group_id": 1,
     "online": true,
@@ -177,13 +177,13 @@ Stderr:
 ############################
 Command: cbrain --jsonl remote-resource list
 Status: 0
-Stdout: 340 bytes
+Stdout: 344 bytes
 Stderr: 0 bytes
 
 Stdout:
 {"id":13,"name":"TestExec","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test Exec"}
 {"id":14,"name":"OfflineTestExec","user_id":1,"group_id":1,"online":false,"read_only":false,"description":"Test Exec"}
-{"id":1,"name":"Bianca","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test Portal"}
+{"id":1,"name":"TestPortal","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test Portal"}
 Stderr:
 (No output)
 
@@ -1237,20 +1237,20 @@ Stderr:
 ############################
 Command: cbrain         background list
 Status: 0
-Stdout: 525 bytes
+Stdout: 227 bytes
 Stderr: 0 bytes
 
 Stdout:
-ID  User ID Resource ID Status     Created At          Items Successes Failures
---- ------- ----------- ---------- ------------------- ----- --------- --------
-43  2       1           Suspended  2222-22-22 33:33     0         0
+ID User ID Resource ID Status    Created At          Items Successes Failures
+-- ------- ----------- --------- ------------------- ----- --------- --------
+43 2       1           Suspended 2222-22-22 33:33     0         0
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  background list
 Status: 0
-Stdout: 2412 bytes
+Stdout: 454 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -1283,7 +1283,7 @@ Stderr:
 ############################
 Command: cbrain --jsonl background list
 Status: 0
-Stdout: 1767 bytes
+Stdout: 331 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -1575,12 +1575,24 @@ Stderr:
 ############################
 Command: cbrain         file move --file-id 2 --dp-id 15
 Status: 0
-Stdout: 74 bytes
+Stdout: 73 bytes
 Stderr: 0 bytes
 
 Stdout:
 Your files are being moved in the background.
-Background activity ID: 267
+Background activity ID: 47
+Stderr:
+(No output)
+
+############################
+Command: cbrain         logout
+Status: 0
+Stdout: 116 bytes
+Stderr: 0 bytes
+
+Stdout:
+Successfully logged out from CBRAIN server.
+Local session removed from /home/runner/.config/cbrain/credentials.json
 Stderr:
 (No output)
 
