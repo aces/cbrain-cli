@@ -3,18 +3,95 @@
 ############################
 
 ############################
-Command: cbrain version
+Command: ./switch_session NONE
+Status: 0
+Stdout: 0 bytes
+Stderr: 0 bytes
+
+Stdout:
+(No output)
+Stderr:
+(No output)
+
+############################
+Command: cbrain        version
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json version
+Status: 1
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain        whoami
+Status: 1
+Stdout: 50 bytes
+Stderr: 0 bytes
+
+Stdout:
+Not logged in. Use 'cbrain login' to login first.
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json whoami
+Status: 1
+Stdout: 50 bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: ./switch_session norm # logged in a normal user 'norm', id=2
+Status: 0
+Stdout: 0 bytes
+Stderr: 0 bytes
+
+Stdout:
+(No output)
+Stderr:
+(No output)
+
+############################
+Command: cbrain        version
 Status: 0
 Stdout: 30 bytes
 Stderr: 0 bytes
 
 Stdout:
-cbrain cli client version 1.0
+cbrain cli client version 0.9
 Stderr:
 (No output)
 
 ############################
-Command: cbrain whoami
+Command: cbrain --json version
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain        whoami
 Status: 0
 Stdout: 65 bytes
 Stderr: 0 bytes
@@ -25,7 +102,7 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain -j whoami
+Command: cbrain --json whoami
 Status: 0
 Stdout: 89 bytes
 Stderr: 0 bytes
@@ -40,7 +117,1262 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain file list
+Command: cbrain         remote-resource list
+Status: 0
+Stdout: 441 bytes
+Stderr: 0 bytes
+
+Stdout:
+REMOTE RESOURCES (EXECUTION SERVERS)
+--------------------------------------------------------------------------------
+ID Name            User Group Online Read-Only
+-- --------------- ---- ----- ------ ---------
+13 TestExec        1    1     Yes    No
+14 OfflineTestExec 1    1     No     No
+1  TestPortal      1    1     Yes    No
+--------------------------------------------------------------------------------
+Total: 3 remote resource(s)
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  remote-resource list
+Status: 0
+Stdout: 491 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 13,
+    "name": "TestExec",
+    "user_id": 1,
+    "group_id": 1,
+    "online": true,
+    "read_only": false,
+    "description": "Test Exec"
+  },
+  {
+    "id": 14,
+    "name": "OfflineTestExec",
+    "user_id": 1,
+    "group_id": 1,
+    "online": false,
+    "read_only": false,
+    "description": "Test Exec"
+  },
+  {
+    "id": 1,
+    "name": "TestPortal",
+    "user_id": 1,
+    "group_id": 1,
+    "online": true,
+    "read_only": false,
+    "description": "Test Portal"
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl remote-resource list
+Status: 0
+Stdout: 344 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":13,"name":"TestExec","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test Exec"}
+{"id":14,"name":"OfflineTestExec","user_id":1,"group_id":1,"online":false,"read_only":false,"description":"Test Exec"}
+{"id":1,"name":"TestPortal","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test Portal"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         remote-resource show 13
+Status: 0
+Stdout: 258 bytes
+Stderr: 0 bytes
+
+Stdout:
+REMOTE RESOURCE DETAILS
+------------------------------
+Field Value   
+----- --------
+ID    13
+Name  TestExec
+Type  N/A
+
+OWNERSHIP & ACCESS
+------------------------------
+Field     Value
+--------- -----
+User ID   1
+Group ID  1
+Online    True
+Read Only False
+
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  remote-resource show 13
+Status: 0
+Stdout: 140 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 13,
+  "name": "TestExec",
+  "user_id": 1,
+  "group_id": 1,
+  "online": true,
+  "read_only": false,
+  "description": "Test Exec"
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl remote-resource show 13
+Status: 0
+Stdout: 111 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":13,"name":"TestExec","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test Exec"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         dataprovider list
+Status: 0
+Stdout: 138 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID Name   Type                     Host Online
+-- ------ ------------------------ ---- ------
+15 TestDP FlatDirLocalDataProvider      Yes
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  dataprovider list
+Status: 0
+Stdout: 340 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 15,
+    "name": "TestDP",
+    "type": "FlatDirLocalDataProvider",
+    "user_id": 1,
+    "group_id": 1,
+    "online": true,
+    "read_only": false,
+    "description": "Test DP",
+    "is_browsable": true,
+    "is_fast_syncing": true,
+    "allow_file_owner_change": true,
+    "content_storage_shared_between_users": true
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl dataprovider list
+Status: 0
+Stdout: 259 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":15,"name":"TestDP","type":"FlatDirLocalDataProvider","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test DP","is_browsable":true,"is_fast_syncing":true,"allow_file_owner_change":true,"content_storage_shared_between_users":true}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         dataprovider show 15
+Status: 0
+Stdout: 864 bytes
+Stderr: 0 bytes
+
+Stdout:
+DATA PROVIDER DETAILS
+------------------------------
+Field       Value                   
+----------- ------------------------
+ID          15
+Name        TestDP
+Type        FlatDirLocalDataProvider
+Description Test DP
+
+OWNERSHIP & STATUS
+------------------------------
+Field                                Value
+------------------------------------ -----
+User ID                              1
+Group ID                             1
+Online                               True
+Read Only                            False
+Is Browsable                         True
+Is Fast Syncing                      True
+Allow File Owner Change              True
+Content Storage Shared Between Users True
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  dataprovider show 15
+Status: 0
+Stdout: 308 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 15,
+  "name": "TestDP",
+  "type": "FlatDirLocalDataProvider",
+  "user_id": 1,
+  "group_id": 1,
+  "online": true,
+  "read_only": false,
+  "description": "Test DP",
+  "is_browsable": true,
+  "is_fast_syncing": true,
+  "allow_file_owner_change": true,
+  "content_storage_shared_between_users": true
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl dataprovider show 15
+Status: 0
+Stdout: 259 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":15,"name":"TestDP","type":"FlatDirLocalDataProvider","user_id":1,"group_id":1,"online":true,"read_only":false,"description":"Test DP","is_browsable":true,"is_fast_syncing":true,"allow_file_owner_change":true,"content_storage_shared_between_users":true}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project list
+Status: 0
+Stdout: 114 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID Type      Project Name
+-- --------- ------------
+3  UserGroup norm
+11 WorkGroup NormDel
+10 WorkGroup NormTest1
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  project list
+Status: 0
+Stdout: 211 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 3,
+    "type": "UserGroup",
+    "name": "norm"
+  },
+  {
+    "id": 11,
+    "type": "WorkGroup",
+    "name": "NormDel"
+  },
+  {
+    "id": 10,
+    "type": "WorkGroup",
+    "name": "NormTest1"
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl project list
+Status: 0
+Stdout: 136 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":3,"type":"UserGroup","name":"norm"}
+{"id":11,"type":"WorkGroup","name":"NormDel"}
+{"id":10,"type":"WorkGroup","name":"NormTest1"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project show 10
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  project show 10
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl project show 10
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project switch 10
+Status: 0
+Stdout: 37 bytes
+Stderr: 0 bytes
+
+Stdout:
+Current project is "NormTest1" ID=10
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  project switch 10
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl project switch 10
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  project switch all
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl project switch all
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project switch 3 # need to reset for rest of test to work
+Status: 0
+Stdout: 31 bytes
+Stderr: 0 bytes
+
+Stdout:
+Current project is "norm" ID=3
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag list
+Status: 0
+Stdout: 219 bytes
+Stderr: 0 bytes
+
+Stdout:
+TAGS
+------------------------------------------------------------
+ID Name   User Group
+-- ------ ---- -----
+21 tag1   2    3
+99 tagdel 2    3
+------------------------------------------------------------
+Total: 2 tag(s)
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tag list
+Status: 0
+Stdout: 163 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 21,
+    "name": "tag1",
+    "user_id": 2,
+    "group_id": 3
+  },
+  {
+    "id": 99,
+    "name": "tagdel",
+    "user_id": 2,
+    "group_id": 3
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tag list
+Status: 0
+Stdout: 100 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":21,"name":"tag1","user_id":2,"group_id":3}
+{"id":99,"name":"tagdel","user_id":2,"group_id":3}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag show 21
+Status: 0
+Stdout: 121 bytes
+Stderr: 0 bytes
+
+Stdout:
+TAG DETAILS
+------------------------------
+Field    Value
+-------- -----
+ID       21
+Name     tag1
+User ID  2
+Group ID 3
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tag show 21
+Status: 0
+Stdout: 66 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 21,
+  "name": "tag1",
+  "user_id": 2,
+  "group_id": 3
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tag show 21
+Status: 0
+Stdout: 49 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":21,"name":"tag1","user_id":2,"group_id":3}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag show   99
+Status: 0
+Stdout: 125 bytes
+Stderr: 0 bytes
+
+Stdout:
+TAG DETAILS
+------------------------------
+Field    Value 
+-------- ------
+ID       99
+Name     tagdel
+User ID  2
+Group ID 3
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag update 99 --name Renamed --user-id 2 --group-id 3
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag show   99
+Status: 0
+Stdout: 128 bytes
+Stderr: 0 bytes
+
+Stdout:
+TAG DETAILS
+------------------------------
+Field    Value  
+-------- -------
+ID       99
+Name     Renamed
+User ID  2
+Group ID 3
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag delete 99
+Status: 0
+Stdout: 30 bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX (why the blank line?)
+Tag 99 deleted successfully!
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tag create --name NewTag1 --user-id 2 --group-id 3
+Status: 0
+Stdout: 26 bytes
+Stderr: 0 bytes
+
+Stdout:
+TAG CREATED SUCCESSFULLY!
+TOFIX: why is the message all in uppercase?
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tag create --name NewTag2 --user-id 2 --group-id 3
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tag create --name NewTag3 --user-id 2 --group-id 3
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX
+Stderr:
+(No output)
+
+############################
+Command: cbrain         task list
+Status: 0
+Stdout: 441 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID Type                      Status    Bourreau User Group
+-- ------------------------- --------- -------- ---- -----
+2  CbrainTask::SimpleMonitor Completed 13       2    3
+3  CbrainTask::SimpleMonitor Completed 13       2    3
+5  CbrainTask::SimpleMonitor Completed 13       2    3
+6  CbrainTask::SimpleMonitor Completed 13       2    3
+-------------------------------------------------------------------------------------
+Total: 4 task(s)
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  task list
+Status: 0
+Stdout: 2026 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 2,
+    "type": "CbrainTask::SimpleMonitor",
+    "user_id": 2,
+    "group_id": 3,
+    "bourreau_id": 13,
+    "tool_config_id": 20,
+    "batch_id": 2,
+    "params": {},
+    "status": "Completed",
+    "created_at": "2222-22-22T33:33Z",
+    "updated_at": "2222-22-22T33:33Z",
+    "run_number": 1,
+    "results_data_provider_id": 15,
+    "cluster_workdir_size": 123456,
+    "workdir_archived": false,
+    "workdir_archive_userfile_id": 9876,
+    "description": "ExistTest"
+  },
+  {
+    "id": 3,
+    "type": "CbrainTask::SimpleMonitor",
+    "user_id": 2,
+    "group_id": 3,
+    "bourreau_id": 13,
+    "tool_config_id": 20,
+    "batch_id": 2,
+    "params": {},
+    "status": "Completed",
+    "created_at": "2222-22-22T33:33Z",
+    "updated_at": "2222-22-22T33:33Z",
+    "run_number": 1,
+    "results_data_provider_id": 15,
+    "cluster_workdir_size": 123456,
+    "workdir_archived": false,
+    "workdir_archive_userfile_id": 9876,
+    "description": "DelTest"
+  },
+  {
+    "id": 5,
+    "type": "CbrainTask::SimpleMonitor",
+    "user_id": 2,
+    "group_id": 3,
+    "bourreau_id": 13,
+    "tool_config_id": 20,
+    "batch_id": 2,
+    "params": {},
+    "status": "Completed",
+    "created_at": "2222-22-22T33:33Z",
+    "updated_at": "2222-22-22T33:33Z",
+    "run_number": 1,
+    "results_data_provider_id": 15,
+    "cluster_workdir_size": 123456,
+    "workdir_archived": false,
+    "workdir_archive_userfile_id": 9876,
+    "description": "DelTestWithoutWorkdir"
+  },
+  {
+    "id": 6,
+    "type": "CbrainTask::SimpleMonitor",
+    "user_id": 2,
+    "group_id": 3,
+    "bourreau_id": 13,
+    "tool_config_id": 20,
+    "batch_id": 2,
+    "params": {},
+    "status": "Completed",
+    "created_at": "2222-22-22T33:33Z",
+    "updated_at": "2222-22-22T33:33Z",
+    "run_number": 1,
+    "results_data_provider_id": 15,
+    "cluster_workdir_size": 123456,
+    "workdir_archived": false,
+    "workdir_archive_userfile_id": 9876,
+    "description": "DelTestWithWorkdir"
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl task list
+Status: 0
+Stdout: 1591 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":2,"type":"CbrainTask::SimpleMonitor","user_id":2,"group_id":3,"bourreau_id":13,"tool_config_id":20,"batch_id":2,"params":{},"status":"Completed","created_at":"2222-22-22T33:33Z","updated_at":"2222-22-22T33:33Z","run_number":1,"results_data_provider_id":15,"cluster_workdir_size":123456,"workdir_archived":false,"workdir_archive_userfile_id":9876,"description":"ExistTest"}
+{"id":3,"type":"CbrainTask::SimpleMonitor","user_id":2,"group_id":3,"bourreau_id":13,"tool_config_id":20,"batch_id":2,"params":{},"status":"Completed","created_at":"2222-22-22T33:33Z","updated_at":"2222-22-22T33:33Z","run_number":1,"results_data_provider_id":15,"cluster_workdir_size":123456,"workdir_archived":false,"workdir_archive_userfile_id":9876,"description":"DelTest"}
+{"id":5,"type":"CbrainTask::SimpleMonitor","user_id":2,"group_id":3,"bourreau_id":13,"tool_config_id":20,"batch_id":2,"params":{},"status":"Completed","created_at":"2222-22-22T33:33Z","updated_at":"2222-22-22T33:33Z","run_number":1,"results_data_provider_id":15,"cluster_workdir_size":123456,"workdir_archived":false,"workdir_archive_userfile_id":9876,"description":"DelTestWithoutWorkdir"}
+{"id":6,"type":"CbrainTask::SimpleMonitor","user_id":2,"group_id":3,"bourreau_id":13,"tool_config_id":20,"batch_id":2,"params":{},"status":"Completed","created_at":"2222-22-22T33:33Z","updated_at":"2222-22-22T33:33Z","run_number":1,"results_data_provider_id":15,"cluster_workdir_size":123456,"workdir_archived":false,"workdir_archive_userfile_id":9876,"description":"DelTestWithWorkdir"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         task show 2
+Status: 0
+Stdout: 809 bytes
+Stderr: 0 bytes
+
+Stdout:
+Field  Value                    
+------ -------------------------
+ID     2
+Type   CbrainTask::SimpleMonitor
+Status Completed
+
+OWNERSHIP & ASSIGNMENT
+------------------------------
+Field          Value
+-------------- -----
+User ID        2
+Group ID       3
+Bourreau ID    13
+Tool Config ID 20
+Batch ID       2
+
+EXECUTION INFO
+------------------------------
+Field                    Value 
+------------------------ ------
+Run Number               1
+Results Data Provider ID 15
+Cluster Workdir Size     123456
+Workdir Archived         False
+Workdir Archive File ID  9876
+
+TIMESTAMPS
+------------------------------
+Field      Value                   
+---------- ------------------------
+Created At 2222-22-22T33:33Z
+Updated At 2222-22-22T33:33Z
+
+DESCRIPTION
+------------------------------
+ExistTest
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  task show 2
+Status: 0
+Stdout: 462 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 2,
+  "type": "CbrainTask::SimpleMonitor",
+  "user_id": 2,
+  "group_id": 3,
+  "bourreau_id": 13,
+  "tool_config_id": 20,
+  "batch_id": 2,
+  "params": {},
+  "status": "Completed",
+  "created_at": "2222-22-22T33:33Z",
+  "updated_at": "2222-22-22T33:33Z",
+  "run_number": 1,
+  "results_data_provider_id": 15,
+  "cluster_workdir_size": 123456,
+  "workdir_archived": false,
+  "workdir_archive_userfile_id": 9876,
+  "description": "ExistTest"
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl task show 2
+Status: 0
+Stdout: 393 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":2,"type":"CbrainTask::SimpleMonitor","user_id":2,"group_id":3,"bourreau_id":13,"tool_config_id":20,"batch_id":2,"params":{},"status":"Completed","created_at":"2222-22-22T33:33Z","updated_at":"2222-22-22T33:33Z","run_number":1,"results_data_provider_id":15,"cluster_workdir_size":123456,"workdir_archived":false,"workdir_archive_userfile_id":9876,"description":"ExistTest"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         task operation   # should provide error message
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+"{\"message\":\"No operation selected\"}"
+TOFIX : the output is a quoted string with JSON content?
+Stderr:
+(No output)
+
+############################
+Command: ./switch_session admin
+Status: 0
+Stdout: 0 bytes
+Stderr: 0 bytes
+
+Stdout:
+(No output)
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tool-config list
+Status: 0
+Stdout: 453 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID Version Tool ID Bourreau Group CPUs Description                                                                      
+-- ------- ------- -------- ----- ---- ---------------------------------------------------------------------------------
+19 admin1  17      14       2     99   admin_only
+20 norm1   17      13       1     99   all_users
+-------------------------------------------------------------------------------------
+Total: 2 configuration(s)
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tool-config list
+Status: 0
+Stdout: 327 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 19,
+    "version_name": "admin1",
+    "description": "admin_only",
+    "tool_id": 17,
+    "bourreau_id": 14,
+    "group_id": 2,
+    "ncpus": 99
+  },
+  {
+    "id": 20,
+    "version_name": "norm1",
+    "description": "all_users",
+    "tool_id": 17,
+    "bourreau_id": 13,
+    "group_id": 1,
+    "ncpus": 99
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tool-config list
+Status: 0
+Stdout: 228 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":19,"version_name":"admin1","description":"admin_only","tool_id":17,"bourreau_id":14,"group_id":2,"ncpus":99}
+{"id":20,"version_name":"norm1","description":"all_users","tool_id":17,"bourreau_id":13,"group_id":1,"ncpus":99}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tool-config show 19 # not visible to normal user norm
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX : The output is in JSON
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tool-config show 19
+Status: 0
+Stdout: 144 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 19,
+  "version_name": "admin1",
+  "description": "admin_only",
+  "tool_id": 17,
+  "bourreau_id": 14,
+  "group_id": 2,
+  "ncpus": 99
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tool-config show 19
+Status: 0
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX : the output is in JSON
+Stderr:
+(No output)
+
+############################
+Command: ./switch_session norm
+Status: 0
+Stdout: 0 bytes
+Stderr: 0 bytes
+
+Stdout:
+(No output)
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tool-config list
+Status: 0
+Stdout: 403 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID Version Tool ID Bourreau Group CPUs Description                                                                      
+-- ------- ------- -------- ----- ---- ---------------------------------------------------------------------------------
+20 norm1   17      13       1     99   all_users
+-------------------------------------------------------------------------------------
+Total: 1 configuration(s)
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tool-config list
+Status: 0
+Stdout: 164 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 20,
+    "version_name": "norm1",
+    "description": "all_users",
+    "tool_id": 17,
+    "bourreau_id": 13,
+    "group_id": 1,
+    "ncpus": 99
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tool-config list
+Status: 0
+Stdout: 113 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":20,"version_name":"norm1","description":"all_users","tool_id":17,"bourreau_id":13,"group_id":1,"ncpus":99}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tool-config show 19 # visible to user admin
+Status: 1
+Stdout: 32 bytes
+Stderr: 0 bytes
+
+Stdout:
+Connection failed: Unauthorized
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tool-config show 19
+Status: 1
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX Connection failed: Unauthorized
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tool-config show 19
+Status: 1
+Stdout: TOFIX bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX Connection failed: Unauthorized
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tool list
+Status: 0
+Stdout: 379 bytes
+Stderr: 0 bytes
+
+Stdout:
+Found 1 tools:
+ID Name          Category        Description                                                                            
+-- ------------- --------------- ---------------------------------------------------------------------------------------
+17 SimpleMonitor scientific tool TestMon
+--------------------------------------------------------------------------------
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tool list
+Status: 0
+Stdout: 187 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 17,
+    "name": "SimpleMonitor",
+    "user_id": 1,
+    "group_id": 1,
+    "category": "scientific tool",
+    "description": "TestMon",
+    "url": "http://localhost"
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tool list
+Status: 0
+Stdout: 136 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":17,"name":"SimpleMonitor","user_id":1,"group_id":1,"category":"scientific tool","description":"TestMon","url":"http://localhost"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         tool show 17
+Status: 0
+Stdout: 248 bytes
+Stderr: 0 bytes
+
+Stdout:
+TOOL DETAILS
+------------------------------
+Field       Value           
+----------- ----------------
+ID          17
+Name        SimpleMonitor
+User ID     1
+Group ID    1
+Category    scientific tool
+Description TestMon
+URL         http://localhost
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  tool show 17
+Status: 0
+Stdout: 165 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 17,
+  "name": "SimpleMonitor",
+  "user_id": 1,
+  "group_id": 1,
+  "category": "scientific tool",
+  "description": "TestMon",
+  "url": "http://localhost"
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl tool show 17
+Status: 0
+Stdout: 136 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":17,"name":"SimpleMonitor","user_id":1,"group_id":1,"category":"scientific tool","description":"TestMon","url":"http://localhost"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         background list
+Status: 0
+Stdout: 227 bytes
+Stderr: 0 bytes
+
+Stdout:
+ID User ID Resource ID Status    Created At          Items Successes Failures
+-- ------- ----------- --------- ------------------- ----- --------- --------
+43 2       1           Suspended 2222-22-22 33:33     0         0
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  background list
+Status: 0
+Stdout: 454 bytes
+Stderr: 0 bytes
+
+Stdout:
+[
+  {
+    "id": 43,
+    "user_id": 2,
+    "remote_resource_id": 1,
+    "status": "Suspended",
+    "handler_lock": null,
+    "items": [
+      2
+    ],
+    "current_item": 0,
+    "num_successes": 0,
+    "num_failures": 0,
+    "messages": [],
+    "options": {},
+    "created_at": "2222-22-22T33:33Z",
+    "updated_at": "2222-22-22T33:33Z",
+    "start_at": null,
+    "repeat": "one_shot",
+    "retry_count": null,
+    "retry_delay": null
+  }
+]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl background list
+Status: 0
+Stdout: 331 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":43,"user_id":2,"remote_resource_id":1,"status":"Suspended","handler_lock":null,"items":[2],"current_item":0,"num_successes":0,"num_failures":0,"messages":[],"options":{},"created_at":"2222-22-22T33:33Z","updated_at":"2222-22-22T33:33Z","start_at":null,"repeat":"one_shot","retry_count":null,"retry_delay":null}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         background show 43
+Status: 0
+Stdout: 795 bytes
+Stderr: 0 bytes
+
+Stdout:
+BACKGROUND ACTIVITY DETAILS
+------------------------------
+Field              Value                       
+------------------ ----------------------------
+ID                 43
+Type               BackgroundActivity::SyncFile
+User ID            2
+Remote Resource ID 1
+Status             Suspended
+
+EXECUTION INFO
+------------------------------
+Field               Value
+------------------- -----
+Handler Lock        None
+Items               [2]
+Current Item        0
+Number of Successes 0
+Number of Failures  0
+Messages            []
+Options             {}
+
+SCHEDULING INFO
+------------------------------
+Field       Value                   
+----------- ------------------------
+Created At  N/A
+Updated At  2222-22-22T33:33Z
+Start At    N/A
+Repeat      N/A
+Retry Count N/A
+Retry Delay N/A
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  background show 43
+Status: 0
+Stdout: 316 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 43,
+  "user_id": 2,
+  "remote_resource_id": 1,
+  "type": "BackgroundActivity::SyncFile",
+  "status": "Suspended",
+  "items": [
+    2
+  ],
+  "messages": [],
+  "current_item": 0,
+  "num_successes": 0,
+  "num_failures": 0,
+  "handler_lock": null,
+  "options": {},
+  "updated_at": "2222-22-22T33:33Z"
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl background show 43
+Status: 0
+Stdout: 255 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":43,"user_id":2,"remote_resource_id":1,"type":"BackgroundActivity::SyncFile","status":"Suspended","items":[2],"messages":[],"current_item":0,"num_successes":0,"num_failures":0,"handler_lock":null,"options":{},"updated_at":"2222-22-22T33:33Z"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         file list
 Status: 0
 Stdout: 170 bytes
 Stderr: 0 bytes
@@ -57,7 +1389,7 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain -j file list
+Command: cbrain --json  file list
 Status: 0
 Stdout: 1764 bytes
 Stderr: 0 bytes
@@ -150,6 +1482,117 @@ Stdout:
     "description": "to unregister"
   }
 ]
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl file list
+Status: 0
+Stdout: 1281 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":6,"name":"binary.dat","browse_path":null,"size":1,"user_id":2,"parent_id":null,"type":"DatFile","group_id":3,"data_provider_id":15,"group_writable":false,"num_files":1,"hidden":false,"immutable":false,"archived":false,"description":"binary data"}
+{"id":2,"name":"norm.json","browse_path":null,"size":25,"user_id":2,"parent_id":null,"type":"TextFile","group_id":3,"data_provider_id":15,"group_writable":false,"num_files":1,"hidden":false,"immutable":false,"archived":false,"description":"test file2"}
+{"id":4,"name":"todel.txt","browse_path":null,"size":11,"user_id":2,"parent_id":null,"type":"TextFile","group_id":3,"data_provider_id":15,"group_writable":false,"num_files":1,"hidden":false,"immutable":false,"archived":false,"description":"to unregister"}
+{"id":5,"name":"todelmult.txt","browse_path":null,"size":11,"user_id":2,"parent_id":null,"type":"TextFile","group_id":3,"data_provider_id":15,"group_writable":false,"num_files":1,"hidden":false,"immutable":false,"archived":false,"description":"to unregister"}
+{"id":3,"name":"tounreg1.txt","browse_path":null,"size":13,"user_id":2,"parent_id":null,"type":"TextFile","group_id":3,"data_provider_id":15,"group_writable":false,"num_files":1,"hidden":false,"immutable":false,"archived":false,"description":"to unregister"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         file show 2
+Status: 0
+Stdout: 124 bytes
+Stderr: 0 bytes
+
+Stdout:
+id: 2
+type: TextFile
+name: norm.json
+data_provider: 15
+size: 25
+num_files: 1
+user_id: 2
+group_id: 3
+description: test file2
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  file show 2
+Status: 0
+Stdout: 314 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 2,
+  "name": "norm.json",
+  "browse_path": null,
+  "size": 25,
+  "user_id": 2,
+  "parent_id": null,
+  "type": "TextFile",
+  "group_id": 3,
+  "data_provider_id": 15,
+  "group_writable": false,
+  "num_files": 1,
+  "hidden": false,
+  "immutable": false,
+  "archived": false,
+  "description": "test file2"
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl file show 2
+Status: 0
+Stdout: 253 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"id":2,"name":"norm.json","browse_path":null,"size":25,"user_id":2,"parent_id":null,"type":"TextFile","group_id":3,"data_provider_id":15,"group_writable":false,"num_files":1,"hidden":false,"immutable":false,"archived":false,"description":"test file2"}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         file delete 5
+Status: 0
+Stdout: 96 bytes
+Stderr: 0 bytes
+
+Stdout:
+TOFIX why in JSON ?
+{
+  "message": "Your files are being deleted in background.",
+  "background_activity_id": 265
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         file move --file-id 2 --dp-id 15
+Status: 0
+Stdout: 73 bytes
+Stderr: 0 bytes
+
+Stdout:
+Your files are being moved in the background.
+Background activity ID: 47
+Stderr:
+(No output)
+
+############################
+Command: cbrain         logout
+Status: 0
+Stdout: 116 bytes
+Stderr: 0 bytes
+
+Stdout:
+Successfully logged out from CBRAIN server.
+Local session removed from /home/runner/.config/cbrain/credentials.json
 Stderr:
 (No output)
 
