@@ -84,12 +84,6 @@ def print_upload_result(response_data, response_status, file_name, file_size, da
         print("File uploaded successfully!")
         if response_data.get("notice"):
             print(f"Server response: {response_data['notice']}")
-    else:
-        print(f"Upload failed with status: {response_status}")
-        if response_data.get("notice"):
-            print(f"Error: {response_data['notice']}")
-        else:
-            print(f"Response: {response_data}")
 
 
 def print_move_copy_result(response_data, response_status, operation="move"):

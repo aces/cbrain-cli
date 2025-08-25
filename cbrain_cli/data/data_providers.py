@@ -34,23 +34,15 @@ def show_data_provider(args):
         data_provider_endpoint, data=None, headers=headers, method="GET"
     )
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            provider_data = json.loads(data)
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        provider_data = json.loads(data)
 
-        if provider_data.get("error"):
-            print(f"Error: {provider_data.get('error')}")
-            return None
-
-        return provider_data
-
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Data provider with ID {data_provider_id} not found")
-        else:
-            print(f"Error: HTTP {e.code} - {e.reason}")
+    if provider_data.get("error"):
+        print(f"Error: {provider_data.get('error')}")
         return None
+
+    return provider_data
 
 
 def list_data_providers(args):
