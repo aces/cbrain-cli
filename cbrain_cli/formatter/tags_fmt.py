@@ -24,14 +24,14 @@ def print_tags_list(tags_data, args):
         return
 
     print("TAGS")
-    print("-" * 60)
+    print("-" * 40)
 
     # Use the reusable dynamic table formatter
     dynamic_table_print(
         tags_data, ["id", "name", "user_id", "group_id"], ["ID", "Name", "User", "Group"]
     )
 
-    print("-" * 60)
+    print("-" * 40)
     print(f"Total: {len(tags_data)} tag(s)")
 
 
@@ -88,91 +88,13 @@ def print_tag_operation_result(
     """
     if success:
         if operation == "create":
-            print("TAG CREATED SUCCESSFULLY!")
+            print("Tag created successfully!")
         elif operation == "update":
-            print(f"\nTag {tag_id} updated successfully!")
+            print(f"Tag {tag_id} updated successfully!")
         elif operation == "delete":
-            print(f"\nTag {tag_id} deleted successfully!")
+            print(f"Tag {tag_id} deleted successfully!")
     else:
         if error_msg:
             print(error_msg)
         else:
             print(f"Tag {operation} failed with status: {response_status}")
-
-
-def print_interactive_prompts(operation="create"):
-    """
-    Print interactive prompts for tag operations.
-
-    Parameters
-    ----------
-    operation : str
-        Operation type ("create", "update", or "delete")
-
-    Returns
-    -------
-    dict
-        Dictionary containing user inputs
-    """
-    if operation == "delete":
-        tag_id_input = input("Enter tag ID to delete: ").strip()
-        if not tag_id_input:
-            print("Error: Tag ID is required")
-            return None
-        try:
-            tag_id = int(tag_id_input)
-            confirm = (
-                input(f"\nAre you sure you want to delete tag {tag_id}? (y/N): ").strip().lower()
-            )
-            if confirm not in ["y", "yes"]:
-                print("Tag deletion cancelled.")
-                return None
-            return {"tag_id": tag_id}
-        except ValueError:
-            print("Error: Tag ID must be a number")
-            return None
-
-    if operation == "update":
-        tag_id_input = input("Enter tag ID to update: ").strip()
-        if not tag_id_input:
-            print("Error: Tag ID is required")
-            return None
-        try:
-            tag_id = int(tag_id_input)
-            print(f"\nUpdating tag {tag_id}...")
-            print("Enter new values:")
-        except ValueError:
-            print("Error: Tag ID must be a number")
-            return None
-    else:
-        tag_id = None
-
-    # Get tag details
-    tag_name = input(f"Enter {'new ' if operation == 'update' else ''}tag name: ").strip()
-    if not tag_name:
-        print("Error: Tag name is required")
-        return None
-
-    user_id_input = input(f"Enter {'new ' if operation == 'update' else ''}user ID: ").strip()
-    if not user_id_input:
-        print("Error: User ID is required")
-        return None
-
-    try:
-        user_id = int(user_id_input)
-    except ValueError:
-        print("Error: User ID must be a number")
-        return None
-
-    group_id_input = input(f"Enter {'new ' if operation == 'update' else ''}group ID: ").strip()
-    if not group_id_input:
-        print("Error: Group ID is required")
-        return None
-
-    try:
-        group_id = int(group_id_input)
-    except ValueError:
-        print("Error: Group ID must be a number")
-        return None
-
-    return {"tag_id": tag_id, "tag_name": tag_name, "user_id": user_id, "group_id": group_id}

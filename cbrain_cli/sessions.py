@@ -118,11 +118,19 @@ def logout_session(args):
     )
 
     # Make the request to logout from server.
-    with urllib.request.urlopen(request) as response:
-        if response.status == 200:
-            print("Successfully logged out from CBRAIN server.")
+    try:
+        with urllib.request.urlopen(request) as response:
+            if response.status == 200:
+                print("Successfully logged out from CBRAIN server.")
+            else:
+                print("Logout failed")
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            print("Session already expired on server.")
         else:
-            print("Logout failed")
+            print(f"Logout request failed: HTTP {e.code}")
+    except urllib.error.URLError as e:
+        print(f"Network error during logout: {e}")
 
     # Always remove local credentials file.
     CREDENTIALS_FILE.unlink()

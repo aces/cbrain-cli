@@ -56,10 +56,28 @@ def print_tool_config_details(tool_config, args):
     """
     Pretty print the details of a tool configuration.
     """
+    if getattr(args, "json", False):
+        json_printer(tool_config)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(tool_config)
+        return
+
     if not tool_config:
         print("No tool configuration found.")
         return
-    json_printer(tool_config)
+
+    print(
+        f"id: {tool_config.get('id', 'N/A')}\n"
+        f"version_name: {tool_config.get('version_name', 'N/A')}\n"
+        f"tool_id: {tool_config.get('tool_id', 'N/A')}\n"
+        f"bourreau_id: {tool_config.get('bourreau_id', 'N/A')}\n"
+        f"group_id: {tool_config.get('group_id', 'N/A')}\n"
+        f"ncpus: {tool_config.get('ncpus', 'N/A')}"
+    )
+
+    if tool_config.get("description"):
+        print(f"description: {tool_config.get('description')}")
 
 
 def print_boutiques_descriptor(boutiques_descriptor, args):

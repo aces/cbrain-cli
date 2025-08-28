@@ -78,17 +78,9 @@ def show_task(args):
 
     request = urllib.request.Request(task_endpoint, data=None, headers=headers, method="GET")
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            task_data = json.loads(data)
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Task with ID {task_id} not found")
-            return 1
-        else:
-            print(f"Error: HTTP {e.code} - {e.reason}")
-            return 1
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        task_data = json.loads(data)
 
     return task_data
 

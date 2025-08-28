@@ -64,18 +64,7 @@ def show_background_activity(args):
         background_activity_endpoint, data=None, headers=headers, method="GET"
     )
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            activity_data = json.loads(data)
-            return activity_data
-
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            print(f"Error: Background activity with ID {activity_id} not found")
-        else:
-            print(f"Error: HTTP {e.code} - {e.reason}")
-        return None
-    except Exception as e:
-        print(f"Error getting background activity details: {str(e)}")
-        return None
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        activity_data = json.loads(data)
+        return activity_data
