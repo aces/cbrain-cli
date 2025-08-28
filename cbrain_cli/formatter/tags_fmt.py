@@ -88,11 +88,11 @@ def print_tag_operation_result(
     """
     if success:
         if operation == "create":
-            print("TAG CREATED SUCCESSFULLY!")
+            print("Tag created successfully!")
         elif operation == "update":
-            print(f"\nTag {tag_id} updated successfully!")
+            print(f"Tag {tag_id} updated successfully!")
         elif operation == "delete":
-            print(f"\nTag {tag_id} deleted successfully!")
+            print(f"Tag {tag_id} deleted successfully!")
     else:
         if error_msg:
             print(error_msg)
