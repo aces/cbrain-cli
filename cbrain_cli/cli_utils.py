@@ -34,6 +34,37 @@ def is_authenticated():
     return True
 
 
+def get_status_code_description(status_code):
+    """
+    Get a user-friendly description for HTTP status codes.
+
+    Parameters
+    ----------
+    status_code : int
+        HTTP status code
+
+    Returns
+    -------
+    str
+        Description of the status code category
+    """
+    if 400 <= status_code < 500:
+        if status_code == 401:
+            return "Authentication error (401)"
+        elif status_code == 403:
+            return "Access forbidden (403)"
+        elif status_code == 404:
+            return "Resource not found (404)"
+        elif status_code == 422:
+            return "Validation error (422)"
+        else:
+            return f"Client error ({status_code})"
+    elif 500 <= status_code < 600:
+        return f"Server error ({status_code})"
+    else:
+        return f"HTTP error ({status_code})"
+
+
 def handle_connection_error(error):
     """
     Handle connection errors with informative messages including server URL.
@@ -49,8 +80,10 @@ def handle_connection_error(error):
         Prints appropriate error messages
     """
     if isinstance(error, urllib.error.HTTPError):
+        status_description = get_status_code_description(error.code)
+
         if error.code == 401:
-            print(f"Request failed: HTTP {error.code} - {error.reason}")
+            print(f"{status_description}: {error.reason}")
             print("Try with Authorized Access")
         elif error.code == 404 or error.code == 422 or error.code == 500:
             # Try to extract specific error message from response
@@ -74,7 +107,7 @@ def handle_connection_error(error):
                             or error_data.get("notice")
                             or str(error_data)
                         )
-                        print(f"Error: {error_msg}")
+                        print(f"{status_description}: {error_msg}")
                         return
                 except json.JSONDecodeError:
                     # Not JSON, try HTML parsing
@@ -102,29 +135,13 @@ def handle_connection_error(error):
                     error_parts.append(h2_text)
 
                 if error_parts:
-                    print("Error: " + " - ".join(error_parts))
+                    print(f"{status_description}: " + " - ".join(error_parts))
                 else:
-                    # Different fallback messages for different error codes
-                    if error.code == 404:
-                        print("Error: Resource not found")
-                    elif error.code == 422:
-                        print("Error: Validation failed")
-                    elif error.code == 500:
-                        print("Error: Internal server error")
-                    else:
-                        print(f"Error: HTTP {error.code} - {error.reason}")
+                    print(f"{status_description}: {error.reason}")
             except Exception:
-                # Different fallback messages for different error codes
-                if error.code == 404:
-                    print("Error: Resource not found")
-                elif error.code == 422:
-                    print("Error: Validation failed")
-                elif error.code == 500:
-                    print("Error: Internal server error")
-                else:
-                    print(f"Error: HTTP {error.code} - {error.reason}")
+                print(f"{status_description}: {error.reason}")
         else:
-            print(f"Request failed: HTTP {error.code} - {error.reason}")
+            print(f"{status_description}: {error.reason}")
     elif isinstance(error, urllib.error.URLError):
         if "Connection refused" in str(error):
             print(f"Error: Cannot connect to CBRAIN server at {cbrain_url}")
