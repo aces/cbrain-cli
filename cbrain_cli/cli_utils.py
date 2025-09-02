@@ -1,6 +1,6 @@
-import datetime
 import functools
 import json
+import re
 import urllib.error
 
 # import importlib.metadata
@@ -27,18 +27,42 @@ def is_authenticated():
     """
     Check if the user is authenticated.
     """
-
-    if cbrain_timestamp:
-        timestamp_obj = datetime.datetime.fromisoformat(cbrain_timestamp)
-        if datetime.datetime.now() - timestamp_obj > datetime.timedelta(days=1):
-            print("Session expired. Please log in again using 'cbrain login'.")
-            CREDENTIALS_FILE.unlink()
-            return False
     # Check if user is logged in.
     if not api_token or not cbrain_url or not user_id:
         print("Not logged in. Use 'cbrain login' to login first.")
         return False
     return True
+
+
+def get_status_code_description(status_code):
+    """
+    Get a user-friendly description for HTTP status codes.
+
+    Parameters
+    ----------
+    status_code : int
+        HTTP status code
+
+    Returns
+    -------
+    str
+        Description of the status code category
+    """
+    if 400 <= status_code < 500:
+        if status_code == 401:
+            return "Authentication error (401)"
+        elif status_code == 403:
+            return "Access forbidden (403)"
+        elif status_code == 404:
+            return "Resource not found (404)"
+        elif status_code == 422:
+            return "Validation error (422)"
+        else:
+            return f"Client error ({status_code})"
+    elif 500 <= status_code < 600:
+        return f"Server error ({status_code})"
+    else:
+        return f"HTTP error ({status_code})"
 
 
 def handle_connection_error(error):
@@ -55,20 +79,75 @@ def handle_connection_error(error):
     None
         Prints appropriate error messages
     """
-    if isinstance(error, urllib.error.URLError):
+    if isinstance(error, urllib.error.HTTPError):
+        status_description = get_status_code_description(error.code)
+
+        if error.code == 401:
+            print(f"{status_description}: {error.reason}")
+            print("Try with Authorized Access")
+        elif error.code == 404 or error.code == 422 or error.code == 500:
+            # Try to extract specific error message from response
+            try:
+                # Check if the error response has already been read
+                if hasattr(error, "read"):
+                    error_response = error.read().decode("utf-8")
+                elif hasattr(error, "response") and hasattr(error.response, "read"):
+                    error_response = error.response.read().decode("utf-8")
+                else:
+                    error_response = ""
+
+                # Try to parse as JSON first (for 422 validation errors)
+                try:
+                    error_data = json.loads(error_response)
+                    if isinstance(error_data, dict):
+                        # Look for common error message fields
+                        error_msg = (
+                            error_data.get("message")
+                            or error_data.get("error")
+                            or error_data.get("notice")
+                            or str(error_data)
+                        )
+                        print(f"{status_description}: {error_msg}")
+                        return
+                except json.JSONDecodeError:
+                    # Not JSON, try HTML parsing
+                    pass
+
+                # Extract header h1 and h2 content from HTML
+                header_pattern = r"<header>\s*<h1>(.*?)</h1>\s*</header>"
+                header_match = re.search(header_pattern, error_response, re.DOTALL)
+                h2_match = re.search(r"<h2>(.*?)</h2>", error_response)
+
+                error_parts = []
+
+                if header_match:
+                    header_text = header_match.group(1).strip()
+                    # Decode HTML entities
+                    header_text = header_text.replace("&#39;", "'").replace("&quot;", '"')
+                    error_parts.append(header_text)
+
+                if h2_match:
+                    h2_text = h2_match.group(1).strip()
+                    # Decode HTML entities
+                    h2_text = h2_text.replace("&#39;", "'").replace("&quot;", '"')
+                    # Remove SQL WHERE clause details
+                    h2_text = re.sub(r"\s*\[WHERE.*?\]", "", h2_text)
+                    error_parts.append(h2_text)
+
+                if error_parts:
+                    print(f"{status_description}: " + " - ".join(error_parts))
+                else:
+                    print(f"{status_description}: {error.reason}")
+            except Exception:
+                print(f"{status_description}: {error.reason}")
+        else:
+            print(f"{status_description}: {error.reason}")
+    elif isinstance(error, urllib.error.URLError):
         if "Connection refused" in str(error):
             print(f"Error: Cannot connect to CBRAIN server at {cbrain_url}")
             print("Please check if the CBRAIN server is running and accessible.")
         else:
             print(f"Connection failed: {error.reason}")
-    elif isinstance(error, urllib.error.HTTPError):
-        print(f"Request failed: HTTP {error.code} - {error.reason}")
-        if error.code == 401:
-            print("Invalid username or password")
-        elif error.code == 404:
-            print("Resource not found")
-        elif error.code == 500:
-            print("Internal server error")
     else:
         print(f"Connection error: {str(error)}")
 

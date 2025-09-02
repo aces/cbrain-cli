@@ -48,7 +48,7 @@ def upload_file(args):
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments including data_provider, file_type, file_path, and group_id
+        Command line arguments including data_provider, file_path, and group_id
 
     Returns
     -------
@@ -94,12 +94,6 @@ def upload_file(args):
     body_parts.append("")
     body_parts.append(str(group_id))
 
-    # Add file_type field.
-    body_parts.append(f"--{boundary}")
-    body_parts.append('Content-Disposition: form-data; name="file_type"')
-    body_parts.append("")
-    body_parts.append(args.file_type)
-
     # Add file data.
     body_parts.append(f"--{boundary}")
     body_parts.append(f'Content-Disposition: form-data; name="upload_file"; filename="{file_name}"')
@@ -127,21 +121,10 @@ def upload_file(args):
     upload_endpoint = f"{cbrain_url}/userfiles"
     request = urllib.request.Request(upload_endpoint, data=body, headers=headers, method="POST")
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            response_data = json.loads(data)
-            return response_data, response.status, file_name, file_size, args.data_provider
-
-    except urllib.error.HTTPError as e:
-        # Handle HTTP errors (like 422) that contain JSON responses.
-        try:
-            error_data = e.read().decode("utf-8")
-            error_response = json.loads(error_data)
-            return error_response, e.code, file_name, file_size, args.data_provider
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            error_data = e.read().decode("utf-8", errors="ignore")
-            return {"error": error_data}, e.code, file_name, file_size, args.data_provider
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        response_data = json.loads(data)
+        return response_data, response.status, file_name, file_size, args.data_provider
 
 
 def copy_file(args):
@@ -187,20 +170,10 @@ def copy_file(args):
     request = urllib.request.Request(
         change_provider_endpoint, data=json_data, headers=headers, method="POST"
     )
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            response_data = json.loads(data)
-            return response_data, response.status
-
-    except urllib.error.HTTPError as e:
-        try:
-            error_data = e.read().decode("utf-8")
-            error_response = json.loads(error_data)
-            return error_response, e.code
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            error_data = e.read().decode("utf-8", errors="ignore")
-            return {"error": error_data}, e.code
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        response_data = json.loads(data)
+        return response_data, response.status
 
 
 def move_file(args):
@@ -248,20 +221,10 @@ def move_file(args):
         change_provider_endpoint, data=json_data, headers=headers, method="POST"
     )
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            response_data = json.loads(data)
-            return response_data, response.status
-
-    except urllib.error.HTTPError as e:
-        try:
-            error_data = e.read().decode("utf-8")
-            error_response = json.loads(error_data)
-            return error_response, e.code
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            error_data = e.read().decode("utf-8", errors="ignore")
-            return {"error": error_data}, e.code
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        response_data = json.loads(data)
+        return response_data, response.status
 
 
 def list_files(args):
@@ -345,20 +308,7 @@ def delete_file(args):
         delete_endpoint, data=json_data, headers=headers, method="DELETE"
     )
 
-    try:
-        with urllib.request.urlopen(request) as response:
-            data = response.read().decode("utf-8")
-            try:
-                response_data = json.loads(data)
-            except json.JSONDecodeError:
-                response_data = data
-            return response_data
-
-    except urllib.error.HTTPError as e:
-        try:
-            error_data = e.read().decode("utf-8")
-            error_response = json.loads(error_data)
-            return error_response, e.code
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            error_data = e.read().decode("utf-8", errors="ignore")
-            return {"error": error_data}, e.code
+    with urllib.request.urlopen(request) as response:
+        data = response.read().decode("utf-8")
+        response_data = json.loads(data)
+        return response_data

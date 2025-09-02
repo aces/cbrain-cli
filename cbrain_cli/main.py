@@ -85,13 +85,6 @@ def main():
         help="Output in JSONL format (one JSON object per line)",
     )
 
-    parser.add_argument(
-        "-i",
-        "--interactive",
-        action="store_true",
-        help="Use interactive mode for commands",
-    )
-
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Version command
@@ -130,7 +123,9 @@ def main():
     )
     file_list_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_files_list(list_files(args), args) if list_files(args) else None
+            lambda args: (lambda result: print_files_list(result, args) if result else None)(
+                list_files(args)
+            )
         )
     )
 
@@ -139,7 +134,9 @@ def main():
     file_show_parser.add_argument("file", type=int, help="File ID")
     file_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_file_details(show_file(args), args) if show_file(args) else None
+            lambda args: (lambda result: print_file_details(result, args) if result else None)(
+                show_file(args)
+            )
         )
     )
 
@@ -173,9 +170,9 @@ def main():
     )
     file_copy_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_move_copy_result(*copy_file(args), operation="copy")
-            if copy_file(args)
-            else None
+            lambda args: (
+                lambda result: print_move_copy_result(*result, operation="copy") if result else None
+            )(copy_file(args))
         )
     )
 
@@ -195,9 +192,9 @@ def main():
     )
     file_move_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_move_copy_result(*move_file(args), operation="move")
-            if move_file(args)
-            else None
+            lambda args: (
+                lambda result: print_move_copy_result(*result, operation="move") if result else None
+            )(move_file(args))
         )
     )
 
@@ -206,7 +203,9 @@ def main():
     file_delete_parser.add_argument("file_id", type=int, help="ID of the file to delete")
     file_delete_parser.set_defaults(
         func=handle_errors(
-            lambda args: json_printer(delete_file(args)) if delete_file(args) else None
+            lambda args: (lambda result: json_printer(result) if result else None)(
+                delete_file(args)
+            )
         )
     )
 
@@ -221,7 +220,11 @@ def main():
         "list", help="List data providers"
     )
     dataprovider_list_parser.set_defaults(
-        func=handle_errors(lambda args: print_providers_list(list_data_providers(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_providers_list(result, args))(
+                list_data_providers(args)
+            )
+        )
     )
 
     dataprovider_list_parser.add_argument(
@@ -239,7 +242,11 @@ def main():
     )
     dataprovider_show_parser.add_argument("id", type=int, help="Data provider ID")
     dataprovider_show_parser.set_defaults(
-        func=handle_errors(lambda args: print_provider_details(show_data_provider(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_provider_details(result, args))(
+                show_data_provider(args)
+            )
+        )
     )
 
     # dataprovider is_alive
@@ -248,7 +255,7 @@ def main():
     )
     dataprovider_is_alive_parser.add_argument("id", type=int, help="Data provider ID")
     dataprovider_is_alive_parser.set_defaults(
-        func=handle_errors(lambda args: json_printer(is_alive(args)))
+        func=handle_errors(lambda args: (lambda result: json_printer(result))(is_alive(args)))
     )
 
     # dataprovider delete-unregistered-files
@@ -260,7 +267,9 @@ def main():
         "id", type=int, help="Data provider ID"
     )
     dataprovider_delete_unregistered_files_parser.set_defaults(
-        func=handle_errors(lambda args: json_printer(delete_unregistered_files(args)))
+        func=handle_errors(
+            lambda args: (lambda result: json_printer(result))(delete_unregistered_files(args))
+        )
     )
 
     # Project commands
@@ -270,7 +279,9 @@ def main():
     # project list
     project_list_parser = project_subparsers.add_parser("list", help="List projects")
     project_list_parser.set_defaults(
-        func=handle_errors(lambda args: print_projects_list(list_projects(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_projects_list(result, args))(list_projects(args))
+        )
     )
 
     # project switch
@@ -278,9 +289,9 @@ def main():
     project_switch_parser.add_argument("group_id", type=int, help="Project/Group ID")
     project_switch_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_current_project(switch_project(args))
-            if switch_project(args)
-            else None
+            lambda args: (lambda result: print_current_project(result) if result else None)(
+                switch_project(args)
+            )
         )
     )
 
@@ -288,9 +299,9 @@ def main():
     project_show_parser = project_subparsers.add_parser("show", help="Show current project")
     project_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_current_project(show_project(args))
-            if show_project(args)
-            else print_no_project()
+            lambda args: (
+                lambda result: print_current_project(result) if result else print_no_project()
+            )(show_project(args))
         )
     )
 
@@ -303,7 +314,9 @@ def main():
     tool_show_parser.add_argument("id", type=int, help="Tool ID")
     tool_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tool_details(list_tools(args), args) if list_tools(args) else None
+            lambda args: (lambda result: print_tool_details(result, args) if result else None)(
+                list_tools(args)
+            )
         )
     )
 
@@ -315,7 +328,9 @@ def main():
     )
     tool_list_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tools_list(list_tools(args), args) if list_tools(args) else None
+            lambda args: (lambda result: print_tools_list(result, args) if result else None)(
+                list_tools(args)
+            )
         )
     )
 
@@ -330,7 +345,11 @@ def main():
         "list", help="List all tool configurations"
     )
     tool_configs_list_parser.set_defaults(
-        func=handle_errors(lambda args: print_tool_configs_list(list_tool_configs(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_tool_configs_list(result, args))(
+                list_tool_configs(args)
+            )
+        )
     )
 
     tool_configs_list_parser.add_argument(
@@ -350,9 +369,9 @@ def main():
     tool_configs_show_parser.add_argument("id", type=int, help="Tool configuration ID")
     tool_configs_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tool_config_details(show_tool_config(args), args)
-            if show_tool_config(args)
-            else None
+            lambda args: (
+                lambda result: print_tool_config_details(result, args) if result else None
+            )(show_tool_config(args))
         )
     )
 
@@ -363,9 +382,9 @@ def main():
     tool_configs_boutiques_parser.add_argument("id", type=int, help="Tool configuration ID")
     tool_configs_boutiques_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_boutiques_descriptor(tool_config_boutiques_descriptor(args), args)
-            if tool_config_boutiques_descriptor(args)
-            else None
+            lambda args: (
+                lambda result: print_boutiques_descriptor(result, args) if result else None
+            )(tool_config_boutiques_descriptor(args))
         )
     )
 
@@ -376,7 +395,9 @@ def main():
     # tag list
     tag_list_parser = tag_subparsers.add_parser("list", help="List tags")
     tag_list_parser.set_defaults(
-        func=handle_errors(lambda args: print_tags_list(list_tags(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_tags_list(result, args))(list_tags(args))
+        )
     )
 
     tag_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
@@ -389,28 +410,26 @@ def main():
     tag_show_parser.add_argument("id", type=int, help="Tag ID")
     tag_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tag_details(show_tag(args), args) if show_tag(args) else None
+            lambda args: (lambda result: print_tag_details(result, args) if result else None)(
+                show_tag(args)
+            )
         )
     )
 
     # tag create
     tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag")
-    tag_create_parser.add_argument(
-        "--name", type=str, help="Tag name (required for non-interactive mode)"
-    )
-    tag_create_parser.add_argument(
-        "--user-id", type=int, help="User ID (required for non-interactive mode)"
-    )
-    tag_create_parser.add_argument(
-        "--group-id", type=int, help="Group ID (required for non-interactive mode)"
-    )
+    tag_create_parser.add_argument("--name", type=str, required=True, help="Tag name")
+    tag_create_parser.add_argument("--user-id", type=int, required=True, help="User ID")
+    tag_create_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
     tag_create_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tag_operation_result(
-                "create", success=result[1], error_msg=result[2], response_status=result[3]
-            )
-            if (result := create_tag(args))
-            else None
+            lambda args: (
+                lambda result: print_tag_operation_result(
+                    "create", success=result[1], error_msg=result[2], response_status=result[3]
+                )
+                if result
+                else None
+            )(create_tag(args))
         )
     )
 
@@ -419,29 +438,24 @@ def main():
     tag_update_parser.add_argument(
         "tag_id",
         type=int,
-        nargs="?",
-        help="Tag ID to update (optional if using -i flag)",
+        help="Tag ID to update",
     )
-    tag_update_parser.add_argument(
-        "--name", type=str, help="Tag name (required for non-interactive mode)"
-    )
-    tag_update_parser.add_argument(
-        "--user-id", type=int, help="User ID (required for non-interactive mode)"
-    )
-    tag_update_parser.add_argument(
-        "--group-id", type=int, help="Group ID (required for non-interactive mode)"
-    )
+    tag_update_parser.add_argument("--name", type=str, required=True, help="Tag name")
+    tag_update_parser.add_argument("--user-id", type=int, required=True, help="User ID")
+    tag_update_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
     tag_update_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tag_operation_result(
-                "update",
-                tag_id=args.tag_id,
-                success=result[1],
-                error_msg=result[2],
-                response_status=result[3],
-            )
-            if (result := update_tag(args))
-            else None
+            lambda args: (
+                lambda result: print_tag_operation_result(
+                    "update",
+                    tag_id=args.tag_id,
+                    success=result[1],
+                    error_msg=result[2],
+                    response_status=result[3],
+                )
+                if result
+                else None
+            )(update_tag(args))
         )
     )
 
@@ -450,20 +464,21 @@ def main():
     tag_delete_parser.add_argument(
         "tag_id",
         type=int,
-        nargs="?",
-        help="Tag ID to delete (optional if using -i flag)",
+        help="Tag ID to delete",
     )
     tag_delete_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_tag_operation_result(
-                "delete",
-                tag_id=args.tag_id,
-                success=result[0],
-                error_msg=result[1],
-                response_status=result[2],
-            )
-            if (result := delete_tag(args))
-            else None
+            lambda args: (
+                lambda result: print_tag_operation_result(
+                    "delete",
+                    tag_id=args.tag_id,
+                    success=result[0],
+                    error_msg=result[1],
+                    response_status=result[2],
+                )
+                if result
+                else None
+            )(delete_tag(args))
         )
     )
 
@@ -479,9 +494,9 @@ def main():
     )
     background_list_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_activities_list(list_background_activities(args), args)
-            if list_background_activities(args)
-            else None
+            lambda args: (lambda result: print_activities_list(result, args) if result else None)(
+                list_background_activities(args)
+            )
         )
     )
 
@@ -492,9 +507,9 @@ def main():
     background_show_parser.add_argument("id", type=int, help="Background activity ID")
     background_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_activity_details(show_background_activity(args), args)
-            if show_background_activity(args)
-            else None
+            lambda args: (lambda result: print_activity_details(result, args) if result else None)(
+                show_background_activity(args)
+            )
         )
     )
 
@@ -518,7 +533,9 @@ def main():
         help="Filter value (required if filter_type is specified)",
     )
     task_list_parser.set_defaults(
-        func=handle_errors(lambda args: print_task_data(list_tasks(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_task_data(result, args))(list_tasks(args))
+        )
     )
 
     # task show
@@ -526,7 +543,9 @@ def main():
     task_show_parser.add_argument("task", type=int, help="Task ID")
     task_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_task_details(show_task(args), args) if show_task(args) else None
+            lambda args: (lambda result: print_task_details(result, args) if result else None)(
+                show_task(args)
+            )
         )
     )
 
@@ -547,7 +566,11 @@ def main():
         "list", help="List remote resources"
     )
     remote_resource_list_parser.set_defaults(
-        func=handle_errors(lambda args: print_resources_list(list_remote_resources(args), args))
+        func=handle_errors(
+            lambda args: (lambda result: print_resources_list(result, args))(
+                list_remote_resources(args)
+            )
+        )
     )
 
     # remote-resource show
@@ -557,9 +580,9 @@ def main():
     remote_resource_show_parser.add_argument("remote_resource", type=int, help="Remote resource ID")
     remote_resource_show_parser.set_defaults(
         func=handle_errors(
-            lambda args: print_resource_details(show_remote_resource(args), args)
-            if show_remote_resource(args)
-            else None
+            lambda args: (lambda result: print_resource_details(result, args) if result else None)(
+                show_remote_resource(args)
+            )
         )
     )
 
