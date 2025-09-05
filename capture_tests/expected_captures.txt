@@ -16,11 +16,11 @@ Stderr:
 ############################
 Command: cbrain        version
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 30 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+cbrain cli client version 1.0
 Stderr:
 (No output)
 
