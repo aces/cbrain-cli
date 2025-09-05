@@ -98,4 +98,5 @@ def operation_task(args):
 
     with urllib.request.urlopen(request) as response:
         data = response.read().decode("utf-8")
-        json_printer(data)
+        parsed_data = json.loads(data)
+        json_printer(parsed_data)
