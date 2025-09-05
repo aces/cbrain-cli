@@ -46,6 +46,15 @@ def whoami_user(args):
         Prints current user information.
     """
     version = getattr(args, "version", False)
+
+    # Check if we have credentials first
+    if user_id is None or cbrain_url is None or api_token is None:
+        if getattr(args, "json", False):
+            json_printer({"error": "Credential file is missing", "logged_in": False})
+        else:
+            print("Credential file is missing. Use 'cbrain login' to login first.")
+        return 1
+
     user_data = user_details(user_id)
 
     # Check if user_data is valid before proceeding

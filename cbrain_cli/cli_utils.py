@@ -84,7 +84,7 @@ def handle_connection_error(error):
 
         if error.code == 401:
             print(f"{status_description}: {error.reason}")
-            print("Try with Authorized Access")
+            print("Error: Access denied. Please log in using authorized credentials.")
         elif error.code == 404 or error.code == 422 or error.code == 500:
             # Try to extract specific error message from response
             try:

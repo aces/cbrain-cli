@@ -1,9 +1,11 @@
 # CBRAIN CLI
 
+## **Google Summer of Code 2025 Project**
+
 A command-line interface to a CBRAIN service
 ============================================
 
-This repository contains a UNIX command-line interface (CLI) for [CBRAIN](https://github.com/aces/cbrain).
+This repository contains a UNIX command-line interface (CLI) for [CBRAIN](https://github.com/aces/cbrain), a web-based neuroinformatics platform designed for collaborative brain imaging research. CBRAIN provides researchers with distributed computational resources, data management capabilities, and a framework for running neuroscience analysis pipelines across multiple high-performance computing environments.
 
 The interface is implemented in Python using only standard libraries - no external dependencies required.
 
@@ -26,7 +28,7 @@ There are two main ways to access CBRAIN:
 
 2. **Custom/Development Setup**
    - Deploy CBRAIN on your lab cluster, cloud, or virtual machine
-   - Suitable for organizations wanting their own CBRAIN instance
+   - Suitable for organizations that require their own CBRAIN instance or which prefer to host CBRAIN themselves due to legal or corporate requirements
    - Local installation only needed for:
      - CLI software developers
      - Power users developing/debugging custom CLI scripts
@@ -79,9 +81,13 @@ This CLI interfaces with the CBRAIN REST API. For complete API documentation and
 
 ## Development
 
-This is part of a GSoC (Google Summer of Code) project sponsored by [INCF](https://www.incf.org/).
+This is part of a GSoC (Google Summer of Code) 2025 project sponsored by [INCF](https://www.incf.org/).
 
 The lead developer is [axif0](https://github.com/axif0), mentored by the developers of the CBRAIN project.
+
+### Continuous Integration
+
+Continuous Integration (CI) tests and framework were initially configured by P. Rioux, providing automated validation of the codebase. This infrastructure follows best open source practices and ensures code quality through automated testing.
 
 ## License
 
