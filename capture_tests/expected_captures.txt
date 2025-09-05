@@ -484,33 +484,33 @@ Stderr:
 ############################
 Command: cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 40 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Project switch 'all' not yet implemented as of Aug 2025
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  project switch all
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 40 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Project switch 'all' not yet implemented as of Aug 2025
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch all
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 40 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Project switch 'all' not yet implemented as of Aug 2025
 Stderr:
 (No output)
 
@@ -649,7 +649,7 @@ Stdout: 37 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Failed: Invalid response from server
 Stderr:
 (No output)
 
@@ -924,7 +924,7 @@ Stderr:
 ############################
 Command: cbrain         task operation   # should provide error message
 Status: 0
-Stdout: 42 bytes
+Stdout: 41 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -1010,7 +1010,13 @@ Stdout: 102 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX : The output is in JSON
+id: 19
+version_name: admin1
+tool_id: 17
+bourreau_id: 14
+group_id: 2
+ncpus: 99
+description: admin_only
 Stderr:
 (No output)
 
@@ -1561,7 +1567,7 @@ Stderr:
 ############################
 Command: cbrain         file delete 5
 Status: 0
-Stdout: 96 bytes
+Stdout: 71 bytes
 Stderr: 0 bytes
 
 Stdout:

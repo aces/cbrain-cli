@@ -26,6 +26,18 @@ def switch_project(args):
         print("Error: Group ID is required")
         return None
 
+    # Handle the special case of "all"
+    if group_id == "all":
+        print("Project switch 'all' not yet implemented as of Aug 2025")
+        return None
+
+    # Convert to integer for regular group IDs
+    try:
+        group_id = int(group_id)
+    except ValueError:
+        print(f"Error: Invalid group ID '{group_id}'. Must be a number or 'all'")
+        return None
+
     # Step 1: Call the switch API
     switch_endpoint = f"{cbrain_url}/groups/switch?id={group_id}"
     headers = auth_headers(api_token)

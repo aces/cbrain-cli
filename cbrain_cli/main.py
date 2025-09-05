@@ -23,6 +23,7 @@ from cbrain_cli.handlers import (
     handle_project_list,
     handle_project_show,
     handle_project_switch,
+    handle_project_unswitch,
     handle_remote_resource_list,
     handle_remote_resource_show,
     handle_tag_create,
@@ -207,12 +208,19 @@ def main():
 
     # project switch
     project_switch_parser = project_subparsers.add_parser("switch", help="Switch to a project")
-    project_switch_parser.add_argument("group_id", type=int, help="Project/Group ID")
+    project_switch_parser.add_argument("group_id", help="Project/Group ID or 'all'")
     project_switch_parser.set_defaults(func=handle_errors(handle_project_switch))
 
     # project show
     project_show_parser = project_subparsers.add_parser("show", help="Show current project")
     project_show_parser.set_defaults(func=handle_errors(handle_project_show))
+
+    # project unswitch
+    project_unswitch_parser = project_subparsers.add_parser(
+        "unswitch", help="Unswitch from current project"
+    )
+    project_unswitch_parser.add_argument("target", help="Target to unswitch ('all' supported)")
+    project_unswitch_parser.set_defaults(func=handle_errors(handle_project_unswitch))
 
     # Tool commands
     tool_parser = subparsers.add_parser("tool", help="Tool operations")

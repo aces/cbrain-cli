@@ -161,6 +161,15 @@ def handle_project_show(args):
         print_no_project()
 
 
+def handle_project_unswitch(args):
+    """Unswitch from current project context."""
+    target = getattr(args, "target", None)
+    if target == "all":
+        print("Project Unswitch 'all' not yet implemented as of Aug 2025")
+    else:
+        print(f"Error: Invalid target '{target}'. Only 'all' is supported.")
+
+
 # Tool command handlers
 def handle_tool_show(args):
     """Retrieve and display detailed information about a specific computational tool."""
