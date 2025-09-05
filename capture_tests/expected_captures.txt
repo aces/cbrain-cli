@@ -674,7 +674,7 @@ Stderr:
 ############################
 Command: cbrain         tag delete 99
 Status: 0
-Stdout: 30 bytes
+Stdout: 29 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -928,8 +928,9 @@ Stdout: 42 bytes
 Stderr: 0 bytes
 
 Stdout:
-{"message":"No operation selected"}
-TOFIX : the output is a quoted string with JSON content?
+{
+  "message": "No operation selected"
+}
 Stderr:
 (No output)
 
@@ -1035,11 +1036,11 @@ Stderr:
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 115 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX : the output is in JSON
+{"id":19,"version_name":"admin1","description":"admin_only","tool_id":17,"bourreau_id":14,"group_id":2,"ncpus":99}
 Stderr:
 (No output)
 
@@ -1104,33 +1105,35 @@ Stderr:
 ############################
 Command: cbrain         tool-config show 19 # visible to user admin
 Status: 1
-Stdout: 32 bytes
+Stdout: 107 bytes
 Stderr: 0 bytes
 
 Stdout:
-Connection failed: Unauthorized
-Stderr:
+Authentication error (401): Unauthorized
+Error: Access denied. Please log in using authorized credentials.
 (No output)
 
 ############################
 Command: cbrain --json  tool-config show 19
 Status: 1
-Stdout: TOFIX bytes
+Stdout: 107 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX Connection failed: Unauthorized
+Authentication error (401): Unauthorized
+Error: Access denied. Please log in using authorized credentials.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 1
-Stdout: TOFIX bytes
+Stdout: 107 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX Connection failed: Unauthorized
+Authentication error (401): Unauthorized
+Error: Access denied. Please log in using authorized credentials.
 Stderr:
 (No output)
 
@@ -1562,11 +1565,8 @@ Stdout: 96 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX why in JSON ?
-{
-  "message": "Your files are being deleted in background.",
-  "background_activity_id": 265
-}
+Your files are being deleted in background.
+Background activity ID: 44
 Stderr:
 (No output)
 
@@ -1578,7 +1578,7 @@ Stderr: 0 bytes
 
 Stdout:
 Your files are being moved in the background.
-Background activity ID: 47
+Background activity ID: 45
 Stderr:
 (No output)
 

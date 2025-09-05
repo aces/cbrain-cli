@@ -40,6 +40,7 @@ from cbrain_cli.formatter.background_activities_fmt import (
 )
 from cbrain_cli.formatter.data_providers_fmt import print_provider_details, print_providers_list
 from cbrain_cli.formatter.files_fmt import (
+    print_delete_result,
     print_file_details,
     print_files_list,
     print_move_copy_result,
@@ -109,7 +110,7 @@ def handle_file_delete(args):
     """Delete a specific file from CBRAIN and display the deletion status."""
     result = delete_file(args)
     if result:
-        json_printer(result)
+        print_delete_result(result, args)
 
 
 # Data provider command handlers

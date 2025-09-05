@@ -112,3 +112,33 @@ def print_move_copy_result(response_data, response_status, operation="move"):
             print(f"File {operation} initiated successfully")
     else:
         print(f"File {operation} failed with status: {response_status}")
+
+
+def print_delete_result(response_data, args):
+    """
+    Print the result of a file delete operation.
+
+    Parameters
+    ----------
+    response_data : dict
+        Response data from the server
+    args : argparse.Namespace
+        Command line arguments, including the --json flag
+    """
+    if getattr(args, "json", False):
+        json_printer(response_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(response_data)
+        return
+
+    # Show user-friendly message for normal output
+    message = response_data.get("message", "").strip()
+    if message:
+        print(message)
+
+    background_activity_id = response_data.get("background_activity_id")
+    if background_activity_id:
+        print(f"Background activity ID: {background_activity_id}")
+    else:
+        print("File deletion initiated successfully")
