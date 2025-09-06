@@ -300,7 +300,7 @@ Stderr:
 ############################
 Command: cbrain         dataprovider show 15
 Status: 0
-Stdout: 1047 bytes
+Stdout: 864 bytes
 Stderr: 0 bytes
 
 Stdout:
@@ -439,9 +439,9 @@ PROJECT DETAILS
 Field     Value    
 --------- ---------
 ID        10
-Name      None
+Name      NormTest1
 Type      WorkGroup
-Site ID   False
+Site ID   None
 Invisible False
 Stderr:
 (No output)
@@ -453,15 +453,15 @@ Stdout: 125 bytes
 Stderr: 0 bytes
 
 Stdout:
- {
-   "id": 10,
-   "name": "NormTest1",
-   "type": "WorkGroup"
-   "description": null,
-   "type": "WorkGroup",
-   "site_id": null,
-   "invisible": false
- }
+{
+  "id": 10,
+  "name": "NormTest1",
+  "type": "WorkGroup"
+  "description": null,
+  "type": "WorkGroup",
+  "site_id": null,
+  "invisible": false
+}
 Stderr:
 (No output)
 
