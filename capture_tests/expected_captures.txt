@@ -16,44 +16,47 @@ Stderr:
 ############################
 Command: cbrain        version
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 30 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+cbrain cli client version 1.0
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json version
-Status: 1
-Stdout: TOFIX bytes
+Status: 0
+Stdout: 30 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+cbrain cli client version 1.0
 Stderr:
 (No output)
 
 ############################
 Command: cbrain        whoami
 Status: 1
-Stdout: 50 bytes
+Stdout: 63 bytes
 Stderr: 0 bytes
 
 Stdout:
-Not logged in. Use 'cbrain login' to login first.
+Credential file is missing. Use 'cbrain login' to login first.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json whoami
 Status: 1
-Stdout: 50 bytes
+Stdout: 66 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+{
+  "error": "Credential file is missing",
+  "logged_in": false
+}
 Stderr:
 (No output)
 
@@ -75,18 +78,18 @@ Stdout: 30 bytes
 Stderr: 0 bytes
 
 Stdout:
-cbrain cli client version 0.9
+cbrain cli client version 1.0
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json version
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 30 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+cbrain cli client version 1.0
 Stderr:
 (No output)
 
@@ -310,6 +313,15 @@ Name        TestDP
 Type        FlatDirLocalDataProvider
 Description Test DP
 
+CONNECTION INFO
+------------------------------
+Field            Value
+---------------- -----
+Remote User      N/A
+Remote Host      N/A
+Remote Directory N/A
+Remote Port      N/A
+
 OWNERSHIP & STATUS
 ------------------------------
 Field                                Value
@@ -418,33 +430,48 @@ Stderr:
 ############################
 Command: cbrain         project show 10
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 171 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+PROJECT DETAILS
+------------------------------
+Field     Value    
+--------- ---------
+ID        10
+Name      NormTest1
+Type      WorkGroup
+Site ID   None
+Invisible False
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  project show 10
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 125 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+{
+  "id": 10,
+  "name": "NormTest1",
+  "description": null,
+  "type": "WorkGroup",
+  "site_id": null,
+  "invisible": false
+}
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project show 10
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 100 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+{"id":10,"name":"NormTest1","description":null,"type":"WorkGroup","site_id":null,"invisible":false}
 Stderr:
 (No output)
 
@@ -462,55 +489,55 @@ Stderr:
 ############################
 Command: cbrain --json  project switch 10
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 37 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Current project is "NormTest1" ID=10
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch 10
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 37 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Current project is "NormTest1" ID=10
 Stderr:
 (No output)
 
 ############################
 Command: cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 56 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Project switch 'all' not yet implemented as of Aug 2025
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  project switch all
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 56 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Project switch 'all' not yet implemented as of Aug 2025
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch all
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 56 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Project switch 'all' not yet implemented as of Aug 2025
 Stderr:
 (No output)
 
@@ -528,17 +555,17 @@ Stderr:
 ############################
 Command: cbrain         tag list
 Status: 0
-Stdout: 219 bytes
+Stdout: 179 bytes
 Stderr: 0 bytes
 
 Stdout:
 TAGS
-------------------------------------------------------------
+----------------------------------------
 ID Name   User Group
 -- ------ ---- -----
 21 tag1   2    3
 99 tagdel 2    3
-------------------------------------------------------------
+----------------------------------------
 Total: 2 tag(s)
 Stderr:
 (No output)
@@ -644,12 +671,12 @@ Stderr:
 
 ############################
 Command: cbrain         tag update 99 --name Renamed --user-id 2 --group-id 3
-Status: 0
-Stdout: TOFIX bytes
+Status: 1
+Stdout: 37 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Failed: Invalid response from server
 Stderr:
 (No output)
 
@@ -674,11 +701,10 @@ Stderr:
 ############################
 Command: cbrain         tag delete 99
 Status: 0
-Stdout: 30 bytes
+Stdout: 29 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX (why the blank line?)
 Tag 99 deleted successfully!
 Stderr:
 (No output)
@@ -690,30 +716,29 @@ Stdout: 26 bytes
 Stderr: 0 bytes
 
 Stdout:
-TAG CREATED SUCCESSFULLY!
-TOFIX: why is the message all in uppercase?
+Tag created successfully!
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  tag create --name NewTag2 --user-id 2 --group-id 3
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 26 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Tag created successfully!
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl tag create --name NewTag3 --user-id 2 --group-id 3
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 26 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX
+Tag created successfully!
 Stderr:
 (No output)
 
@@ -926,12 +951,13 @@ Stderr:
 ############################
 Command: cbrain         task operation   # should provide error message
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 41 bytes
 Stderr: 0 bytes
 
 Stdout:
-"{\"message\":\"No operation selected\"}"
-TOFIX : the output is a quoted string with JSON content?
+{
+  "message": "No operation selected"
+}
 Stderr:
 (No output)
 
@@ -1007,11 +1033,17 @@ Stderr:
 ############################
 Command: cbrain         tool-config show 19 # not visible to normal user norm
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 102 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX : The output is in JSON
+id: 19
+version_name: admin1
+tool_id: 17
+bourreau_id: 14
+group_id: 2
+ncpus: 99
+description: admin_only
 Stderr:
 (No output)
 
@@ -1037,11 +1069,11 @@ Stderr:
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 0
-Stdout: TOFIX bytes
+Stdout: 115 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX : the output is in JSON
+{"id":19,"version_name":"admin1","description":"admin_only","tool_id":17,"bourreau_id":14,"group_id":2,"ncpus":99}
 Stderr:
 (No output)
 
@@ -1106,33 +1138,36 @@ Stderr:
 ############################
 Command: cbrain         tool-config show 19 # visible to user admin
 Status: 1
-Stdout: 32 bytes
+Stdout: 107 bytes
 Stderr: 0 bytes
 
 Stdout:
-Connection failed: Unauthorized
+Authentication error (401): Unauthorized
+Error: Access denied. Please log in using authorized credentials.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  tool-config show 19
 Status: 1
-Stdout: TOFIX bytes
+Stdout: 107 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX Connection failed: Unauthorized
+Authentication error (401): Unauthorized
+Error: Access denied. Please log in using authorized credentials.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 1
-Stdout: TOFIX bytes
+Stdout: 107 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX Connection failed: Unauthorized
+Authentication error (401): Unauthorized
+Error: Access denied. Please log in using authorized credentials.
 Stderr:
 (No output)
 
@@ -1560,15 +1595,12 @@ Stderr:
 ############################
 Command: cbrain         file delete 5
 Status: 0
-Stdout: 96 bytes
+Stdout: 71 bytes
 Stderr: 0 bytes
 
 Stdout:
-TOFIX why in JSON ?
-{
-  "message": "Your files are being deleted in background.",
-  "background_activity_id": 265
-}
+Your files are being deleted in background.
+Background activity ID: 44
 Stderr:
 (No output)
 
@@ -1580,7 +1612,7 @@ Stderr: 0 bytes
 
 Stdout:
 Your files are being moved in the background.
-Background activity ID: 47
+Background activity ID: 45
 Stderr:
 (No output)
 
