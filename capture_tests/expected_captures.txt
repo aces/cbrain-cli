@@ -300,7 +300,7 @@ Stderr:
 ############################
 Command: cbrain         dataprovider show 15
 Status: 0
-Stdout: 864 bytes
+Stdout:   864 bytes
 Stderr: 0 bytes
 
 Stdout:
