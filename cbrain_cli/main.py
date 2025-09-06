@@ -212,7 +212,12 @@ def main():
     project_switch_parser.set_defaults(func=handle_errors(handle_project_switch))
 
     # project show
-    project_show_parser = project_subparsers.add_parser("show", help="Show current project")
+    project_show_parser = project_subparsers.add_parser(
+        "show", help="Show current project or specific project by ID"
+    )
+    project_show_parser.add_argument(
+        "project_id", type=int, nargs="?", help="Project ID to show (optional)"
+    )
     project_show_parser.set_defaults(func=handle_errors(handle_project_show))
 
     # project unswitch

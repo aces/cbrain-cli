@@ -153,12 +153,24 @@ def handle_project_switch(args):
 
 
 def handle_project_show(args):
-    """Display information about the currently active project or indicate if none is set."""
+    """Display information about the currently active project or a specific project by ID."""
     result = show_project(args)
     if result:
-        print_current_project(result)
+        # Check if a specific project ID was requested
+        project_id = getattr(args, "project_id", None)
+        if project_id:
+            # Show detailed project information for specific project
+            from cbrain_cli.formatter.projects_fmt import print_project_details
+
+            print_project_details(result, args)
+        else:
+            # Show current project information
+            print_current_project(result)
     else:
-        print_no_project()
+        # Only show "no project" message if no specific ID was requested
+        project_id = getattr(args, "project_id", None)
+        if not project_id:
+            print_no_project()
 
 
 def handle_project_unswitch(args):

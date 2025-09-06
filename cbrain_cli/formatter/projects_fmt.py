@@ -45,6 +45,49 @@ def print_current_project(project_data):
     print(f'Current project is "{group_name}" ID={group_id}')
 
 
+def print_project_details(project_data, args):
+    """
+    Print detailed information about a specific project.
+
+    Parameters
+    ----------
+    project_data : dict
+        Dictionary containing project details
+    args : argparse.Namespace
+        Command line arguments, including the --json flag
+    """
+    if getattr(args, "json", False):
+        json_printer(project_data)
+        return
+    elif getattr(args, "jsonl", False):
+        jsonl_printer(project_data)
+        return
+
+    print("PROJECT DETAILS")
+    print("-" * 30)
+
+    # Basic project information
+    basic_info = [
+        {"field": "ID", "value": str(project_data.get("id", "N/A"))},
+        {"field": "Name", "value": str(project_data.get("name", "N/A"))},
+        {"field": "Type", "value": str(project_data.get("type", "N/A"))},
+        {"field": "Site ID", "value": str(project_data.get("site_id", "N/A"))},
+        {"field": "Invisible", "value": str(project_data.get("invisible", "N/A"))},
+    ]
+
+    dynamic_table_print(basic_info, ["field", "value"], ["Field", "Value"])
+
+    # Display description if available
+    if project_data.get("description"):
+        print()
+        print("DESCRIPTION")
+        print("-" * 30)
+        description = project_data.get("description").strip()
+        # Handle multi-line descriptions
+        for line in description.split("\n"):
+            print(f"{line}")
+
+
 def print_no_project():
     """
     Print message when no current project is set.
