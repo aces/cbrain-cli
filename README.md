@@ -1,21 +1,12 @@
 # CBRAIN CLI
 
-## **Google Summer of Code 2025 Project**
-
 A command-line interface to a CBRAIN service
 ============================================
 
 This repository contains a UNIX command-line interface (CLI) for [CBRAIN](https://github.com/aces/cbrain), a web-based neuroinformatics platform designed for collaborative brain imaging research. CBRAIN provides researchers with distributed computational resources, data management capabilities, and a framework for running neuroscience analysis pipelines across multiple high-performance computing environments.
 
-The interface is implemented in Python using only standard libraries - no external dependencies required.
+>The interface is implemented in Python using only standard libraries - no external dependencies required.
 
-The main command is called "cbrain" and as is typical for such clients, works
-with a set of subcommand and options (e.g. "cbrain file list -j") such as:
-```bash
-cbrain file list
-cbrain project show
-cbrain --json dataprovider list
-```
 
 ## CBRAIN Access Options
 
@@ -79,9 +70,74 @@ When prompted for "Enter CBRAIN server URL prefix", enter:
 This CLI interfaces with the CBRAIN REST API. For complete API documentation and specifications, refer to:
 - [CBRAIN API Documentation (Swagger)](https://app.swaggerhub.com/apis/prioux/CBRAIN/7.0.0)
 
+## CLI Usage
+
+The main command is called "cbrain" and as is typical for such clients, works
+with a set of subcommand and options.
+
+### Basic Usage
+
+To utilize the Cbrain cli, you can execute variations of the following command in your terminal:
+
+```
+cbrain -h     # view the cli options
+cbrain [options] <MODEL> <ACTION> [id_or_args]
+```
+**Output Formats:**
+- `--json` or `-j`: JSON format output
+- `--jsonl` or `-jl`: JSON Lines format (one JSON object per line)
+
+## Available Commands
+- `file (f)` - Manage individual file operations and metadata
+- `background-activities` - Monitor and manage long-running background processes
+- `data-providers` - Configure and manage data storage locations and access
+- `files` - List, upload, download, and organize research data files
+- `projects` - Create and manage research project workspaces
+- `remote_resources` - Configure computational clusters and processing resources
+- `tags` - Apply and manage metadata tags for organizing content
+- `tasks` - Submit, show and manage computational analysis jobs
+- `tool_configs` - Configure analysis tools and processing parameters
+- `tools` - Browse available analysis tools and their capabilities
+
+## Command Examples
+
+<p align="center">
+<img src=https://github.com/user-attachments/assets/ae3fe36d-a83d-4cbf-a245-c9242c60c9ff" alt="List, Total and Get GIF" width="500" height="300">
+</p>
+
+> <details><summary> Used in the above GIF</summary>
+>
+> - `./cbrain project switch 2`
+> - `./cbrain project show`
+> - `./cbrain tool show 2`
+>  - `./cbrain dataprovider show 4`
+> - `./cbrain file show 4`
+> - `./cbrain background show 15`
+> - `./cbrain remote-resource show 2`
+> - `./cbrain tag show 17`
+> - `./cbrain task show 1`
+>
+> </details>
+
+<p align="center">
+  <img src=https://github.com/user-attachments/assets/21ebd917-e84b-4616-bcfa-6c2802220efe " alt="List, Total and Get GIF" width="500" height="300">
+
+> <details><summary> Used in the above GIF</summary>
+>
+> - `./cbrain file list`
+> - `./cbrain project list`
+> - `./cbrain background list`
+>  - `./cbrain dataprovider list`
+> - `./cbrain remote-resource list`
+> - `./cbrain tag list`
+> - `./cbrain task list`
+> - `./cbrain task list bourreau-id 3`
+>
+> </details>
+
 ## Development
 
-This is part of a GSoC (Google Summer of Code) 2025 project sponsored by [INCF](https://www.incf.org/).
+This is part of [**a GSoC (Google Summer of Code) 2025** project](https://summerofcode.withgoogle.com/programs/2025/projects/1An4Dp8N) sponsored by [INCF](https://www.incf.org/).
 
 The lead developer is [axif0](https://github.com/axif0), mentored by the developers of the CBRAIN project.
 
