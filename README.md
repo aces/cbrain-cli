@@ -105,7 +105,7 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
 <img src="https://github.com/user-attachments/assets/ae3fe36d-a83d-4cbf-a245-c9242c60c9ff" alt="List, Total and Get GIF" width="500" height="300">
 </p>
 
-> <details><summary> Used in the above GIF</summary>
+> <details><summary> Used cmds in the above GIF</summary>
 >
 > - `./cbrain project switch 2`
 > - `./cbrain project show`
@@ -123,7 +123,7 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
   <img src="https://github.com/user-attachments/assets/21ebd917-e84b-4616-bcfa-6c2802220efe" alt="List, Total and Get GIF" width="500" height="300">
 </p>
 
-> <details><summary> Used in the above GIF</summary>
+> <details><summary> Used cmds in the above GIF</summary>
 >
 > - `./cbrain file list`
 > - `./cbrain project list`
