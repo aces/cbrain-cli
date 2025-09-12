@@ -175,11 +175,7 @@ def handle_project_show(args):
 
 def handle_project_unswitch(args):
     """Unswitch from current project context."""
-    target = getattr(args, "target", None)
-    if target == "all":
-        print("Project Unswitch 'all' not yet implemented as of Aug 2025")
-    else:
-        print(f"Error: Invalid target '{target}'. Only 'all' is supported.")
+    print("Project Unswitch 'all' not yet implemented as of Aug 2025")
 
 
 # Tool command handlers

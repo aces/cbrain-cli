@@ -224,7 +224,6 @@ def main():
     project_unswitch_parser = project_subparsers.add_parser(
         "unswitch", help="Unswitch from current project"
     )
-    project_unswitch_parser.add_argument("target", help="Target to unswitch ('all' supported)")
     project_unswitch_parser.set_defaults(func=handle_errors(handle_project_unswitch))
 
     # Tool commands

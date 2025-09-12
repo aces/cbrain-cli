@@ -88,16 +88,19 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
 - `--jsonl` or `-jl`: JSON Lines format (one JSON object per line)
 
 ## Available Commands
-- `file (f)` - Manage individual file operations and metadata
-- `background-activities` - Monitor and manage long-running background processes
-- `data-providers` - Configure and manage data storage locations and access
-- `files` - List, upload, download, and organize research data files
-- `projects` - Create and manage research project workspaces
-- `remote_resources` - Configure computational clusters and processing resources
-- `tags` - Apply and manage metadata tags for organizing content
-- `tasks` - Submit, show and manage computational analysis jobs
-- `tool_configs` - Configure analysis tools and processing parameters
-- `tools` - Browse available analysis tools and their capabilities
+- `version`      - Show CLI version
+- `login`        - Login to CBRAIN
+- `logout`       - Logout from CBRAIN
+- `whoami`       - Show current session
+- `file`         - File operations
+- `dataprovider` - Data provider operations
+- `project`      - Project operations
+- `tool`         - Tool operations
+- `tool-config`  - Tool configuration operations
+- `tag`          - Tag operations
+- `background`   - Background activity operations
+- `task`         - Task operations
+- `remote-resource` - Remote resource operations
 
 ## Command Examples
 
