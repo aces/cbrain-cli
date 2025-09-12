@@ -5,64 +5,40 @@ Setup and commands for the CBRAIN CLI command line interface.
 import argparse
 import sys
 
-from cbrain_cli.cli_utils import handle_errors, is_authenticated, json_printer, version_info
-from cbrain_cli.data.background_activities import (
-    list_background_activities,
-    show_background_activity,
+from cbrain_cli.cli_utils import handle_errors, is_authenticated, version_info
+from cbrain_cli.data.tasks import operation_task
+from cbrain_cli.handlers import (
+    handle_background_list,
+    handle_background_show,
+    handle_dataprovider_delete_unregistered,
+    handle_dataprovider_is_alive,
+    handle_dataprovider_list,
+    handle_dataprovider_show,
+    handle_file_copy,
+    handle_file_delete,
+    handle_file_list,
+    handle_file_move,
+    handle_file_show,
+    handle_file_upload,
+    handle_project_list,
+    handle_project_show,
+    handle_project_switch,
+    handle_project_unswitch,
+    handle_remote_resource_list,
+    handle_remote_resource_show,
+    handle_tag_create,
+    handle_tag_delete,
+    handle_tag_list,
+    handle_tag_show,
+    handle_tag_update,
+    handle_task_list,
+    handle_task_show,
+    handle_tool_config_boutiques_descriptor,
+    handle_tool_config_list,
+    handle_tool_config_show,
+    handle_tool_list,
+    handle_tool_show,
 )
-from cbrain_cli.data.data_providers import (
-    delete_unregistered_files,
-    is_alive,
-    list_data_providers,
-    show_data_provider,
-)
-from cbrain_cli.data.files import (
-    copy_file,
-    delete_file,
-    list_files,
-    move_file,
-    show_file,
-    upload_file,
-)
-from cbrain_cli.data.projects import list_projects, show_project, switch_project
-from cbrain_cli.data.remote_resources import list_remote_resources, show_remote_resource
-from cbrain_cli.data.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
-from cbrain_cli.data.tasks import list_tasks, operation_task, show_task
-from cbrain_cli.data.tool_configs import (
-    list_tool_configs,
-    show_tool_config,
-    tool_config_boutiques_descriptor,
-)
-from cbrain_cli.data.tools import list_tools
-from cbrain_cli.formatter.background_activities_fmt import (
-    print_activities_list,
-    print_activity_details,
-)
-from cbrain_cli.formatter.data_providers_fmt import print_provider_details, print_providers_list
-from cbrain_cli.formatter.files_fmt import (
-    print_file_details,
-    print_files_list,
-    print_move_copy_result,
-    print_upload_result,
-)
-from cbrain_cli.formatter.projects_fmt import (
-    print_current_project,
-    print_no_project,
-    print_projects_list,
-)
-from cbrain_cli.formatter.remote_resources_fmt import print_resource_details, print_resources_list
-from cbrain_cli.formatter.tags_fmt import (
-    print_tag_details,
-    print_tag_operation_result,
-    print_tags_list,
-)
-from cbrain_cli.formatter.tasks_fmt import print_task_data, print_task_details
-from cbrain_cli.formatter.tool_configs_fmt import (
-    print_boutiques_descriptor,
-    print_tool_config_details,
-    print_tool_configs_list,
-)
-from cbrain_cli.formatter.tools_fmt import print_tool_details, print_tools_list
 from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.users import whoami_user
 
@@ -121,24 +97,12 @@ def main():
     file_list_parser.add_argument(
         "--per-page", type=int, default=25, help="Number of files per page (5-1000, default: 25)"
     )
-    file_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_files_list(result, args) if result else None)(
-                list_files(args)
-            )
-        )
-    )
+    file_list_parser.set_defaults(func=handle_errors(handle_file_list))
 
     # file show
     file_show_parser = file_subparsers.add_parser("show", help="Show file details")
     file_show_parser.add_argument("file", type=int, help="File ID")
-    file_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_file_details(result, args) if result else None)(
-                show_file(args)
-            )
-        )
-    )
+    file_show_parser.set_defaults(func=handle_errors(handle_file_show))
 
     # file upload
     file_upload_parser = file_subparsers.add_parser("upload", help="Upload a file to CBRAIN")
@@ -148,11 +112,7 @@ def main():
     )
     file_upload_parser.add_argument("--group-id", type=int, help="Group ID")
 
-    file_upload_parser.set_defaults(
-        func=handle_errors(
-            lambda args: print_upload_result(*result) if (result := upload_file(args)) else None
-        )
-    )
+    file_upload_parser.set_defaults(func=handle_errors(handle_file_upload))
 
     # file copy
     file_copy_parser = file_subparsers.add_parser(
@@ -168,13 +128,7 @@ def main():
     file_copy_parser.add_argument(
         "--dp-id", type=int, required=True, help="Destination data provider ID"
     )
-    file_copy_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_move_copy_result(*result, operation="copy") if result else None
-            )(copy_file(args))
-        )
-    )
+    file_copy_parser.set_defaults(func=handle_errors(handle_file_copy))
 
     # file move
     file_move_parser = file_subparsers.add_parser(
@@ -190,24 +144,12 @@ def main():
     file_move_parser.add_argument(
         "--dp-id", type=int, required=True, help="Destination data provider ID"
     )
-    file_move_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_move_copy_result(*result, operation="move") if result else None
-            )(move_file(args))
-        )
-    )
+    file_move_parser.set_defaults(func=handle_errors(handle_file_move))
 
     # file delete
     file_delete_parser = file_subparsers.add_parser("delete", help="Delete a file")
     file_delete_parser.add_argument("file_id", type=int, help="ID of the file to delete")
-    file_delete_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: json_printer(result) if result else None)(
-                delete_file(args)
-            )
-        )
-    )
+    file_delete_parser.set_defaults(func=handle_errors(handle_file_delete))
 
     # Data provider commands
     dataprovider_parser = subparsers.add_parser("dataprovider", help="Data provider operations")
@@ -219,13 +161,7 @@ def main():
     dataprovider_list_parser = dataprovider_subparsers.add_parser(
         "list", help="List data providers"
     )
-    dataprovider_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_providers_list(result, args))(
-                list_data_providers(args)
-            )
-        )
-    )
+    dataprovider_list_parser.set_defaults(func=handle_errors(handle_dataprovider_list))
 
     dataprovider_list_parser.add_argument(
         "--page", type=int, default=1, help="Page number (default: 1)"
@@ -241,22 +177,14 @@ def main():
         "show", help="Show data provider details"
     )
     dataprovider_show_parser.add_argument("id", type=int, help="Data provider ID")
-    dataprovider_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_provider_details(result, args))(
-                show_data_provider(args)
-            )
-        )
-    )
+    dataprovider_show_parser.set_defaults(func=handle_errors(handle_dataprovider_show))
 
     # dataprovider is_alive
     dataprovider_is_alive_parser = dataprovider_subparsers.add_parser(
         "is-alive", help="Check if a data provider is alive"
     )
     dataprovider_is_alive_parser.add_argument("id", type=int, help="Data provider ID")
-    dataprovider_is_alive_parser.set_defaults(
-        func=handle_errors(lambda args: (lambda result: json_printer(result))(is_alive(args)))
-    )
+    dataprovider_is_alive_parser.set_defaults(func=handle_errors(handle_dataprovider_is_alive))
 
     # dataprovider delete-unregistered-files
     dataprovider_delete_unregistered_files_parser = dataprovider_subparsers.add_parser(
@@ -267,9 +195,7 @@ def main():
         "id", type=int, help="Data provider ID"
     )
     dataprovider_delete_unregistered_files_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: json_printer(result))(delete_unregistered_files(args))
-        )
+        func=handle_errors(handle_dataprovider_delete_unregistered)
     )
 
     # Project commands
@@ -278,32 +204,27 @@ def main():
 
     # project list
     project_list_parser = project_subparsers.add_parser("list", help="List projects")
-    project_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_projects_list(result, args))(list_projects(args))
-        )
-    )
+    project_list_parser.set_defaults(func=handle_errors(handle_project_list))
 
     # project switch
     project_switch_parser = project_subparsers.add_parser("switch", help="Switch to a project")
-    project_switch_parser.add_argument("group_id", type=int, help="Project/Group ID")
-    project_switch_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_current_project(result) if result else None)(
-                switch_project(args)
-            )
-        )
-    )
+    project_switch_parser.add_argument("group_id", help="Project/Group ID or 'all'")
+    project_switch_parser.set_defaults(func=handle_errors(handle_project_switch))
 
     # project show
-    project_show_parser = project_subparsers.add_parser("show", help="Show current project")
-    project_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_current_project(result) if result else print_no_project()
-            )(show_project(args))
-        )
+    project_show_parser = project_subparsers.add_parser(
+        "show", help="Show current project or specific project by ID"
     )
+    project_show_parser.add_argument(
+        "project_id", type=int, nargs="?", help="Project ID to show (optional)"
+    )
+    project_show_parser.set_defaults(func=handle_errors(handle_project_show))
+
+    # project unswitch
+    project_unswitch_parser = project_subparsers.add_parser(
+        "unswitch", help="Unswitch from current project"
+    )
+    project_unswitch_parser.set_defaults(func=handle_errors(handle_project_unswitch))
 
     # Tool commands
     tool_parser = subparsers.add_parser("tool", help="Tool operations")
@@ -312,13 +233,7 @@ def main():
     # tool show
     tool_show_parser = tool_subparsers.add_parser("show", help="Show tool details")
     tool_show_parser.add_argument("id", type=int, help="Tool ID")
-    tool_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_tool_details(result, args) if result else None)(
-                list_tools(args)
-            )
-        )
-    )
+    tool_show_parser.set_defaults(func=handle_errors(handle_tool_show))
 
     # tool list (reusing show_tool without id)
     tool_list_parser = tool_subparsers.add_parser("list", help="List all tools")
@@ -326,13 +241,7 @@ def main():
     tool_list_parser.add_argument(
         "--per-page", type=int, default=25, help="Number of tools per page (5-1000, default: 25)"
     )
-    tool_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_tools_list(result, args) if result else None)(
-                list_tools(args)
-            )
-        )
-    )
+    tool_list_parser.set_defaults(func=handle_errors(handle_tool_list))
 
     ## MARK: tool-config commands
     tool_configs_parser = subparsers.add_parser("tool-config", help="Tool configuration operations")
@@ -344,13 +253,7 @@ def main():
     tool_configs_list_parser = tool_configs_subparsers.add_parser(
         "list", help="List all tool configurations"
     )
-    tool_configs_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_tool_configs_list(result, args))(
-                list_tool_configs(args)
-            )
-        )
-    )
+    tool_configs_list_parser.set_defaults(func=handle_errors(handle_tool_config_list))
 
     tool_configs_list_parser.add_argument(
         "--page", type=int, default=1, help="Page number (default: 1)"
@@ -367,13 +270,7 @@ def main():
         "show", help="Show tool configuration details"
     )
     tool_configs_show_parser.add_argument("id", type=int, help="Tool configuration ID")
-    tool_configs_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_tool_config_details(result, args) if result else None
-            )(show_tool_config(args))
-        )
-    )
+    tool_configs_show_parser.set_defaults(func=handle_errors(handle_tool_config_show))
 
     # tool-config boutiques-descriptor
     tool_configs_boutiques_parser = tool_configs_subparsers.add_parser(
@@ -381,11 +278,7 @@ def main():
     )
     tool_configs_boutiques_parser.add_argument("id", type=int, help="Tool configuration ID")
     tool_configs_boutiques_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_boutiques_descriptor(result, args) if result else None
-            )(tool_config_boutiques_descriptor(args))
-        )
+        func=handle_errors(handle_tool_config_boutiques_descriptor)
     )
 
     # Tag commands
@@ -394,11 +287,7 @@ def main():
 
     # tag list
     tag_list_parser = tag_subparsers.add_parser("list", help="List tags")
-    tag_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_tags_list(result, args))(list_tags(args))
-        )
-    )
+    tag_list_parser.set_defaults(func=handle_errors(handle_tag_list))
 
     tag_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
     tag_list_parser.add_argument(
@@ -408,30 +297,14 @@ def main():
     # tag show
     tag_show_parser = tag_subparsers.add_parser("show", help="Show tag details")
     tag_show_parser.add_argument("id", type=int, help="Tag ID")
-    tag_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_tag_details(result, args) if result else None)(
-                show_tag(args)
-            )
-        )
-    )
+    tag_show_parser.set_defaults(func=handle_errors(handle_tag_show))
 
     # tag create
     tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag")
     tag_create_parser.add_argument("--name", type=str, required=True, help="Tag name")
     tag_create_parser.add_argument("--user-id", type=int, required=True, help="User ID")
     tag_create_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
-    tag_create_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_tag_operation_result(
-                    "create", success=result[1], error_msg=result[2], response_status=result[3]
-                )
-                if result
-                else None
-            )(create_tag(args))
-        )
-    )
+    tag_create_parser.set_defaults(func=handle_errors(handle_tag_create))
 
     # tag update
     tag_update_parser = tag_subparsers.add_parser("update", help="Update an existing tag")
@@ -443,21 +316,7 @@ def main():
     tag_update_parser.add_argument("--name", type=str, required=True, help="Tag name")
     tag_update_parser.add_argument("--user-id", type=int, required=True, help="User ID")
     tag_update_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
-    tag_update_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_tag_operation_result(
-                    "update",
-                    tag_id=args.tag_id,
-                    success=result[1],
-                    error_msg=result[2],
-                    response_status=result[3],
-                )
-                if result
-                else None
-            )(update_tag(args))
-        )
-    )
+    tag_update_parser.set_defaults(func=handle_errors(handle_tag_update))
 
     # tag delete
     tag_delete_parser = tag_subparsers.add_parser("delete", help="Delete a tag")
@@ -466,21 +325,7 @@ def main():
         type=int,
         help="Tag ID to delete",
     )
-    tag_delete_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (
-                lambda result: print_tag_operation_result(
-                    "delete",
-                    tag_id=args.tag_id,
-                    success=result[0],
-                    error_msg=result[1],
-                    response_status=result[2],
-                )
-                if result
-                else None
-            )(delete_tag(args))
-        )
-    )
+    tag_delete_parser.set_defaults(func=handle_errors(handle_tag_delete))
 
     # Background activity commands
     background_parser = subparsers.add_parser("background", help="Background activity operations")
@@ -492,26 +337,14 @@ def main():
     background_list_parser = background_subparsers.add_parser(
         "list", help="List background activities"
     )
-    background_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_activities_list(result, args) if result else None)(
-                list_background_activities(args)
-            )
-        )
-    )
+    background_list_parser.set_defaults(func=handle_errors(handle_background_list))
 
     # background show
     background_show_parser = background_subparsers.add_parser(
         "show", help="Show background activity details"
     )
     background_show_parser.add_argument("id", type=int, help="Background activity ID")
-    background_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_activity_details(result, args) if result else None)(
-                show_background_activity(args)
-            )
-        )
-    )
+    background_show_parser.set_defaults(func=handle_errors(handle_background_show))
 
     # Task commands
     task_parser = subparsers.add_parser("task", help="Task operations")
@@ -532,22 +365,12 @@ def main():
         nargs="?",
         help="Filter value (required if filter_type is specified)",
     )
-    task_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_task_data(result, args))(list_tasks(args))
-        )
-    )
+    task_list_parser.set_defaults(func=handle_errors(handle_task_list))
 
     # task show
     task_show_parser = task_subparsers.add_parser("show", help="Show task details")
     task_show_parser.add_argument("task", type=int, help="Task ID")
-    task_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_task_details(result, args) if result else None)(
-                show_task(args)
-            )
-        )
-    )
+    task_show_parser.set_defaults(func=handle_errors(handle_task_show))
 
     # task operation
     task_operation_parser = task_subparsers.add_parser("operation", help="operation on a task")
@@ -565,26 +388,14 @@ def main():
     remote_resource_list_parser = remote_resource_subparsers.add_parser(
         "list", help="List remote resources"
     )
-    remote_resource_list_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_resources_list(result, args))(
-                list_remote_resources(args)
-            )
-        )
-    )
+    remote_resource_list_parser.set_defaults(func=handle_errors(handle_remote_resource_list))
 
     # remote-resource show
     remote_resource_show_parser = remote_resource_subparsers.add_parser(
         "show", help="Show remote resource details"
     )
     remote_resource_show_parser.add_argument("remote_resource", type=int, help="Remote resource ID")
-    remote_resource_show_parser.set_defaults(
-        func=handle_errors(
-            lambda args: (lambda result: print_resource_details(result, args) if result else None)(
-                show_remote_resource(args)
-            )
-        )
-    )
+    remote_resource_show_parser.set_defaults(func=handle_errors(handle_remote_resource_show))
 
     # MARK: Setup CLI
     args = parser.parse_args()
@@ -593,9 +404,13 @@ def main():
         parser.print_help()
         return
 
-    # Handle session commands (no authentication needed for login).
+    # Handle session commands (no authentication needed for login, version, and whoami).
     if args.command == "login":
         return handle_errors(create_session)(args)
+    elif args.command == "version":
+        return handle_errors(version_info)(args)
+    elif args.command == "whoami":
+        return handle_errors(whoami_user)(args)
 
     # All other commands require authentication.
     if not is_authenticated():
@@ -604,10 +419,6 @@ def main():
     # Handle authenticated commands.
     if args.command == "logout":
         return handle_errors(logout_session)(args)
-    elif args.command == "whoami":
-        return handle_errors(whoami_user)(args)
-    elif args.command == "version":
-        return handle_errors(version_info)(args)
     elif args.command in [
         "file",
         "dataprovider",
