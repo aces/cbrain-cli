@@ -1,9 +1,10 @@
-# CBRAIN CLI
+**A Google Summer of Code (GSoC) 2025 Project**
 
 A command-line interface to a CBRAIN service
 ============================================
 
-This repository contains a UNIX command-line interface (CLI) for [CBRAIN](https://github.com/aces/cbrain), a web-based neuroinformatics platform designed for collaborative brain imaging research. CBRAIN provides researchers with distributed computational resources, data management capabilities, and a framework for running neuroscience analysis pipelines across multiple high-performance computing environments.
+This repository contains a UNIX command-line interface (CLI) for [CBRAIN](https://github.com/aces/cbrain), a web-based neuroinformatics platform designed for collaborative brain imaging research. CBRAIN enables researchers to securely manage large neuroimaging datasets, share data across institutions, and execute neuroscience analysis pipelines on distributed high-performance computing (HPC) resources through a unified web and API-driven interface.
+
 
 >The interface is implemented in Python using only standard libraries - no external dependencies required.
 
@@ -19,15 +20,22 @@ There are two main ways to access CBRAIN:
 
 2. **Custom/Development Setup**
    - Deploy CBRAIN on your lab cluster, cloud, or virtual machine
-   - Suitable for organizations that require their own CBRAIN instance or which prefer to host CBRAIN themselves due to legal or corporate requirements
+   - Suitable for organizations that require their own CBRAIN instance or which prefer to host CBRAIN themselves due to legal or corporate requirements.
    - Local installation only needed for:
      - CLI software developers
      - Power users developing/debugging custom CLI scripts
    - Follow setup instructions at [CBRAIN GitHub Repository](https://github.com/aces/cbrain) if you need a local instance
+## Project Context
+
+This project is developed as part of **Google Summer of Code (GSoC) 2025**, under the mentorship of the CBRAIN development team and sponsored by INCF (International Neuroinformatics Coordinating Facility). The goal of this project is to provide a robust, dependency-free command-line interface to the CBRAIN platform, enabling scripting, automation, and power-user workflows.
+
 
 ## Installation
 
 This CLI tool uses pure Python with no external library dependencies, making installation straightforward.
+
+This design choice ensures maximum portability across HPC systems where installing third-party Python packages may not be possible.
+
 
 ### Option 1: Direct Usage
 
@@ -77,7 +85,7 @@ with a set of subcommand and options.
 
 ### Basic Usage
 
-To utilize the Cbrain cli, you can execute variations of the following command in your terminal:
+To use the CBRAIN CLI, you can execute variations of the following command in your terminal:
 
 ```
 cbrain -h     # view the cli options
@@ -101,8 +109,38 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
 - `background`   - Background activity operations
 - `task`         - Task operations
 - `remote-resource` - Remote resource operations
+## Subcommands Overview
 
-## Command Examples
+Each model supports standard REST-style actions such as `list`, `show`, `create`, `update`, and `delete` where applicable.
+
+Examples:
+
+```bash
+# Project
+cbrain project list
+cbrain project show <id>
+cbrain project switch <id>
+
+# File
+cbrain file list
+cbrain file show <id>
+cbrain file upload <local_path>
+
+# Task
+cbrain task list
+cbrain task show <id>
+cbrain task create <tool_config_id>
+cbrain task list bourreau-id <id>
+
+# Tool
+cbrain tool list
+cbrain tool show <id>
+
+# Tool Configuration
+cbrain tool-config list
+cbrain tool-config show <id>
+```
+
 
 <p align="center">
 <img src="https://github.com/user-attachments/assets/ae3fe36d-a83d-4cbf-a245-c9242c60c9ff" alt="List, Total and Get GIF" width="500" height="300">
