@@ -120,7 +120,7 @@ def handle_connection_error(error):
 
         if error.code == 401:
             print(f"{status_description}: {error.reason}")
-            print("Try with Authorized Access")
+            print("Error: Access denied. Please log in using authorized credentials.")
         elif error.code in (400, 404, 422, 500):
             # Try to extract specific error message from response
             try:
@@ -143,10 +143,11 @@ def handle_connection_error(error):
                             or error_data.get("notice")
                             or str(error_data)
                         )
-                        # Check if this looks like a password change redirect via API
+                        # Check if this looks like a password change redirect
                         if "change_password" in error_msg:
                             print(
-                                f"{status_description}: Account requires a password change. "
+                                f"{status_description}: Account requires "
+                                "a password change. "
                                 "Please log into the web portal."
                             )
                             return
