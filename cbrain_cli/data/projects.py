@@ -26,18 +26,6 @@ def switch_project(args):
         print("Error: Group ID is required")
         return None
 
-    # Handle the special case of "all"
-    if group_id == "all":
-        print("Project switch 'all' not yet implemented as of Aug 2025")
-        return None
-
-    # Convert to integer for regular group IDs
-    try:
-        group_id = int(group_id)
-    except ValueError:
-        print(f"Error: Invalid group ID '{group_id}'. Must be a number or 'all'")
-        return None
-
     # Step 1: Call the switch API
     switch_endpoint = f"{cbrain_url}/groups/switch?id={group_id}"
     headers = auth_headers(api_token)
@@ -55,86 +43,73 @@ def switch_project(args):
             group_data_text = group_response.read().decode("utf-8")
             group_data = json.loads(group_data_text)
 
-        # Step 3: Update credentials file with current group_id
-        if CREDENTIALS_FILE.exists():
-            with open(CREDENTIALS_FILE) as f:
-                credentials = json.load(f)
+    # Step 3: Update credentials file with current group_id
+    from cbrain_cli.cli_utils import session_name
 
-            credentials["current_group_id"] = group_id
-            credentials["current_group_name"] = group_data.get("name", "Unknown")
+    if CREDENTIALS_FILE.exists():
+        with open(CREDENTIALS_FILE) as f:
+            all_credentials_file = json.load(f)
+
+        if session_name in all_credentials_file:
+            all_credentials_file[session_name]["current_group_id"] = group_id
+            all_credentials_file[session_name]["current_group_name"] = group_data.get(
+                "name", "Unknown"
+            )
 
             with open(CREDENTIALS_FILE, "w") as f:
-                json.dump(credentials, f, indent=2)
+                json.dump(all_credentials_file, f, indent=2)
 
-        return group_data
+    return group_data
 
 
 def show_project(args):
     """
-    Get the current project/group from credentials or show a specific project by ID.
+    Get the current project/group from credentials.
 
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments, may include project_id
+        Command line arguments
 
     Returns
     -------
     dict or None
         Dictionary containing project details if successful, None if no project set
     """
-    # Check if a specific project ID was provided
-    project_id = getattr(args, "project_id", None)
+    from cbrain_cli.cli_utils import session_name
 
-    if project_id:
-        # Show specific project by ID
-        group_endpoint = f"{cbrain_url}/groups/{project_id}"
-        headers = auth_headers(api_token)
-        request = urllib.request.Request(group_endpoint, data=None, headers=headers, method="GET")
+    with open(CREDENTIALS_FILE) as f:
+        all_credentials_file = json.load(f)
 
-        try:
-            with urllib.request.urlopen(request) as response:
-                data = response.read().decode("utf-8")
-                group_data = json.loads(data)
-                return group_data
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                print(f"Error: Project with ID {project_id} not found")
-                return None
-            else:
-                raise
-    else:
-        # Show current project from credentials
-        with open(CREDENTIALS_FILE) as f:
-            credentials = json.load(f)
+    credentials = all_credentials_file.get(session_name, {})
+    current_group_id = credentials.get("current_group_id")
+    if not current_group_id:
+        return None
 
-        current_group_id = credentials.get("current_group_id")
-        if not current_group_id:
-            return None
+    # Get fresh group details from server
+    group_endpoint = f"{cbrain_url}/groups/{current_group_id}"
+    headers = auth_headers(api_token)
 
-        # Get fresh group details from server
-        group_endpoint = f"{cbrain_url}/groups/{current_group_id}"
-        headers = auth_headers(api_token)
+    request = urllib.request.Request(group_endpoint, data=None, headers=headers, method="GET")
 
-        request = urllib.request.Request(group_endpoint, data=None, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(request) as response:
+            data = response.read().decode("utf-8")
+            group_data = json.loads(data)
+            return group_data
 
-        try:
-            with urllib.request.urlopen(request) as response:
-                data = response.read().decode("utf-8")
-                group_data = json.loads(data)
-                return group_data
-
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                print(f"Error: Current project (ID {current_group_id}) no longer exists")
-                # Clear the invalid group_id from credentials
-                credentials.pop("current_group_id", None)
-                credentials.pop("current_group_name", None)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print(f"Error: Current project (ID {current_group_id}) no longer exists")
+            # Clear the invalid group_id from credentials
+            if session_name in all_credentials_file:
+                all_credentials_file[session_name].pop("current_group_id", None)
+                all_credentials_file[session_name].pop("current_group_name", None)
                 with open(CREDENTIALS_FILE, "w") as f:
-                    json.dump(credentials, f, indent=2)
-                return None
-            else:
-                raise
+                    json.dump(all_credentials_file, f, indent=2)
+            return None
+        else:
+            raise
 
 
 def list_projects(args):

@@ -5,7 +5,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
 from cbrain_cli.config import (
     CREDENTIALS_FILE,
     DEFAULT_BASE_URL,
@@ -24,28 +23,31 @@ def create_session(args):
     None
         A command is run via inputs from the user.
     """
+    from cbrain_cli.cli_utils import all_credentials, api_token, cbrain_url, session_name
 
-    if CREDENTIALS_FILE.exists():
-        print("Already logged in. Use 'cbrain logout' to logout.")
+    if cbrain_url is not None and api_token is not None:
+        print(f"Already logged in to session '{session_name}'. Use 'cbrain logout' to logout.")
         return 1
 
     # Get user input.
-    cbrain_url = input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()
-    if not cbrain_url:
-        cbrain_url = DEFAULT_BASE_URL
+    cbrain_url_input = getattr(args, "server", None) or input(
+        "Enter CBRAIN server base URL [default: localhost:3000]: "
+    ).strip()
+    if not cbrain_url_input:
+        cbrain_url_input = DEFAULT_BASE_URL
 
-    username = input("Enter CBRAIN username: ").strip()
+    username = getattr(args, "username", None) or input("Enter CBRAIN username: ").strip()
     if not username:
         print("Username is required")
         return 1
 
-    password = getpass.getpass("Enter CBRAIN password: ")
+    password = getattr(args, "password", None) or getpass.getpass("Enter CBRAIN password: ")
     if not password:
         print("Password is required")
         return 1
 
     # Prepare the login request.
-    login_endpoint = f"{cbrain_url}/session"
+    login_endpoint = f"{cbrain_url_input}/session"
 
     # Prepare form data.
     form_data = {"login": username, "password": password}
@@ -73,17 +75,21 @@ def create_session(args):
 
         # Prepare credentials data.
         credentials = {
-            "cbrain_url": cbrain_url,
+            "cbrain_url": cbrain_url_input,
             "api_token": cbrain_api_token,
             "user_id": cbrain_user_id,
             "timestamp": datetime.datetime.now().isoformat(),
         }
 
         # Save credentials to file.
+        all_credentials[session_name] = credentials
         with open(CREDENTIALS_FILE, "w") as f:
-            json.dump(credentials, f, indent=2)
+            json.dump(all_credentials, f, indent=2)
 
-        print(f"Connection successful, API token saved in {CREDENTIALS_FILE}")
+        print(
+            f"Connection successful, API token saved in {CREDENTIALS_FILE} "
+            f"for session '{session_name}'"
+        )
         return 0
 
 
@@ -97,42 +103,78 @@ def logout_session(args):
     None
         A command is run via inputs from the user.
     """
+    from cbrain_cli.cli_utils import all_credentials, session_name, session_specified
 
-    if not cbrain_url or not api_token:
-        print("Invalid credentials file. Removing local session.")
-        CREDENTIALS_FILE.unlink()
+    if not session_specified and len(all_credentials) > 0:
+        sessions_to_logout = list(all_credentials.keys())
+    else:
+        sessions_to_logout = [session_name]
+
+    if not sessions_to_logout:
+        print("No active sessions to logout.")
         return 0
 
-    # Prepare logout request.
-    logout_endpoint = f"{cbrain_url}/session"
+    for s_name in sessions_to_logout:
+        creds = all_credentials.get(s_name, {})
+        s_url = creds.get("cbrain_url")
+        s_token = creds.get("api_token")
+        s_uid = creds.get("user_id")
 
-    # Create headers with authorization.
-    headers = auth_headers(api_token)
-
-    # Create the DELETE request.
-    request = urllib.request.Request(
-        logout_endpoint,
-        data=None,  # No payload for DELETE
-        headers=headers,
-        method="DELETE",
-    )
-
-    # Make the request to logout from server.
-    try:
-        with urllib.request.urlopen(request) as response:
-            if response.status == 200:
-                print("Successfully logged out from CBRAIN server.")
+        if not s_url or not s_token:
+            if s_name in all_credentials:
+                print(f"Invalid credentials for session '{s_name}'. Removing local session.")
+                del all_credentials[s_name]
             else:
-                print("Logout failed")
-    except urllib.error.HTTPError as e:
-        if e.code == 401:
-            print("Session already expired on server.")
-        else:
-            print(f"Logout request failed: HTTP {e.code}")
-    except urllib.error.URLError as e:
-        print(f"Network error during logout: {e}")
+                if session_specified:
+                    print(f"Not logged in to session '{s_name}'.")
+                elif len(sessions_to_logout) == 1 and s_name == "default":
+                    print("Not logged in. Use 'cbrain login' to login first.")
+            continue
 
-    # Always remove local credentials file.
-    CREDENTIALS_FILE.unlink()
-    print(f"Local session removed from {CREDENTIALS_FILE}")
+        # Try to fetch username for a nicer logout message
+        username = s_name
+        try:
+            req = urllib.request.Request(
+                f"{s_url}/users/{s_uid}", headers=auth_headers(s_token), method="GET"
+            )
+            with urllib.request.urlopen(req) as response:
+                user_data = json.loads(response.read().decode("utf-8"))
+                username = user_data.get("login", s_name)
+        except Exception:
+            pass
+
+        # Prepare logout request.
+        logout_endpoint = f"{s_url}/session"
+
+        # Create the DELETE request.
+        request = urllib.request.Request(
+            logout_endpoint,
+            data=None,  # No payload for DELETE
+            headers=auth_headers(s_token),
+            method="DELETE",
+        )
+
+        # Make the request to logout from server.
+        try:
+            with urllib.request.urlopen(request) as response:
+                if response.status == 200:
+                    print(f"Successfully logged out from CBRAIN server as {username}.")
+                else:
+                    print(f"Logout failed for session '{s_name}'.")
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
+                print(f"Session '{s_name}' already expired on server.")
+            else:
+                print(f"Logout request failed for '{s_name}': HTTP {e.code}")
+        except urllib.error.URLError as e:
+            print(f"Network error during logout for '{s_name}': {e}")
+
+        # Always remove local credentials for this session.
+        if s_name in all_credentials:
+            del all_credentials[s_name]
+        print(f"Local session '{s_name}' removed from {CREDENTIALS_FILE}")
+
+    with open(CREDENTIALS_FILE, "w") as f:
+        json.dump(all_credentials, f, indent=2)
+
     return 0
