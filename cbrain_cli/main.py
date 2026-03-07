@@ -111,6 +111,7 @@ def main():
         "--data-provider", type=int, required=True, help="Data provider ID"
     )
     file_upload_parser.add_argument("--group-id", type=int, help="Group ID")
+    file_upload_parser.add_argument("--file-type", type=str, default="SingleFile", help="File type (default: SingleFile)")
 
     file_upload_parser.set_defaults(func=handle_errors(handle_file_upload))
 
