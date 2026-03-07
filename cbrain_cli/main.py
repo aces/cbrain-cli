@@ -399,22 +399,19 @@ def main():
 
     # MARK: Setup CLI
     args = parser.parse_args()
+    if args.command == "version":
+        return handle_errors(version_info)(args)
 
     if not args.command:
-        parser.print_help()
-        return
-
+        parser.print_help(file=sys.stderr)
+        return 1
+    
     # Handle session commands (no authentication needed for login, version, and whoami).
     if args.command == "login":
         return handle_errors(create_session)(args)
-    elif args.command == "version":
-        return handle_errors(version_info)(args)
+    
     elif args.command == "whoami":
         return handle_errors(whoami_user)(args)
-
-    # All other commands require authentication.
-    if not is_authenticated():
-        return 1
 
     # Handle authenticated commands.
     if args.command == "logout":
@@ -433,23 +430,23 @@ def main():
         if not hasattr(args, "action") or not args.action:
             # Show help for the specific model command.
             if args.command == "file":
-                file_parser.print_help()
+                file_parser.print_help(file=sys.stderr)
             elif args.command == "dataprovider":
-                dataprovider_parser.print_help()
+                dataprovider_parser.print_help(file=sys.stderr)
             elif args.command == "project":
-                project_parser.print_help()
+                project_parser.print_help(file=sys.stderr)
             elif args.command == "tool":
-                tool_parser.print_help()
+                tool_parser.print_help(file=sys.stderr)
             elif args.command == "tool-config":
-                tool_configs_parser.print_help()
+                tool_configs_parser.print_help(file=sys.stderr)
             elif args.command == "tag":
-                tag_parser.print_help()
+                tag_parser.print_help(file=sys.stderr)
             elif args.command == "background":
-                background_parser.print_help()
+                background_parser.print_help(file=sys.stderr)
             elif args.command == "task":
-                task_parser.print_help()
+                task_parser.print_help(file=sys.stderr)
             elif args.command == "remote-resource":
-                remote_resource_parser.print_help()
+                remote_resource_parser.print_help(file=sys.stderr)
             return 1
         else:
             # Execute the function associated with the command.
