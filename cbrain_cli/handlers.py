@@ -24,7 +24,7 @@ from cbrain_cli.data.files import (
     show_file,
     upload_file,
 )
-from cbrain_cli.data.projects import list_projects, show_project, switch_project
+from cbrain_cli.data.projects import list_projects, show_project, switch_project, unswitch_project
 from cbrain_cli.data.remote_resources import list_remote_resources, show_remote_resource
 from cbrain_cli.data.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
 from cbrain_cli.data.tasks import list_tasks, show_task
@@ -174,8 +174,10 @@ def handle_project_show(args):
 
 
 def handle_project_unswitch(args):
-    """Unswitch from current project context."""
-    print("Project Unswitch 'all' not yet implemented as of Aug 2025")
+    """Unswitch from current project context by reverting to 'All Projects'."""
+    result = unswitch_project(args)
+    if result:
+        print_current_project(result)
 
 
 # Tool command handlers

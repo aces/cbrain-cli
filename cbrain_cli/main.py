@@ -88,7 +88,7 @@ def main():
 
     # file list
     file_list_parser = file_subparsers.add_parser("list", help="List files")
-    file_list_parser.add_argument("--group-id", type=int, help="Filter files by group ID")
+    file_list_parser.add_argument("--group-id", "--project-id", type=int, dest="group_id", help="Filter files by Group/Project ID")
     file_list_parser.add_argument("--dp-id", type=int, help="Filter files by data provider ID")
     file_list_parser.add_argument("--user-id", type=int, help="Filter files by user ID")
     file_list_parser.add_argument("--parent-id", type=int, help="Filter files by parent ID")
@@ -110,7 +110,7 @@ def main():
     file_upload_parser.add_argument(
         "--data-provider", type=int, required=True, help="Data provider ID"
     )
-    file_upload_parser.add_argument("--group-id", type=int, help="Group ID")
+    file_upload_parser.add_argument("--group-id", "--project-id", type=int, dest="group_id", help="Group/Project ID")
     file_upload_parser.add_argument("--file-type", type=str, default="SingleFile", help="File type (default: SingleFile)")
 
     file_upload_parser.set_defaults(func=handle_errors(handle_file_upload))
@@ -304,7 +304,7 @@ def main():
     tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag")
     tag_create_parser.add_argument("--name", type=str, required=True, help="Tag name")
     tag_create_parser.add_argument("--user-id", type=int, required=True, help="User ID")
-    tag_create_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
+    tag_create_parser.add_argument("--group-id", "--project-id", type=int, required=True, dest="group_id", help="Group/Project ID")
     tag_create_parser.set_defaults(func=handle_errors(handle_tag_create))
 
     # tag update
@@ -316,7 +316,7 @@ def main():
     )
     tag_update_parser.add_argument("--name", type=str, required=True, help="Tag name")
     tag_update_parser.add_argument("--user-id", type=int, required=True, help="User ID")
-    tag_update_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
+    tag_update_parser.add_argument("--group-id", "--project-id", type=int, required=True, dest="group_id", help="Group/Project ID")
     tag_update_parser.set_defaults(func=handle_errors(handle_tag_update))
 
     # tag delete

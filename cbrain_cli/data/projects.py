@@ -27,9 +27,8 @@ def switch_project(args):
         return None
 
     # Handle the special case of "all"
-    if group_id == "all":
-        print("Project switch 'all' not yet implemented as of Aug 2025")
-        return None
+    if group_id.lower() == "all":
+        return _perform_project_unswitch()
 
     # Convert to integer for regular group IDs
     try:
@@ -164,3 +163,38 @@ def list_projects(args):
         projects_data = json.loads(data)
 
     return projects_data
+
+
+def _perform_project_unswitch():
+    """Internal helper to clear project keys from the credentials file."""
+    try:
+        from cbrain_cli.config import CREDENTIALS_FILE
+        
+        # 1. Check if the file even exists
+        if not CREDENTIALS_FILE.exists():
+            print("No active session found. You are already viewing 'All Projects'.")
+            return {"name": "All Projects"}
+
+        # 2. Read the file
+        with open(CREDENTIALS_FILE, "r") as f:
+            credentials = json.load(f)
+
+        # 3. Clear the keys
+        credentials.pop("current_group_id", None)
+        credentials.pop("current_group_name", None)
+        credentials.pop("current_project_id", None) 
+
+        # 4. Save back to file
+        with open(CREDENTIALS_FILE, "w") as f:
+            json.dump(credentials, f, indent=2)
+
+        print("Successfully unswitched. Now viewing 'All Projects'.")
+        return {"name": "All Projects"}
+        
+    except Exception as e:
+        print(f"Error during unswitch: {e}")
+    return None
+
+def unswitch_project(args):
+    """Handler for the 'cbrain project unswitch' command."""
+    return _perform_project_unswitch()
