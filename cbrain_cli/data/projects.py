@@ -13,40 +13,40 @@ def switch_project(args):
     Parameters
     ----------
     args : argparse.Namespace
-        Command line arguments, including the group_id argument
+        Command line arguments, including the project_id argument
 
     Returns
     -------
     dict or None
         Dictionary containing project details if successful, None otherwise
     """
-    # Get the group ID from the group_id argument
-    group_id = getattr(args, "group_id", None)
-    if not group_id:
-        print("Error: Group ID is required")
+    # Get the project ID from the project_id argument
+    project_id = getattr(args, "project_id", None)
+    if not project_id:
+        print("Error: Project ID is required")
         return None
 
     # Handle the special case of "all"
-    if group_id == "all":
+    if project_id == "all":
         print("Project switch 'all' not yet implemented as of Aug 2025")
         return None
 
     # Convert to integer for regular group IDs
     try:
-        group_id = int(group_id)
+        group_id = int(project_id)
     except ValueError:
-        print(f"Error: Invalid group ID '{group_id}'. Must be a number or 'all'")
+        print(f"Error: Invalid project ID '{project_id}'. Must be a number or 'all'")
         return None
 
     # Step 1: Call the switch API
-    switch_endpoint = f"{cbrain_url}/groups/switch?id={group_id}"
+    switch_endpoint = f"{cbrain_url}/groups/switch?id={project_id}"
     headers = auth_headers(api_token)
 
     # Create the request
     request = urllib.request.Request(switch_endpoint, data=None, headers=headers, method="POST")
 
     with urllib.request.urlopen(request):
-        group_endpoint = f"{cbrain_url}/groups/{group_id}"
+        group_endpoint = f"{cbrain_url}/groups/{project_id}"
         group_request = urllib.request.Request(
             group_endpoint, data=None, headers=headers, method="GET"
         )
@@ -60,7 +60,7 @@ def switch_project(args):
             with open(CREDENTIALS_FILE) as f:
                 credentials = json.load(f)
 
-            credentials["current_group_id"] = group_id
+            credentials["current_project_id"] = project_id
             credentials["current_group_name"] = group_data.get("name", "Unknown")
 
             with open(CREDENTIALS_FILE, "w") as f:
@@ -108,8 +108,8 @@ def show_project(args):
         with open(CREDENTIALS_FILE) as f:
             credentials = json.load(f)
 
-        current_group_id = credentials.get("current_group_id")
-        if not current_group_id:
+        current_group_id = credentials.get("current_project_id")
+        if not current_project_id:
             return None
 
         # Get fresh group details from server
@@ -126,9 +126,9 @@ def show_project(args):
 
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                print(f"Error: Current project (ID {current_group_id}) no longer exists")
+                print(f"Error: Current project (ID {current_project_id}) no longer exists")
                 # Clear the invalid group_id from credentials
-                credentials.pop("current_group_id", None)
+                credentials.pop("current_project_id", None)
                 credentials.pop("current_group_name", None)
                 with open(CREDENTIALS_FILE, "w") as f:
                     json.dump(credentials, f, indent=2)
