@@ -1,4 +1,5 @@
 # CBRAIN CLI
+**A Google Summer of Code (GSoC) 2025 Project**
 
 A command-line interface to a CBRAIN service
 ============================================
@@ -140,8 +141,6 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
 > </details>
 
 ## Development
-
-This is part of [**a GSoC (Google Summer of Code) 2025** project](https://summerofcode.withgoogle.com/programs/2025/projects/1An4Dp8N) sponsored by [INCF](https://www.incf.org/).
 
 The lead developer is [axif0](https://github.com/axif0), mentored by the developers of the CBRAIN project.
 
