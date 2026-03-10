@@ -3,7 +3,8 @@ import urllib.error
 import urllib.request
 
 from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import CREDENTIALS_FILE, auth_headers
+from cbrain_cli.config import auth_headers
+from cbrain_cli.sessions import save_credentials
 
 
 def switch_project(args):
@@ -63,9 +64,7 @@ def switch_project(args):
             all_credentials[session_name]["current_group_name"] = group_data.get(
                 "name", "Unknown"
             )
-
-            with open(CREDENTIALS_FILE, "w") as f:
-                json.dump(all_credentials, f, indent=2)
+            save_credentials(all_credentials)
 
         return group_data
 
@@ -131,8 +130,7 @@ def show_project(args):
                 # Clear the invalid group_id from credentials
                 session_creds.pop("current_group_id", None)
                 session_creds.pop("current_group_name", None)
-                with open(CREDENTIALS_FILE, "w") as f:
-                    json.dump(all_credentials, f, indent=2)
+                save_credentials(all_credentials)
                 return None
             else:
                 raise

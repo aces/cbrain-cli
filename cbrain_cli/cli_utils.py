@@ -3,12 +3,11 @@ import json
 import re
 import sys
 import urllib.error
-from pathlib import Path
 
 # import importlib.metadata
-from cbrain_cli.config import CREDENTIALS_FILE
+from cbrain_cli.config import ACTIVE_SESSION_KEY, CREDENTIALS_FILE
 
-# Parse session name from arguments
+# Session name priority: --session flag > _active_session in cbrain.json > "default"
 session_name = "default"
 session_specified = False
 for i, arg in enumerate(sys.argv):
@@ -20,31 +19,18 @@ for i, arg in enumerate(sys.argv):
         session_specified = True
 
 try:
-    # MARK: Credentials.
     try:
         with open(CREDENTIALS_FILE) as f:
             all_credentials = json.load(f)
     except FileNotFoundError:
-        # Fallback to older format location
-        old_file = Path.home() / ".config" / "cbrain" / "credentials.json"
-        if old_file.exists():
-            with open(old_file) as f:
-                old_creds = json.load(f)
-            if "cbrain_url" in old_creds:
-                all_credentials = {"default": old_creds}
-            else:
-                all_credentials = old_creds
-        else:
-            all_credentials = {}
+        all_credentials = {}
 
-    if session_name in all_credentials:
-        credentials = all_credentials[session_name]
-    elif "cbrain_url" in all_credentials:
-        # Old format file at current location
-        credentials = all_credentials if session_name == "default" else {}
-        all_credentials = {"default": all_credentials}
-    else:
-        credentials = {}
+    if not session_specified:
+        session_name = all_credentials.get(ACTIVE_SESSION_KEY, "default") or "default"
+
+    all_credentials.pop(ACTIVE_SESSION_KEY, None)
+
+    credentials = all_credentials.get(session_name, {})
 
     # Get credentials.
     cbrain_url = credentials.get("cbrain_url")
@@ -53,10 +39,7 @@ try:
     cbrain_timestamp = credentials.get("timestamp")
 except Exception:
     all_credentials = {}
-    cbrain_url = None
-    api_token = None
-    user_id = None
-    cbrain_timestamp = None
+    cbrain_url = api_token = user_id = cbrain_timestamp = None
 
 
 def is_authenticated():

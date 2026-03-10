@@ -79,7 +79,7 @@ def whoami_user(args):
             else "****"
         )
 
-        print(f"DEBUG: Found credentials {CREDENTIALS_FILE}")
+        print(f"DEBUG: Found credentials at {CREDENTIALS_FILE}")
         print(f"DEBUG: User in credentials: {user_data['login']} on server {cbrain_url}")
         print(f"DEBUG: Token found: {masked_token}")
         print("DEBUG: Verifying token...")
@@ -121,3 +121,4 @@ def whoami_user(args):
             return 1
 
     print(f"Current user: {user_data['login']} ({user_data['full_name']}) on server {cbrain_url}")
+    return 0
