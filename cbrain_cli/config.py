@@ -8,12 +8,12 @@ from pathlib import Path
 DEFAULT_BASE_URL = "http://localhost:3000"
 
 # Session file configuration.
-SESSION_FILE_DIR = Path.home() / ".config"
-SESSION_FILE_NAME = "cbrain.json"
+SESSION_FILE_DIR = Path.home() / ".config" / "cbrain-cli"
+SESSION_FILE_NAME = "credentials.json"
 SESSION_FILE_DIR.mkdir(parents=True, exist_ok=True)
 CREDENTIALS_FILE = SESSION_FILE_DIR / SESSION_FILE_NAME
 
-# Key used inside cbrain.json to track the currently active session.
+# Key used inside credentials.json to track the currently active session.
 # Prefixed with "_" so it is clearly not a session name.
 ACTIVE_SESSION_KEY = "_active_session"
 
