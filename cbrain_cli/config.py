@@ -8,7 +8,7 @@ from pathlib import Path
 DEFAULT_BASE_URL = "http://localhost:3000"
 
 # Session file configuration.
-SESSION_FILE_DIR = Path.home() / ".config" / "cbrain-cli"
+SESSION_FILE_DIR = Path.home() / ".config" / "cbrain"
 SESSION_FILE_NAME = "credentials.json"
 SESSION_FILE_DIR.mkdir(parents=True, exist_ok=True)
 CREDENTIALS_FILE = SESSION_FILE_DIR / SESSION_FILE_NAME
