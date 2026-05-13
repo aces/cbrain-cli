@@ -84,6 +84,8 @@ Do not attempt these unless the required work is already complete and reviewed:
 
 ## Expectations For You
 
+- Work from your own fork of the repository.
+- Open PRs from your fork to the upstream repository for review.
 - Do not rewrite the CLI.
 - Fix correctness first, then add guardrails, then improve one architecture slice.
 - Keep PRs small enough to review.
@@ -98,6 +100,7 @@ Do not attempt these unless the required work is already complete and reviewed:
 
 Each PR should answer:
 
+- Is this PR opened from your fork against the upstream repository?
 - What user-visible behavior changed?
 - What tests were added or updated?
 - Do `ruff check .` and `ruff format --check .` pass?
