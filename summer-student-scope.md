@@ -61,6 +61,8 @@ Do not attempt these unless the required work is already complete and reviewed:
 
 ## Suggested Timeline
 
+Note: in this repository, "capture tests" means the existing shell-based CLI output regression tests in `capture_tests/`. They run CLI commands and compare captured terminal output against `expected_captures.txt`.
+
 ### Month 1: Correctness
 
 - Complete Phase 1.
