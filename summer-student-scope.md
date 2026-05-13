@@ -59,6 +59,26 @@ Do not attempt these unless the required work is already complete and reviewed:
 - replacing the capture test framework;
 - adding external runtime dependencies beyond approved development tooling.
 
+## Repository Conventions To Know
+
+- The CLI is tested against CBRAIN, the server application at https://github.com/aces/cbrain.
+- The capture tests expect a local CBRAIN test server on `localhost:3000` with the expected seeded test database.
+- You are not expected to have production CBRAIN credentials. Use local/test credentials only.
+- If setting up the CBRAIN test server blocks you, say so early. You can still write unit tests and note that capture tests were not run locally.
+- `capture_tests/switch_session` writes test credentials directly to `$HOME/.config/cbrain/credentials.json`; do not run it casually against a real CLI session.
+- The repo-root `cbrain` script is the local CLI entrypoint used by the capture tests.
+- Runtime code is intended to use only the Python standard library unless a dependency is explicitly approved.
+- Output formatting is part of the tested behavior. If command output changes, update capture expectations only when the new output is intentional.
+- CBRAIN-specific terms such as `bourreau`, `data provider`, and `tool config` come from the server/domain model; refer to the server repository when behavior is unclear.
+
+## Remote Collaboration
+
+- Work asynchronously and make progress visible with small PRs or draft PRs.
+- Mention your timezone and typical working hours in your first project update.
+- Ask questions early when setup, CBRAIN terminology, or expected behavior is unclear.
+- If you cannot run a test locally, say exactly which test was skipped and why.
+- PR descriptions should include the commands you ran and any remaining uncertainty.
+
 ## Suggested Timeline
 
 Note: in this repository, "capture tests" means the existing shell-based CLI output regression tests in `capture_tests/`. They run CLI commands and compare captured terminal output against `expected_captures.txt`.
