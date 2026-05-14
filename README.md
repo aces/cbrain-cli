@@ -145,6 +145,66 @@ This is part of [**a GSoC (Google Summer of Code) 2025** project](https://summer
 
 The lead developer is [axif0](https://github.com/axif0), mentored by the developers of the CBRAIN project.
 
+### Developer Setup
+
+Install the CLI in editable mode with the development tools:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -e ".[dev]"
+```
+
+This project is a pure Python CLI. There is no separate compile or build step for normal development; installing in editable mode is enough to run the local `cbrain` command.
+
+### Linting And Formatting
+
+Ruff is used for linting and formatting:
+
+```bash
+ruff check .
+ruff format .
+```
+
+To check formatting without changing files:
+
+```bash
+ruff format --check .
+```
+
+### Pre-Commit Hooks
+
+The repository includes a `.pre-commit-config.yaml`. Install the hooks with:
+
+```bash
+pre-commit install
+```
+
+The hooks currently:
+
+- trim trailing whitespace;
+- ensure files end with a newline;
+- check YAML syntax;
+- check Markdown links;
+- run `ruff --fix`;
+- run `ruff format`.
+
+The generated capture fixture `capture_tests/expected_captures.txt` is excluded from whitespace and Ruff hooks because exact captured output is intentional there.
+
+To run the hooks manually:
+
+```bash
+pre-commit run --all-files
+```
+
+### Tests
+
+The existing test suite is based on capture tests in `capture_tests/`. These are shell-based CLI output regression tests: they run commands from `capture_tests/cbrain_cli_commands` and compare the captured terminal output against `capture_tests/expected_captures.txt`.
+
+Capture tests require a local CBRAIN test server on `localhost:3000` with the expected test database seed. The GitHub Actions workflow sets this up by checking out the CBRAIN server repository at https://github.com/aces/cbrain.
+
+When command output intentionally changes, update `capture_tests/expected_captures.txt`. When behavior changes without intended output changes, prefer adding focused unit tests where possible.
+
 ### Continuous Integration
 
 Continuous Integration (CI) tests and framework were initially configured by P. Rioux, providing automated validation of the codebase. This infrastructure follows best open source practices and ensures code quality through automated testing.
