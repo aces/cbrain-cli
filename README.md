@@ -145,6 +145,8 @@ This is part of [**a GSoC (Google Summer of Code) 2025** project](https://summer
 
 The lead developer is [axif0](https://github.com/axif0), mentored by the developers of the CBRAIN project.
 
+Development continues as part of [**a GSoC (Google Summer of Code) 2026** project](https://summerofcode.withgoogle.com/programs/2026/projects/iJ7MpwX1), with [Rafsan Neloy](https://github.com/RafsanNeloy) contributing under the mentorship of the CBRAIN project developers.
+
 ### Developer Setup
 
 Install the CLI in editable mode with the development tools:

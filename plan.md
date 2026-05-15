@@ -92,39 +92,31 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 # Phase 2: Low-Hanging Guardrails
 
-## 8. Enforce Ruff linting and formatting
+## 8. Add CI enforcement for Ruff linting and formatting
 
-**Problem:** Ruff is configured but not clearly enforced as part of routine development.
+**Problem:** Ruff is configured, pre-commit hooks exist, and README documents local lint/format commands. What is still missing is a CI check that fails when linting or formatting drifts.
 
 **Do:**
-- Standardize `ruff check .` and `ruff format .`.
-- Add pre-commit and/or CI enforcement.
-- Document the commands.
+- Add a GitHub Actions job for `ruff check .`.
+- Add a GitHub Actions job or step for `ruff format --check .`.
+- Keep the existing pre-commit and README workflow in sync with CI.
 
-**Verify:** CI or local checks fail on lint/format drift.
+**Verify:** CI fails on a deliberately unformatted or lint-invalid change.
 
 ## 9. Add unit tests beside capture tests
 
-**Problem:** Capture tests protect output but do not isolate parsing, validation, request construction, or handler contracts.
+**Problem:** Capture tests protect end-to-end CLI output, but they do not isolate parsing, validation, request construction, handler contracts, or falsey-but-valid responses.
 
 **Do:**
 - Add a minimal unit test harness, preferably `pytest`.
 - Cover Phase 1 regressions first.
+- Include regression tests for empty list responses and other falsey-but-valid results.
 - Mock `urllib.request.urlopen` for request tests.
+- Run unit tests in CI.
 
 **Verify:** `python -m pytest` runs without a live CBRAIN server.
 
-## 10. Add regression tests for falsey valid results
-
-**Problem:** Empty lists and possibly empty dictionaries can be valid responses.
-
-**Do:**
-- Test empty list handling for each list handler.
-- Decide explicitly whether empty dictionaries are valid for show commands.
-
-**Verify:** Empty successful responses do not disappear.
-
-## 11. Add HTTP timeouts
+## 10. Add HTTP timeouts
 
 **Problem:** `urlopen()` calls have no timeout and can hang indefinitely.
 
@@ -135,7 +127,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Mocked timeout errors return clear messages and non-zero status.
 
-## 12. Protect credentials file permissions
+## 11. Protect credentials file permissions
 
 **Problem:** API tokens are stored as plain JSON without explicit permission handling.
 
@@ -146,7 +138,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** On POSIX, credentials are written with private permissions.
 
-## 13. Use one source of truth for versioning
+## 12. Use one source of truth for versioning
 
 **Problem:** `version_info()` hardcodes `1.0`, while repository tags may differ.
 
@@ -157,29 +149,20 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Reported version matches package metadata and release tags.
 
-## 14. Add a contributor checklist
+## 13. Add general contributor checklist and quality-gate docs
 
-**Problem:** Review expectations are implicit.
+**Problem:** README now documents local developer commands, and `summer-student-scope.md` has a student PR checklist, but the repository still lacks a general contributor checklist that applies to all PRs.
 
 **Do:**
 - Add a short checklist to `README.md` or `CONTRIBUTING.md`.
-- Include Ruff, tests, capture tests, output modes, data-layer printing, and credential safety.
+- Include Ruff, unit tests, capture tests, output modes, data-layer printing, credential safety, and public command compatibility.
+- State explicitly that a clean Ruff run is necessary but not sufficient; behavior still needs tests and review.
 
 **Verify:** Contributors can find the checklist before opening PRs.
 
-## 15. Treat linting as a baseline
-
-**Problem:** A clean Ruff run does not prove command behavior, output modes, or architecture are correct.
-
-**Do:**
-- Document that linting complements tests and review.
-- Keep architecture-sensitive checks in the review checklist.
-
-**Verify:** CI includes both lint/format checks and tests.
-
 # Phase 3: Output and UX Consistency
 
-## 16. Audit global `--json` and `--jsonl` behavior
+## 14. Audit global `--json` and `--jsonl` behavior
 
 **Problem:** Several commands ignore global output flags or always print JSON/plain text.
 
@@ -192,7 +175,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Representative commands work in normal, JSON, and JSONL modes.
 
-## 17. Make not-implemented behavior structured
+## 15. Make not-implemented behavior structured
 
 **Problem:** Not-implemented paths print prose and return inconsistently.
 
@@ -204,7 +187,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Not-implemented commands behave consistently in all output modes.
 
-## 18. Stabilize command vocabulary
+## 16. Stabilize command vocabulary
 
 **Problem:** Public terms and option names are inconsistent: `dataprovider`, `remote-resource`, `bourreau-id`, `dp-id`, `data-provider`, etc.
 
@@ -215,7 +198,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** `cbrain --help` and subcommand help read consistently.
 
-## 19. Clarify destructive command safety
+## 17. Clarify destructive command safety
 
 **Problem:** Delete and cleanup commands need clear confirmation, force, partial success, and script behavior.
 
@@ -226,7 +209,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Destructive commands behave predictably in interactive and non-interactive contexts.
 
-## 20. Add coherent verbose/debug mode
+## 18. Add coherent verbose/debug mode
 
 **Problem:** Debug behavior is ad hoc and mostly tied to `whoami --version`.
 
@@ -239,7 +222,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 # Phase 4: Incremental Architecture Cleanup
 
-## 21. Define command return contracts
+## 19. Define command return contracts
 
 **Problem:** Functions return mixed values: `None`, `1`, lists, dicts, and tuples.
 
@@ -251,7 +234,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Handler tests cover success, empty data, validation errors, and API errors.
 
-## 22. Add typed CLI exceptions
+## 20. Add typed CLI exceptions
 
 **Problem:** Broad exception handling hides intent and makes failures inconsistent.
 
@@ -261,7 +244,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Expected failures get stable messages; unexpected failures still return non-zero.
 
-## 23. Move printing out of data modules
+## 21. Move printing out of data modules
 
 **Problem:** Data modules mix API work, validation, and presentation by printing directly.
 
@@ -271,7 +254,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** `cbrain_cli/data` has no new direct user-facing output.
 
-## 24. Remove ad hoc background activity error handling
+## 22. Remove ad hoc background activity error handling
 
 **Problem:** `list_background_activities()` catches all exceptions and bypasses shared error handling.
 
@@ -281,7 +264,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Background activity failures match other command error styles.
 
-## 25. Normalize CLI argument names before data-layer use
+## 23. Normalize CLI argument names before data-layer use
 
 **Problem:** Raw public CLI spellings leak into data modules, causing bugs like `bourreau-id` vs `bourreau_id`.
 
@@ -291,7 +274,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Parsed args and generated API keys are both tested.
 
-## 26. Split parser construction from execution
+## 24. Split parser construction from execution
 
 **Problem:** `main()` builds the parser and executes commands, making parser behavior harder to test.
 
@@ -301,28 +284,19 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** Parser tests can run without API calls.
 
-## 27. Introduce a small CBRAIN API client
+## 25. Introduce a small CBRAIN API client and centralize request handling
 
-**Problem:** Data modules duplicate request creation, auth headers, JSON decoding, and error handling.
+**Problem:** Data modules duplicate request creation, auth headers, URL joining, JSON decoding, timeouts, and error handling.
 
 **Do:**
 - Add a lightweight standard-library `CbrainClient`.
 - Store base URL, token, user ID, and timeout on the client.
+- Centralize `get/post/put/delete`, auth headers, URL joining, JSON parsing, and HTTP error wrapping in the client.
 - Migrate one command family first.
 
-**Verify:** Client tests mock `urlopen`; migrated commands still pass capture tests.
+**Verify:** Client tests mock `urlopen`; URL generation and JSON handling are unit tested; migrated commands still pass capture tests.
 
-## 28. Centralize HTTP request construction
-
-**Problem:** Request construction is duplicated and inconsistent.
-
-**Do:**
-- Centralize `get/post/put/delete`, URL joining, auth headers, JSON parsing, and HTTP error wrapping.
-- If `CbrainClient` exists, put this logic there.
-
-**Verify:** URL generation and JSON handling are unit tested.
-
-## 29. Load authentication state at command execution time
+## 26. Load authentication state at command execution time
 
 **Problem:** Credentials are read into module globals at import time and can become stale.
 
@@ -335,9 +309,9 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 # Phase 5: Documentation and Compatibility
 
-## 30. Define supported CBRAIN API compatibility
+## 27. Define supported CBRAIN API compatibility
 
-**Problem:** Endpoint and response assumptions are spread across the codebase.
+**Problem:** README links to CBRAIN/API references, but it does not state which CBRAIN server or API version this CLI is tested against.
 
 **Do:**
 - Document the supported/tested CBRAIN API or server version.
@@ -346,18 +320,18 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 **Verify:** README states the compatibility target.
 
-## 31. Keep capture tests, but add faster isolated tests
+## 28. Document test strategy
 
-**Problem:** Capture tests are valuable but fragile as the only safety net.
+**Problem:** README explains capture tests, but the overall testing strategy should distinguish what belongs in capture tests versus unit tests once unit tests exist.
 
 **Do:**
-- Keep capture tests for end-to-end output.
-- Use unit tests for parsing, validation, request construction, and formatter behavior.
-- Run unit tests on every CI job.
+- Document that capture tests are for end-to-end output regression.
+- Document that unit tests are for parsing, validation, request construction, handler contracts, and formatter behavior.
+- Link the test commands once unit tests are added.
 
-**Verify:** Request bugs fail unit tests; output regressions fail capture tests.
+**Verify:** Contributors know which test type to update for a given change.
 
-## 32. Document internal boundaries
+## 29. Document internal boundaries
 
 **Problem:** The intended layering is implicit.
 
