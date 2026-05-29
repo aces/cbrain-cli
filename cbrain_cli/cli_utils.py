@@ -1,26 +1,45 @@
 import functools
 import json
 import re
+import sys
 import urllib.error
 
 # import importlib.metadata
-from cbrain_cli.config import CREDENTIALS_FILE
+from cbrain_cli.config import ACTIVE_SESSION_KEY, CREDENTIALS_FILE
+
+# Session name priority: --session flag > _active_session in cbrain.json > "default"
+session_name = "default"
+session_specified = False
+for i, arg in enumerate(sys.argv):
+    if arg == "--session" and i + 1 < len(sys.argv):
+        session_name = sys.argv[i + 1]
+        session_specified = True
+    elif arg.startswith("--session="):
+        session_name = arg.split("=", 1)[1]
+        session_specified = True
 
 try:
-    # MARK: Credentials.
-    with open(CREDENTIALS_FILE) as f:
-        credentials = json.load(f)
+    try:
+        with open(CREDENTIALS_FILE) as f:
+            all_credentials = json.load(f)
+    except FileNotFoundError:
+        all_credentials = {}
+
+    if not session_specified:
+        session_name = all_credentials.get(ACTIVE_SESSION_KEY, "default") or "default"
+
+    all_credentials.pop(ACTIVE_SESSION_KEY, None)
+
+    credentials = all_credentials.get(session_name, {})
 
     # Get credentials.
     cbrain_url = credentials.get("cbrain_url")
     api_token = credentials.get("api_token")
     user_id = credentials.get("user_id")
     cbrain_timestamp = credentials.get("timestamp")
-except FileNotFoundError:
-    cbrain_url = None
-    api_token = None
-    user_id = None
-    cbrain_timestamp = None
+except Exception:
+    all_credentials = {}
+    cbrain_url = api_token = user_id = cbrain_timestamp = None
 
 
 def is_authenticated():
@@ -85,7 +104,7 @@ def handle_connection_error(error):
         if error.code == 401:
             print(f"{status_description}: {error.reason}")
             print("Error: Access denied. Please log in using authorized credentials.")
-        elif error.code == 404 or error.code == 422 or error.code == 500:
+        elif error.code in (400, 404, 422, 500):
             # Try to extract specific error message from response
             try:
                 # Check if the error response has already been read
@@ -107,6 +126,14 @@ def handle_connection_error(error):
                             or error_data.get("notice")
                             or str(error_data)
                         )
+                        # Check if this looks like a password change redirect
+                        if "change_password" in error_msg:
+                            print(
+                                f"{status_description}: Account requires "
+                                "a password change. "
+                                "Please log into the web portal."
+                            )
+                            return
                         print(f"{status_description}: {error_msg}")
                         return
                 except json.JSONDecodeError:

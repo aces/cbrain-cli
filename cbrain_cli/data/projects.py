@@ -3,7 +3,8 @@ import urllib.error
 import urllib.request
 
 from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import CREDENTIALS_FILE, auth_headers
+from cbrain_cli.config import auth_headers
+from cbrain_cli.sessions import save_credentials
 
 
 def switch_project(args):
@@ -20,6 +21,8 @@ def switch_project(args):
     dict or None
         Dictionary containing project details if successful, None otherwise
     """
+    from cbrain_cli.cli_utils import all_credentials, session_name
+
     # Get the group ID from the group_id argument
     group_id = getattr(args, "group_id", None)
     if not group_id:
@@ -56,15 +59,12 @@ def switch_project(args):
             group_data = json.loads(group_data_text)
 
         # Step 3: Update credentials file with current group_id
-        if CREDENTIALS_FILE.exists():
-            with open(CREDENTIALS_FILE) as f:
-                credentials = json.load(f)
-
-            credentials["current_group_id"] = group_id
-            credentials["current_group_name"] = group_data.get("name", "Unknown")
-
-            with open(CREDENTIALS_FILE, "w") as f:
-                json.dump(credentials, f, indent=2)
+        if session_name in all_credentials:
+            all_credentials[session_name]["current_group_id"] = group_id
+            all_credentials[session_name]["current_group_name"] = group_data.get(
+                "name", "Unknown"
+            )
+            save_credentials(all_credentials)
 
         return group_data
 
@@ -83,6 +83,8 @@ def show_project(args):
     dict or None
         Dictionary containing project details if successful, None if no project set
     """
+    from cbrain_cli.cli_utils import all_credentials, session_name
+
     # Check if a specific project ID was provided
     project_id = getattr(args, "project_id", None)
 
@@ -105,10 +107,8 @@ def show_project(args):
                 raise
     else:
         # Show current project from credentials
-        with open(CREDENTIALS_FILE) as f:
-            credentials = json.load(f)
-
-        current_group_id = credentials.get("current_group_id")
+        session_creds = all_credentials.get(session_name, {})
+        current_group_id = session_creds.get("current_group_id")
         if not current_group_id:
             return None
 
@@ -128,10 +128,9 @@ def show_project(args):
             if e.code == 404:
                 print(f"Error: Current project (ID {current_group_id}) no longer exists")
                 # Clear the invalid group_id from credentials
-                credentials.pop("current_group_id", None)
-                credentials.pop("current_group_name", None)
-                with open(CREDENTIALS_FILE, "w") as f:
-                    json.dump(credentials, f, indent=2)
+                session_creds.pop("current_group_id", None)
+                session_creds.pop("current_group_name", None)
+                save_credentials(all_credentials)
                 return None
             else:
                 raise
@@ -164,3 +163,4 @@ def list_projects(args):
         projects_data = json.loads(data)
 
     return projects_data
+

@@ -13,6 +13,10 @@ SESSION_FILE_NAME = "credentials.json"
 SESSION_FILE_DIR.mkdir(parents=True, exist_ok=True)
 CREDENTIALS_FILE = SESSION_FILE_DIR / SESSION_FILE_NAME
 
+# Key used inside credentials.json to track the currently active session.
+# Prefixed with "_" so it is clearly not a session name.
+ACTIVE_SESSION_KEY = "_active_session"
+
 # HTTP headers.
 DEFAULT_HEADERS = {
     "Content-Type": "application/x-www-form-urlencoded",
