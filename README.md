@@ -159,6 +159,12 @@ pip install -e ".[dev]"
 
 This project is a pure Python CLI. There is no separate compile or build step for normal development; installing in editable mode is enough to run the local `cbrain` command.
 
+The `dev` extra installs the local review tools used by this repository:
+
+- `ruff` for linting and formatting;
+- `pytest` for focused unit tests;
+- `pre-commit` for local hook checks.
+
 ### Linting And Formatting
 
 Ruff is used for linting and formatting:
@@ -204,6 +210,12 @@ pre-commit run --all-files
 The existing test suite is based on capture tests in `capture_tests/`. These are shell-based CLI output regression tests: they run commands from `capture_tests/cbrain_cli_commands` and compare the captured terminal output against `capture_tests/expected_captures.txt`.
 
 Capture tests require a local CBRAIN test server on `localhost:3000` with the expected test database seed. The GitHub Actions workflow sets this up by checking out the CBRAIN server repository at https://github.com/aces/cbrain.
+
+Focused unit tests should use `pytest` and should not require a live CBRAIN server:
+
+```bash
+pytest
+```
 
 When command output intentionally changes, update `capture_tests/expected_captures.txt`. When behavior changes without intended output changes, prefer adding focused unit tests where possible.
 
