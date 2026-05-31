@@ -1,8 +1,4 @@
-import json
-import urllib.request
-
-from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
-from cbrain_cli.config import auth_headers
+from cbrain_cli.cli_utils import api_get, api_token, cbrain_url, pagination
 
 
 def list_tools(args):
@@ -23,19 +19,10 @@ def list_tools(args):
     """
     # Get the tool ID from the -id argument if provided.
     tool_id = getattr(args, "id", None)
-    query_params = {}
-    query_params = pagination(args, query_params)
-
-    tools_endpoint = f"{cbrain_url}/tools"
-    query_string = urllib.parse.urlencode(query_params)
-    tools_endpoint = f"{tools_endpoint}?{query_string}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(tools_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        tools_data = json.loads(data)
+    params = pagination(args, {})
+    if params is None:
+        return None
+    tools_data = api_get(f"{cbrain_url}/tools", api_token, params)
 
     if not isinstance(tools_data, list):
         print("Error: Unexpected response format from server")
@@ -48,6 +35,5 @@ def list_tools(args):
             print(f"Error: Tool with ID {tool_id} not found")
             return None
         return tool
-    else:
-        # Return all tools
-        return tools_data
+
+    return tools_data

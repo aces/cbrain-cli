@@ -1,10 +1,18 @@
-import json
-import urllib.error
-import urllib.parse
-import urllib.request
+from cbrain_cli.cli_utils import api_get, api_send, api_token, cbrain_url, pagination
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
-from cbrain_cli.config import auth_headers
+tags = [
+    ("name", "Tag name", "--name"),
+    ("user_id", "User ID", "--user-id"),
+    ("group_id", "Group ID", "--group-id"),
+]
+
+
+def _tag_payload(args):
+    for attr, label, flag in tags:
+        if not getattr(args, attr, None):
+            print(f"Error: {label} is required. Use {flag} flag")
+            return None
+    return {"tag": {"name": args.name, "user_id": args.user_id, "group_id": args.group_id}}
 
 
 def list_tags(args):
@@ -21,21 +29,10 @@ def list_tags(args):
     list
         List of tag dictionaries
     """
-    query_params = {}
-    query_params = pagination(args, query_params)
-
-    tags_endpoint = f"{cbrain_url}/tags"
-    query_string = urllib.parse.urlencode(query_params)
-    tags_endpoint = f"{tags_endpoint}?{query_string}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(tags_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        tags_data = json.loads(data)
-
-    return tags_data
+    params = pagination(args, {})
+    if params is None:
+        return None
+    return api_get(f"{cbrain_url}/tags", api_token, params)
 
 
 def show_tag(args):
@@ -57,16 +54,7 @@ def show_tag(args):
     if not tag_id:
         print("Error: Tag ID is required")
         return None
-
-    tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(tag_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        tag_data = json.loads(data)
-    return tag_data
+    return api_get(f"{cbrain_url}/tags/{tag_id}", api_token)
 
 
 def create_tag(args):
@@ -84,37 +72,11 @@ def create_tag(args):
         (response_data, success, error_msg, response_status)
     """
     # Get tag details from command line arguments
-    tag_name = getattr(args, "name", None)
-    user_id = getattr(args, "user_id", None)
-    group_id = getattr(args, "group_id", None)
-
-    if not tag_name:
-        print("Error: Tag name is required. Use --name flag")
+    payload = _tag_payload(args)
+    if payload is None:
         return None, False, None, None
-
-    if not user_id:
-        print("Error: User ID is required. Use --user-id flag")
-        return None, False, None, None
-
-    if not group_id:
-        print("Error: Group ID is required. Use --group-id flag")
-        return None, False, None, None
-
-    # Prepare the API request
-    tags_endpoint = f"{cbrain_url}/tags"
-    headers = auth_headers(api_token)
-    headers["Content-Type"] = "application/json"
-
-    # Prepare the payload
-    payload = {"tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}}
-    json_data = json.dumps(payload).encode("utf-8")
-
-    request = urllib.request.Request(tags_endpoint, data=json_data, headers=headers, method="POST")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
-        return response_data, True, None, response.status
+    data, status = api_send(f"{cbrain_url}/tags", api_token, payload=payload)
+    return data, True, None, status
 
 
 def update_tag(args):
@@ -136,38 +98,11 @@ def update_tag(args):
     if not tag_id:
         print("Error: Tag ID is required. Provide tag_id argument")
         return None, False, None, None
-
-    tag_name = getattr(args, "name", None)
-    user_id = getattr(args, "user_id", None)
-    group_id = getattr(args, "group_id", None)
-
-    if not tag_name:
-        print("Error: Tag name is required. Use --name flag")
+    payload = _tag_payload(args)
+    if payload is None:
         return None, False, None, None
-
-    if not user_id:
-        print("Error: User ID is required. Use --user-id flag")
-        return None, False, None, None
-
-    if not group_id:
-        print("Error: Group ID is required. Use --group-id flag")
-        return None, False, None, None
-
-    # Prepare the API request
-    tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
-    headers = auth_headers(api_token)
-    headers["Content-Type"] = "application/json"
-
-    # Prepare the payload
-    payload = {"tag": {"name": tag_name, "user_id": user_id, "group_id": group_id}}
-    json_data = json.dumps(payload).encode("utf-8")
-
-    request = urllib.request.Request(tag_endpoint, data=json_data, headers=headers, method="PUT")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
-        return response_data, True, None, response.status
+    data, status = api_send(f"{cbrain_url}/tags/{tag_id}", api_token, method="PUT", payload=payload)
+    return data, True, None, status
 
 
 def delete_tag(args):
@@ -189,12 +124,5 @@ def delete_tag(args):
     if not tag_id:
         print("Error: Tag ID is required. Provide tag_id argument")
         return False, None, None
-
-    # Prepare the API request
-    tag_endpoint = f"{cbrain_url}/tags/{tag_id}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(tag_endpoint, data=None, headers=headers, method="DELETE")
-
-    with urllib.request.urlopen(request) as response:
-        return True, None, response.status
+    _, status = api_send(f"{cbrain_url}/tags/{tag_id}", api_token, method="DELETE")
+    return True, None, status

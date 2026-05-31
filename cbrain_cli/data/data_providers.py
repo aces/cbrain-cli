@@ -1,9 +1,4 @@
-import json
-import urllib.error
-import urllib.request
-
-from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
-from cbrain_cli.config import auth_headers
+from cbrain_cli.cli_utils import api_get, api_send, api_token, cbrain_url, pagination
 
 
 def show_data_provider(args):
@@ -22,27 +17,13 @@ def show_data_provider(args):
     """
     # Get the data provider ID from the --id argument.
     data_provider_id = getattr(args, "id", None)
-
     if not data_provider_id:
         return list_data_providers(args)
-
-    # Show specific data provider by ID
-    data_provider_endpoint = f"{cbrain_url}/data_providers/{data_provider_id}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(
-        data_provider_endpoint, data=None, headers=headers, method="GET"
-    )
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        provider_data = json.loads(data)
-
-    if provider_data.get("error"):
-        print(f"Error: {provider_data.get('error')}")
+    data = api_get(f"{cbrain_url}/data_providers/{data_provider_id}", api_token)
+    if data.get("error"):
+        print(f"Error: {data.get('error')}")
         return None
-
-    return provider_data
+    return data
 
 
 def list_data_providers(args):
@@ -59,23 +40,10 @@ def list_data_providers(args):
     list
         List of data provider dictionaries
     """
-    query_params = {}
-    query_params = pagination(args, query_params)
-
-    data_providers_endpoint = f"{cbrain_url}/data_providers"
-    query_string = urllib.parse.urlencode(query_params)
-    data_providers_endpoint = f"{data_providers_endpoint}?{query_string}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(
-        data_providers_endpoint, data=None, headers=headers, method="GET"
-    )
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        data_providers_data = json.loads(data)
-
-    return data_providers_data
+    params = pagination(args, {})
+    if params is None:
+        return None
+    return api_get(f"{cbrain_url}/data_providers", api_token, params)
 
 
 def is_alive(args):
@@ -87,16 +55,7 @@ def is_alive(args):
     args : argparse.Namespace
         Command line arguments, including the id argument
     """
-    is_alive_endpoint = f"{cbrain_url}/data_providers/{args.id}/is_alive"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(is_alive_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        is_alive_data = json.loads(data)
-
-    return is_alive_data
+    return api_get(f"{cbrain_url}/data_providers/{args.id}/is_alive", api_token)
 
 
 def delete_unregistered_files(args):
@@ -108,15 +67,5 @@ def delete_unregistered_files(args):
     args : argparse.Namespace
         Command line arguments, including the id argument
     """
-    delete_unregistered_files_endpoint = f"{cbrain_url}/data_providers/{args.id}/delete"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(
-        delete_unregistered_files_endpoint, data=None, headers=headers, method="POST"
-    )
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        delete_unregistered_files_data = json.loads(data)
-
-    return delete_unregistered_files_data
+    data, _ = api_send(f"{cbrain_url}/data_providers/{args.id}/delete", api_token)
+    return data
