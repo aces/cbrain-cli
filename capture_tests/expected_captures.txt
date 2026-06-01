@@ -671,12 +671,12 @@ Stderr:
 
 ############################
 Command: cbrain         tag update 99 --name Renamed --user-id 2 --group-id 3
-Status: 1
-Stdout: 37 bytes
+Status: 0
+Stdout: 29 bytes
 Stderr: 0 bytes
 
 Stdout:
-Failed: Invalid response from server
+Tag 99 updated successfully!
 Stderr:
 (No output)
 
