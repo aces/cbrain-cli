@@ -1,4 +1,12 @@
-from cbrain_cli.cli_utils import api_get, api_send, api_token, cbrain_url, json_printer, pagination
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_get,
+    api_send,
+    api_token,
+    cbrain_url,
+    json_printer,
+    pagination,
+)
 
 
 def list_tasks(args):
@@ -16,20 +24,25 @@ def list_tasks(args):
         List of task dictionaries, or None on error
     """
     params = {}
+    filter_name = getattr(args, "filter_name", None)
+    bourreau_id = getattr(args, "bourreau_id", None)
 
-    if hasattr(args, "filter_type") and args.filter_type is not None:
-        if args.filter_value is None:
-            print("Error: Filter value is required when filter type is specified")
-            return None
-        if args.filter_type == "bourreau_id":
-            params["bourreau_id"] = str(args.filter_value)
-    elif hasattr(args, "filter_value") and args.filter_value is not None:
-        print("Error: Filter type is required when filter value is specified")
-        return None
+    if filter_name is not None:
+        if filter_name != "bourreau-id":
+            raise CliValidationError(f"Unsupported filter: {filter_name}", field="filter_name")
+        if bourreau_id is None:
+            raise CliValidationError(
+                "Bourreau ID is required when filter is bourreau-id",
+                field="bourreau_id",
+            )
+        params["bourreau_id"] = str(bourreau_id)
+    elif bourreau_id is not None:
+        raise CliValidationError(
+            "Filter bourreau-id is required when Bourreau ID is specified",
+            field="filter_name",
+        )
 
     params = pagination(args, params)
-    if params is None:
-        return None
     return api_get(f"{cbrain_url}/tasks", api_token, params)
 
 
@@ -49,8 +62,7 @@ def show_task(args):
     """
     task_id = getattr(args, "task", None)
     if not task_id:
-        print("Error: Task ID is required")
-        return None
+        raise CliValidationError("Task ID is required", field="task")
     return api_get(f"{cbrain_url}/tasks/{task_id}", api_token)
 
 

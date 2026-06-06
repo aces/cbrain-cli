@@ -1,6 +1,6 @@
 import json
 
-from cbrain_cli.cli_utils import dynamic_table_print, display_key_value_table, output_json
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_task_data(tasks_data, args):
@@ -15,6 +15,9 @@ def print_task_data(tasks_data, args):
         Command line arguments, including the --json flag
     """
     if output_json(args, tasks_data):
+        return
+
+    if tasks_data is None:
         return
 
     if not tasks_data:

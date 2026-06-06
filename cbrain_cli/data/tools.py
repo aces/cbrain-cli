@@ -1,4 +1,12 @@
-from cbrain_cli.cli_utils import api_get, api_token, cbrain_url, pagination
+from cbrain_cli.cli_utils import (
+    CliApiError,
+    CliResponseError,
+    CliValidationError,
+    api_get,
+    api_token,
+    cbrain_url,
+    pagination,
+)
 
 
 def list_tools(args):
@@ -17,23 +25,21 @@ def list_tools(args):
         - list: when no tool_id is provided
         - None: when error occurs or tool not found
     """
-    # Get the tool ID from the -id argument if provided.
+    # Get the tool ID from the id argument if provided.
     tool_id = getattr(args, "id", None)
+    if tool_id is None and getattr(args, "action", None) == "show":
+        raise CliValidationError("Tool ID is required", field="id")
     params = pagination(args, {})
-    if params is None:
-        return None
     tools_data = api_get(f"{cbrain_url}/tools", api_token, params)
 
     if not isinstance(tools_data, list):
-        print("Error: Unexpected response format from server")
-        return None
+        raise CliResponseError("Unexpected response format from server")
 
     if tool_id:
         # Filter for a specific tool
         tool = next((t for t in tools_data if t.get("id") == tool_id), None)
         if not tool:
-            print(f"Error: Tool with ID {tool_id} not found")
-            return None
+            raise CliApiError(f"Tool with ID {tool_id} not found")
         return tool
 
     return tools_data

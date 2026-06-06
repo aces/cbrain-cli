@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, display_key_value_table, output_json
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_resources_list(resources_data, args):
@@ -13,6 +13,9 @@ def print_resources_list(resources_data, args):
         Command line arguments, including the --json flag
     """
     if output_json(args, resources_data):
+        return
+
+    if resources_data is None:
         return
 
     if not resources_data:

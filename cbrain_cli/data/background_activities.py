@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import api_get, api_token, cbrain_url
+from cbrain_cli.cli_utils import CliValidationError, api_get, api_token, cbrain_url
 
 
 def list_background_activities(args):
@@ -35,6 +35,5 @@ def show_background_activity(args):
     # Get the background activity ID from the --id argument
     activity_id = getattr(args, "id", None)
     if not activity_id:
-        print("Error: Background activity ID is required")
-        return None
+        raise CliValidationError("Background activity ID is required", field="id")
     return api_get(f"{cbrain_url}/background_activities/{activity_id}", api_token)

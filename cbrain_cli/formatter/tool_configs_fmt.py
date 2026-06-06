@@ -8,6 +8,9 @@ def print_tool_configs_list(tool_configs, args):
     if output_json(args, tool_configs):
         return
 
+    if tool_configs is None:
+        return
+
     if not tool_configs:
         print("No tool configurations found.")
         return
@@ -54,6 +57,9 @@ def print_tool_config_details(tool_config, args):
     if output_json(args, tool_config):
         return
 
+    if tool_config is None:
+        return
+
     if not tool_config:
         print("No tool configuration found.")
         return
@@ -75,6 +81,9 @@ def print_boutiques_descriptor(boutiques_descriptor, args):
     """
     Pretty print the Boutiques descriptor for a tool configuration.
     """
+    if boutiques_descriptor is None:
+        return
+
     if not boutiques_descriptor:
         print("No Boutiques descriptor found.")
         return

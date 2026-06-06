@@ -72,6 +72,9 @@ def print_providers_list(providers_data, args):
     if output_json(args, providers_data):
         return
 
+    if providers_data is None:
+        return
+
     if not providers_data:
         print("No data providers found.")
         return

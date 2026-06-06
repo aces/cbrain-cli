@@ -3,7 +3,14 @@ import mimetypes
 import os
 import urllib.request
 
-from cbrain_cli.cli_utils import api_get, api_send, api_token, cbrain_url, pagination
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_get,
+    api_send,
+    api_token,
+    cbrain_url,
+    pagination,
+)
 from cbrain_cli.config import auth_headers
 
 
@@ -24,8 +31,7 @@ def show_file(args):
     # Get the file ID from the --file argument.
     file_id = getattr(args, "file", None)
     if not file_id:
-        print("Error: File ID is required")
-        return None
+        raise CliValidationError("File ID is required", field="file")
     return api_get(f"{cbrain_url}/userfiles/{file_id}", api_token)
 
 
@@ -45,12 +51,10 @@ def upload_file(args):
     """
     # Check if file exists.
     if not os.path.exists(args.file_path):
-        print(f"Error: File not found: {args.file_path}")
-        return None
+        raise CliValidationError(f"File not found: {args.file_path}", field="file_path")
 
     if args.group_id is None:
-        print("Error: Group ID is required")
-        return None
+        raise CliValidationError("Group ID is required", field="--group-id")
 
     file_name = os.path.basename(args.file_path)
     file_size = os.path.getsize(args.file_path)
@@ -99,11 +103,11 @@ def _change_provider(args, operation):
         args, "data_provider_id_for_mv_cp", None
     )
     if not file_ids:
-        print("Error: File ID(s) are required")
-        return None
+        raise CliValidationError("File ID(s) are required", field="--file-id")
     if not dest_provider_id:
-        print("Error: Destination data provider ID is required")
-        return None
+        raise CliValidationError(
+            "Destination data provider ID is required", field="--dp-id"
+        )
     payload = {
         "file_ids": file_ids,
         "data_provider_id_for_mv_cp": dest_provider_id,
@@ -173,8 +177,6 @@ def list_files(args):
             params[key] = str(val)
 
     params = pagination(args, params)
-    if params is None:
-        return None
     return api_get(f"{cbrain_url}/userfiles", api_token, params)
 
 
@@ -194,8 +196,7 @@ def delete_file(args):
     """
     file_id = getattr(args, "file_id", None)
     if not file_id:
-        print("Error: File ID is required")
-        return None
+        raise CliValidationError("File ID is required", field="file_id")
     data, _ = api_send(
         f"{cbrain_url}/userfiles/delete_files",
         api_token,

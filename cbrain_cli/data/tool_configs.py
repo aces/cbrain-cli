@@ -1,4 +1,10 @@
-from cbrain_cli.cli_utils import api_get, api_token, cbrain_url, pagination
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_get,
+    api_token,
+    cbrain_url,
+    pagination,
+)
 
 
 def list_tool_configs(args):
@@ -12,8 +18,6 @@ def list_tool_configs(args):
         configuration details.
     """
     params = pagination(args, {})
-    if params is None:
-        return None
     return api_get(f"{cbrain_url}/tool_configs", api_token, params)
 
 
@@ -26,7 +30,10 @@ def show_tool_config(args):
     dict
         A dictionary containing the detailed information for the specified tool configuration.
     """
-    return api_get(f"{cbrain_url}/tool_configs/{args.id}", api_token)
+    config_id = getattr(args, "id", None)
+    if not config_id:
+        raise CliValidationError("Tool configuration ID is required", field="id")
+    return api_get(f"{cbrain_url}/tool_configs/{config_id}", api_token)
 
 
 def tool_config_boutiques_descriptor(args):
@@ -38,4 +45,9 @@ def tool_config_boutiques_descriptor(args):
     dict
         A dictionary containing the Boutiques descriptor for the specified tool configuration.
     """
-    return api_get(f"{cbrain_url}/tool_configs/{args.id}/boutiques_descriptor", api_token)
+    config_id = getattr(args, "id", None)
+    if not config_id:
+        raise CliValidationError("Tool configuration ID is required", field="id")
+    return api_get(
+        f"{cbrain_url}/tool_configs/{config_id}/boutiques_descriptor", api_token
+    )

@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, display_key_value_table, output_json
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_projects_list(projects_data, args):
@@ -12,6 +12,9 @@ def print_projects_list(projects_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
+    if projects_data is None:
+        return
+
     formatted_data = [
         {"id": p.get("id"), "type": p.get("type"), "name": p.get("name")} for p in projects_data
     ]

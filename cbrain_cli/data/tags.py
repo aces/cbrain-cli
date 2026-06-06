@@ -1,4 +1,11 @@
-from cbrain_cli.cli_utils import api_get, api_send, api_token, cbrain_url, pagination
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_get,
+    api_send,
+    api_token,
+    cbrain_url,
+    pagination,
+)
 
 tags = [
     ("name", "Tag name", "--name"),
@@ -10,8 +17,7 @@ tags = [
 def _tag_payload(args):
     for attr, label, flag in tags:
         if not getattr(args, attr, None):
-            print(f"Error: {label} is required. Use {flag} flag")
-            return None
+            raise CliValidationError(f"{label} is required. Use {flag} flag", field=flag)
     return {"tag": {"name": args.name, "user_id": args.user_id, "group_id": args.group_id}}
 
 
@@ -30,8 +36,6 @@ def list_tags(args):
         List of tag dictionaries
     """
     params = pagination(args, {})
-    if params is None:
-        return None
     return api_get(f"{cbrain_url}/tags", api_token, params)
 
 
@@ -52,8 +56,7 @@ def show_tag(args):
     # Get the tag ID from the id argument.
     tag_id = getattr(args, "id", None)
     if not tag_id:
-        print("Error: Tag ID is required")
-        return None
+        raise CliValidationError("Tag ID is required", field="id")
     return api_get(f"{cbrain_url}/tags/{tag_id}", api_token)
 
 
@@ -73,10 +76,9 @@ def create_tag(args):
     """
     # Get tag details from command line arguments
     payload = _tag_payload(args)
-    if payload is None:
-        return None, False, None, None
     data, status = api_send(f"{cbrain_url}/tags", api_token, payload=payload)
-    return data, True, None, status
+    success = status in (200, 201, 204)
+    return data, success, None, status
 
 
 def update_tag(args):
@@ -96,13 +98,13 @@ def update_tag(args):
     # Get tag ID and details from command line arguments
     tag_id = getattr(args, "tag_id", None)
     if not tag_id:
-        print("Error: Tag ID is required. Provide tag_id argument")
-        return None, False, None, None
+        raise CliValidationError("Tag ID is required", field="tag_id")
     payload = _tag_payload(args)
-    if payload is None:
-        return None, False, None, None
-    data, status = api_send(f"{cbrain_url}/tags/{tag_id}", api_token, method="PUT", payload=payload)
-    return data, True, None, status
+    data, status = api_send(
+        f"{cbrain_url}/tags/{tag_id}", api_token, method="PUT", payload=payload
+    )
+    success = status in (200, 201, 204)
+    return data, success, None, status
 
 
 def delete_tag(args):
@@ -122,7 +124,7 @@ def delete_tag(args):
     # Get tag ID from command line arguments
     tag_id = getattr(args, "tag_id", None)
     if not tag_id:
-        print("Error: Tag ID is required. Provide tag_id argument")
-        return False, None, None
+        raise CliValidationError("Tag ID is required", field="tag_id")
     _, status = api_send(f"{cbrain_url}/tags/{tag_id}", api_token, method="DELETE")
-    return True, None, status
+    success = status in (200, 201, 204)
+    return success, None, status

@@ -3,7 +3,13 @@ import getpass
 import json
 import urllib.error
 
-from cbrain_cli.cli_utils import api_post_form, api_send, api_token, cbrain_url
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_post_form,
+    api_send,
+    api_token,
+    cbrain_url,
+)
 from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_BASE_URL
 
 
@@ -29,13 +35,11 @@ def create_session(args):
 
     username = input("Enter CBRAIN username: ").strip()
     if not username:
-        print("Username is required")
-        return 1
+        raise CliValidationError("Username is required", field="username")
 
     password = getpass.getpass("Enter CBRAIN password: ")
     if not password:
-        print("Password is required")
-        return 1
+        raise CliValidationError("Password is required", field="password")
 
     response_data = api_post_form(f"{cbrain_url}/session", {"login": username, "password": password})
 

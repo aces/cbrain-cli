@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, display_key_value_table, output_json
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_tool_details(tool_data, args):
@@ -42,6 +42,9 @@ def print_tools_list(tools_data, args):
         Command line arguments, including the --json flag
     """
     if output_json(args, tools_data):
+        return
+
+    if tools_data is None:
         return
 
     if not tools_data:

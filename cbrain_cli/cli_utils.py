@@ -25,6 +25,40 @@ except FileNotFoundError:
     cbrain_timestamp = None
 
 
+class CliValidationError(Exception):
+    """Raised when command arguments fail client-side validation.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error description.
+    field : str, optional
+        The CLI flag or argument name that caused the error (e.g. ``--per-page``).
+    """
+
+    def __init__(self, message, field=None):
+        super().__init__(message)
+        self.field = field
+
+    def __str__(self):
+        message = self.args[0] if self.args else ""
+        if self.field:
+            return f"{message} ({self.field})"
+        return message
+
+
+class CliApiError(Exception):
+    """
+    Raised when the API returns an expected error response.
+    """
+
+
+class CliResponseError(Exception):
+    """
+    Raised when the API response is malformed or unexpected.
+    """
+
+
 def is_authenticated():
     """
     Check if the user is authenticated.
@@ -188,6 +222,9 @@ def handle_errors(func):
         except KeyboardInterrupt:
             print("\nOperation cancelled")
             return 1
+        except (CliValidationError, CliApiError, CliResponseError) as e:
+            print(f"Error: {e}")
+            return 1
         except Exception as e:
             print(f"Operation failed: {str(e)}")
             return 1
@@ -303,13 +340,11 @@ def pagination(args, query_params):
     """
     per_page = getattr(args, "per_page", 25)
     if per_page < 5 or per_page > 1000:
-        print("Error: per-page must be between 5 and 1000")
-        return None
+        raise CliValidationError("per-page must be between 5 and 1000", field="--per-page")
 
     page = getattr(args, "page", 1)
     if page < 1:
-        print("Error: page must be 1 or greater")
-        return None
+        raise CliValidationError("page must be 1 or greater", field="--page")
 
     query_params["page"] = str(page)
     query_params["per_page"] = str(per_page)
