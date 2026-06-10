@@ -510,34 +510,34 @@ Stderr:
 
 ############################
 Command: cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
-Status: 0
-Stdout: 56 bytes
+Status: 1
+Stdout: 74 bytes
 Stderr: 0 bytes
 
 Stdout:
-Project switch 'all' not yet implemented as of Aug 2025
+Error: Project switch 'all' not yet implemented as of Aug 2025 (group_id)
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  project switch all
-Status: 0
-Stdout: 56 bytes
+Status: 1
+Stdout: 74 bytes
 Stderr: 0 bytes
 
 Stdout:
-Project switch 'all' not yet implemented as of Aug 2025
+Error: Project switch 'all' not yet implemented as of Aug 2025 (group_id)
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch all
-Status: 0
-Stdout: 56 bytes
+Status: 1
+Stdout: 74 bytes
 Stderr: 0 bytes
 
 Stdout:
-Project switch 'all' not yet implemented as of Aug 2025
+Error: Project switch 'all' not yet implemented as of Aug 2025 (group_id)
 Stderr:
 (No output)
 
