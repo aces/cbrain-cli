@@ -1,9 +1,4 @@
-import json
-import urllib.error
-import urllib.request
-
-from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import auth_headers
+from cbrain_cli.cli_utils import CliValidationError, api_get, api_token, cbrain_url
 
 
 def list_remote_resources(args):
@@ -20,16 +15,7 @@ def list_remote_resources(args):
     list
         List of remote resource dictionaries
     """
-    bourreaux_endpoint = f"{cbrain_url}/bourreaux"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(bourreaux_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        bourreaux_data = json.loads(data)
-
-    return bourreaux_data
+    return api_get(f"{cbrain_url}/bourreaux", api_token)
 
 
 def show_remote_resource(args):
@@ -46,18 +32,7 @@ def show_remote_resource(args):
     dict or None
         Dictionary containing remote resource details if successful, None otherwise
     """
-    # Get the remote resource ID from the remote_resource argument
     resource_id = getattr(args, "remote_resource", None)
     if not resource_id:
-        print("Error: Remote resource ID is required")
-        return None
-
-    bourreau_endpoint = f"{cbrain_url}/bourreaux/{resource_id}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(bourreau_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        bourreau_data = json.loads(data)
-    return bourreau_data
+        raise CliValidationError("Remote resource ID is required", field="remote_resource")
+    return api_get(f"{cbrain_url}/bourreaux/{resource_id}", api_token)

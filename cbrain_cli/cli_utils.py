@@ -2,9 +2,11 @@ import functools
 import json
 import re
 import urllib.error
+import urllib.parse
+import urllib.request
 
 # import importlib.metadata
-from cbrain_cli.config import CREDENTIALS_FILE
+from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_HEADERS, auth_headers
 
 try:
     # MARK: Credentials.
@@ -21,6 +23,40 @@ except FileNotFoundError:
     api_token = None
     user_id = None
     cbrain_timestamp = None
+
+
+class CliValidationError(Exception):
+    """Raised when command arguments fail client-side validation.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error description.
+    field : str, optional
+        The CLI flag or argument name that caused the error (e.g. ``--per-page``).
+    """
+
+    def __init__(self, message, field=None):
+        super().__init__(message)
+        self.field = field
+
+    def __str__(self):
+        message = self.args[0] if self.args else ""
+        if self.field:
+            return f"{message} ({self.field})"
+        return message
+
+
+class CliApiError(Exception):
+    """
+    Raised when the API returns an expected error response.
+    """
+
+
+class CliResponseError(Exception):
+    """
+    Raised when the API response is malformed or unexpected.
+    """
 
 
 def is_authenticated():
@@ -85,7 +121,7 @@ def handle_connection_error(error):
         if error.code == 401:
             print(f"{status_description}: {error.reason}")
             print("Error: Access denied. Please log in using authorized credentials.")
-        elif error.code == 404 or error.code == 422 or error.code == 500:
+        elif error.code in (400, 404, 422, 500):
             # Try to extract specific error message from response
             try:
                 # Check if the error response has already been read
@@ -107,6 +143,14 @@ def handle_connection_error(error):
                             or error_data.get("notice")
                             or str(error_data)
                         )
+                        # Check if this looks like a password change redirect
+                        if "change_password" in error_msg:
+                            print(
+                                f"{status_description}: Account requires "
+                                "a password change. "
+                                "Please log into the web portal."
+                            )
+                            return
                         print(f"{status_description}: {error_msg}")
                         return
                 except json.JSONDecodeError:
@@ -178,6 +222,9 @@ def handle_errors(func):
         except KeyboardInterrupt:
             print("\nOperation cancelled")
             return 1
+        except (CliValidationError, CliApiError, CliResponseError) as e:
+            print(f"Error: {e}")
+            return 1
         except Exception as e:
             print(f"Operation failed: {str(e)}")
             return 1
@@ -209,6 +256,64 @@ def version_info(args):
     #     return 1
 
 
+def api_get(url, token, params=None):
+    """
+    Execute an authenticated GET request and return parsed JSON.
+    """
+    if params:
+        url = f"{url}?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers=auth_headers(token), method="GET")
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read().decode())
+
+
+def api_post_form(url, form_data, headers=None):
+    """
+    POST form-urlencoded data (unauthenticated) and return parsed JSON.
+    """
+    headers = headers or DEFAULT_HEADERS
+    body = urllib.parse.urlencode(form_data).encode()
+    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read().decode())
+
+
+def api_send(url, token, method="POST", payload=None):
+    """
+    Execute an authenticated POST/PUT/DELETE request and return (data, status).
+    """
+    headers = auth_headers(token)
+    body = None
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+        body = json.dumps(payload).encode()
+    req = urllib.request.Request(url, data=body, headers=headers, method=method)
+    with urllib.request.urlopen(req) as r:
+        raw = r.read().decode()
+        return (json.loads(raw) if raw.strip() else {}), r.status
+
+
+def output_json(args, data):
+    """
+    Print data as JSON or JSONL if requested. Returns True if output was handled.
+    """
+    if getattr(args, "json", False):
+        json_printer(data)
+        return True
+    if getattr(args, "jsonl", False):
+        jsonl_printer(data)
+        return True
+    return False
+
+
+def display_key_value_table(pairs):
+    """
+    Print a (key-value) two-column Field/Value table from a list of (field, value) tuples.
+    """
+    rows = [{"field": k, "value": v} for k, v in pairs]
+    dynamic_table_print(rows, ["field", "value"], ["Field", "Value"])
+
+
 def json_printer(data):
     """
     Print data in JSON format.
@@ -235,13 +340,11 @@ def pagination(args, query_params):
     """
     per_page = getattr(args, "per_page", 25)
     if per_page < 5 or per_page > 1000:
-        print("Error: per-page must be between 5 and 1000")
-        return None
+        raise CliValidationError("per-page must be between 5 and 1000", field="--per-page")
 
     page = getattr(args, "page", 1)
     if page < 1:
-        print("Error: page must be 1 or greater")
-        return None
+        raise CliValidationError("page must be 1 or greater", field="--page")
 
     query_params["page"] = str(page)
     query_params["per_page"] = str(per_page)

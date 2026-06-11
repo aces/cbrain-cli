@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import dynamic_table_print, output_json
 
 
 def print_file_details(file_data, args):
@@ -12,12 +12,9 @@ def print_file_details(file_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(file_data)
+    if output_json(args, file_data):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(file_data)
-        return
+
     print(
         f"id: {file_data.get('id', 'N/A')}\n"
         f"type: {file_data.get('type', 'N/A')}\n"
@@ -50,11 +47,7 @@ def print_files_list(files_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(files_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(files_data)
+    if output_json(args, files_data):
         return
 
     # Use the reusable dynamic table formatter
@@ -125,11 +118,7 @@ def print_delete_result(response_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(response_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(response_data)
+    if output_json(args, response_data):
         return
 
     # Show user-friendly message for normal output

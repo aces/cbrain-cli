@@ -2,16 +2,15 @@ import datetime
 import getpass
 import json
 import urllib.error
-import urllib.parse
-import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import (
-    CREDENTIALS_FILE,
-    DEFAULT_BASE_URL,
-    DEFAULT_HEADERS,
-    auth_headers,
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_post_form,
+    api_send,
+    api_token,
+    cbrain_url,
 )
+from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_BASE_URL
 
 
 # MARK: Create Session.
@@ -36,55 +35,33 @@ def create_session(args):
 
     username = input("Enter CBRAIN username: ").strip()
     if not username:
-        print("Username is required")
-        return 1
+        raise CliValidationError("Username is required", field="username")
 
     password = getpass.getpass("Enter CBRAIN password: ")
     if not password:
-        print("Password is required")
+        raise CliValidationError("Password is required", field="password")
+
+    response_data = api_post_form(f"{cbrain_url}/session", {"login": username, "password": password})
+
+    cbrain_api_token = response_data.get("cbrain_api_token")
+    cbrain_user_id = response_data.get("user_id")
+
+    if not cbrain_api_token:
+        print("Login failed: No API token received")
         return 1
 
-    # Prepare the login request.
-    login_endpoint = f"{cbrain_url}/session"
+    credentials = {
+        "cbrain_url": cbrain_url,
+        "api_token": cbrain_api_token,
+        "user_id": cbrain_user_id,
+        "timestamp": datetime.datetime.now().isoformat(),
+    }
 
-    # Prepare form data.
-    form_data = {"login": username, "password": password}
+    with open(CREDENTIALS_FILE, "w") as f:
+        json.dump(credentials, f, indent=2)
 
-    # Encode the form data.
-    encoded_data = urllib.parse.urlencode(form_data).encode("utf-8")
-
-    # Create the request.
-    request = urllib.request.Request(
-        login_endpoint, data=encoded_data, headers=DEFAULT_HEADERS, method="POST"
-    )
-
-    # Make the request.
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
-
-        # Extract the API token from response.
-        cbrain_api_token = response_data.get("cbrain_api_token")
-        cbrain_user_id = response_data.get("user_id")
-
-        if not cbrain_api_token:
-            print("Login failed: No API token received")
-            return 1
-
-        # Prepare credentials data.
-        credentials = {
-            "cbrain_url": cbrain_url,
-            "api_token": cbrain_api_token,
-            "user_id": cbrain_user_id,
-            "timestamp": datetime.datetime.now().isoformat(),
-        }
-
-        # Save credentials to file.
-        with open(CREDENTIALS_FILE, "w") as f:
-            json.dump(credentials, f, indent=2)
-
-        print(f"Connection successful, API token saved in {CREDENTIALS_FILE}")
-        return 0
+    print(f"Connection successful, API token saved in {CREDENTIALS_FILE}")
+    return 0
 
 
 # MARK: Logout
@@ -103,27 +80,12 @@ def logout_session(args):
         CREDENTIALS_FILE.unlink()
         return 0
 
-    # Prepare logout request.
-    logout_endpoint = f"{cbrain_url}/session"
-
-    # Create headers with authorization.
-    headers = auth_headers(api_token)
-
-    # Create the DELETE request.
-    request = urllib.request.Request(
-        logout_endpoint,
-        data=None,  # No payload for DELETE
-        headers=headers,
-        method="DELETE",
-    )
-
-    # Make the request to logout from server.
     try:
-        with urllib.request.urlopen(request) as response:
-            if response.status == 200:
-                print("Successfully logged out from CBRAIN server.")
-            else:
-                print("Logout failed")
+        _, status = api_send(f"{cbrain_url}/session", api_token, method="DELETE")
+        if status == 200:
+            print("Successfully logged out from CBRAIN server.")
+        else:
+            print("Logout failed")
     except urllib.error.HTTPError as e:
         if e.code == 401:
             print("Session already expired on server.")

@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import dynamic_table_print, display_key_value_table, output_json
 
 
 def print_provider_details(provider_data, args):
@@ -12,63 +12,50 @@ def print_provider_details(provider_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(provider_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(provider_data)
+    if output_json(args, provider_data):
         return
 
     print("DATA PROVIDER DETAILS")
     print("-" * 30)
-
-    # Basic information
-    basic_info = [
-        {"field": "ID", "value": str(provider_data.get("id", "N/A"))},
-        {"field": "Name", "value": str(provider_data.get("name", "N/A"))},
-        {"field": "Type", "value": str(provider_data.get("type", "N/A"))},
-        {"field": "Description", "value": str(provider_data.get("description", "N/A"))},
-    ]
-
-    dynamic_table_print(basic_info, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("ID", str(provider_data.get("id", "N/A"))),
+            ("Name", str(provider_data.get("name", "N/A"))),
+            ("Type", str(provider_data.get("type", "N/A"))),
+            ("Description", str(provider_data.get("description", "N/A"))),
+        ]
+    )
     print()
 
     print("CONNECTION INFO")
     print("-" * 30)
-
-    # Connection information
-    connection_info = [
-        {"field": "Remote User", "value": str(provider_data.get("remote_user", "N/A"))},
-        {"field": "Remote Host", "value": str(provider_data.get("remote_host", "N/A"))},
-        {"field": "Remote Directory", "value": str(provider_data.get("remote_dir", "N/A"))},
-        {"field": "Remote Port", "value": str(provider_data.get("remote_port", "N/A"))},
-    ]
-
-    dynamic_table_print(connection_info, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("Remote User", str(provider_data.get("remote_user", "N/A"))),
+            ("Remote Host", str(provider_data.get("remote_host", "N/A"))),
+            ("Remote Directory", str(provider_data.get("remote_dir", "N/A"))),
+            ("Remote Port", str(provider_data.get("remote_port", "N/A"))),
+        ]
+    )
     print()
 
     print("OWNERSHIP & STATUS")
     print("-" * 30)
-
-    # Ownership and status information
-    status_info = [
-        {"field": "User ID", "value": str(provider_data.get("user_id", "N/A"))},
-        {"field": "Group ID", "value": str(provider_data.get("group_id", "N/A"))},
-        {"field": "Online", "value": str(provider_data.get("online", "N/A"))},
-        {"field": "Read Only", "value": str(provider_data.get("read_only", "N/A"))},
-        {"field": "Is Browsable", "value": str(provider_data.get("is_browsable", "N/A"))},
-        {"field": "Is Fast Syncing", "value": str(provider_data.get("is_fast_syncing", "N/A"))},
-        {
-            "field": "Allow File Owner Change",
-            "value": str(provider_data.get("allow_file_owner_change", "N/A")),
-        },
-        {
-            "field": "Content Storage Shared Between Users",
-            "value": str(provider_data.get("content_storage_shared_between_users", "N/A")),
-        },
-    ]
-
-    dynamic_table_print(status_info, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("User ID", str(provider_data.get("user_id", "N/A"))),
+            ("Group ID", str(provider_data.get("group_id", "N/A"))),
+            ("Online", str(provider_data.get("online", "N/A"))),
+            ("Read Only", str(provider_data.get("read_only", "N/A"))),
+            ("Is Browsable", str(provider_data.get("is_browsable", "N/A"))),
+            ("Is Fast Syncing", str(provider_data.get("is_fast_syncing", "N/A"))),
+            ("Allow File Owner Change", str(provider_data.get("allow_file_owner_change", "N/A"))),
+            (
+                "Content Storage Shared Between Users",
+                str(provider_data.get("content_storage_shared_between_users", "N/A")),
+            ),
+        ]
+    )
 
 
 def print_providers_list(providers_data, args):
@@ -82,27 +69,26 @@ def print_providers_list(providers_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(providers_data)
+    if output_json(args, providers_data):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(providers_data)
+
+    if providers_data is None:
         return
 
     if not providers_data:
         print("No data providers found.")
         return
 
-    formatted_providers = []
-    for provider in providers_data:
-        formatted_provider = {
-            "id": provider.get("id", ""),
-            "name": provider.get("name", ""),
-            "type": provider.get("type", ""),
-            "remote_host": provider.get("remote_host", ""),
-            "online": "Yes" if provider.get("online", False) else "No",
+    formatted_providers = [
+        {
+            "id": p.get("id", ""),
+            "name": p.get("name", ""),
+            "type": p.get("type", ""),
+            "remote_host": p.get("remote_host", ""),
+            "online": "Yes" if p.get("online", False) else "No",
         }
-        formatted_providers.append(formatted_provider)
+        for p in providers_data
+    ]
 
     dynamic_table_print(
         formatted_providers,

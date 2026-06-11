@@ -1,11 +1,16 @@
 import json
 import mimetypes
 import os
-import urllib.error
-import urllib.parse
 import urllib.request
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
+from cbrain_cli.cli_utils import (
+    CliValidationError,
+    api_get,
+    api_send,
+    api_token,
+    cbrain_url,
+    pagination,
+)
 from cbrain_cli.config import auth_headers
 
 
@@ -26,19 +31,8 @@ def show_file(args):
     # Get the file ID from the --file argument.
     file_id = getattr(args, "file", None)
     if not file_id:
-        print("Error: File ID is required")
-        return None
-
-    userfile_endpoint = f"{cbrain_url}/userfiles/{file_id}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(userfile_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        file_data = json.loads(data)
-
-    return file_data
+        raise CliValidationError("File ID is required", field="file")
+    return api_get(f"{cbrain_url}/userfiles/{file_id}", api_token)
 
 
 def upload_file(args):
@@ -57,74 +51,69 @@ def upload_file(args):
     """
     # Check if file exists.
     if not os.path.exists(args.file_path):
-        print(f"Error: File not found: {args.file_path}")
-        return None
+        raise CliValidationError(f"File not found: {args.file_path}", field="file_path")
 
     if args.group_id is None:
-        print("Error: Group ID is required")
-        return None
+        raise CliValidationError("Group ID is required", field="--group-id")
 
-    # Get group_id from args
-    group_id = args.group_id
-
-    # Get file information.
     file_name = os.path.basename(args.file_path)
     file_size = os.path.getsize(args.file_path)
 
-    # Determine MIME type.
     mime_type, _ = mimetypes.guess_type(args.file_path)
     if not mime_type:
         mime_type = "application/octet-stream"
 
-    # Create multipart form data.
     boundary = "----formdata-cbrain-cli"
+    body_parts = [
+        f"--{boundary}",
+        'Content-Disposition: form-data; name="data_provider_id"',
+        "",
+        str(args.data_provider),
+        f"--{boundary}",
+        'Content-Disposition: form-data; name="userfile[group_id]"',
+        "",
+        str(args.group_id),
+        f"--{boundary}",
+        f'Content-Disposition: form-data; name="upload_file"; filename="{file_name}"',
+        f"Content-Type: {mime_type}",
+        "",
+    ]
 
-    # Build the multipart body.
-    body_parts = []
-
-    # Add data_provider_id field.
-    body_parts.append(f"--{boundary}")
-    body_parts.append('Content-Disposition: form-data; name="data_provider_id"')
-    body_parts.append("")
-    body_parts.append(str(args.data_provider))
-
-    # Add userfile[group_id] field.
-    body_parts.append(f"--{boundary}")
-    body_parts.append('Content-Disposition: form-data; name="userfile[group_id]"')
-    body_parts.append("")
-    body_parts.append(str(group_id))
-
-    # Add file data.
-    body_parts.append(f"--{boundary}")
-    body_parts.append(f'Content-Disposition: form-data; name="upload_file"; filename="{file_name}"')
-    body_parts.append(f"Content-Type: {mime_type}")
-    body_parts.append("")
-
-    # Join the text parts.
     body_text = "\r\n".join(body_parts) + "\r\n"
-
-    # Read file content.
     with open(args.file_path, "rb") as f:
         file_content = f.read()
 
-    # Complete the multipart body.
-    body_end = f"\r\n--{boundary}--\r\n"
+    body = body_text.encode("utf-8") + file_content + f"\r\n--{boundary}--\r\n".encode()
 
-    body = body_text.encode("utf-8") + file_content + body_end.encode("utf-8")
-
-    # Prepare headers.
     headers = auth_headers(api_token)
     headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
     headers["Content-Length"] = str(len(body))
 
-    # Create the request.
-    upload_endpoint = f"{cbrain_url}/userfiles"
-    request = urllib.request.Request(upload_endpoint, data=body, headers=headers, method="POST")
-
+    request = urllib.request.Request(
+        f"{cbrain_url}/userfiles", data=body, headers=headers, method="POST"
+    )
     with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
+        response_data = json.loads(response.read().decode("utf-8"))
         return response_data, response.status, file_name, file_size, args.data_provider
+
+
+def _change_provider(args, operation):
+    file_ids = getattr(args, "file_id", None)
+    dest_provider_id = getattr(args, "dp_id", None) or getattr(
+        args, "data_provider_id_for_mv_cp", None
+    )
+    if not file_ids:
+        raise CliValidationError("File ID(s) are required", field="--file-id")
+    if not dest_provider_id:
+        raise CliValidationError(
+            "Destination data provider ID is required", field="--dp-id"
+        )
+    payload = {
+        "file_ids": file_ids,
+        "data_provider_id_for_mv_cp": dest_provider_id,
+        operation: "",
+    }
+    return api_send(f"{cbrain_url}/userfiles/change_provider", api_token, payload=payload)
 
 
 def copy_file(args):
@@ -141,39 +130,7 @@ def copy_file(args):
     tuple
         (response_data, response_status) or None if error
     """
-    # Get the file IDs and destination data provider ID
-    file_ids = getattr(args, "file_id", None)
-    dest_provider_id = getattr(args, "dp_id", None) or getattr(
-        args, "data_provider_id_for_mv_cp", None
-    )
-
-    if not file_ids:
-        print("Error: File ID(s) are required")
-        return None
-
-    if not dest_provider_id:
-        print("Error: Destination data provider ID is required")
-        return None
-
-    change_provider_endpoint = f"{cbrain_url}/userfiles/change_provider"
-    headers = auth_headers(api_token)
-    headers["Content-Type"] = "application/json"
-
-    payload = {
-        "file_ids": file_ids,
-        "data_provider_id_for_mv_cp": dest_provider_id,
-        "copy": "",  # Empty string indicates copy operation
-    }
-
-    json_data = json.dumps(payload).encode("utf-8")
-
-    request = urllib.request.Request(
-        change_provider_endpoint, data=json_data, headers=headers, method="POST"
-    )
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
-        return response_data, response.status
+    return _change_provider(args, "copy")
 
 
 def move_file(args):
@@ -190,41 +147,7 @@ def move_file(args):
     tuple
         (response_data, response_status) or None if error
     """
-    # Get the file IDs and destination data provider ID
-    file_ids = getattr(args, "file_id", None)
-    dest_provider_id = getattr(args, "dp_id", None) or getattr(
-        args, "data_provider_id_for_mv_cp", None
-    )
-
-    if not file_ids:
-        print("Error: File ID(s) are required")
-        return None
-
-    if not dest_provider_id:
-        print("Error: Destination data provider ID is required")
-        return None
-
-    change_provider_endpoint = f"{cbrain_url}/userfiles/change_provider"
-    headers = auth_headers(api_token)
-    headers["Content-Type"] = "application/json"
-
-    # Prepare the payload for move operation
-    payload = {
-        "file_ids": file_ids,
-        "data_provider_id_for_mv_cp": dest_provider_id,
-        "move": "",  # "move" key indicates move operation
-    }
-
-    json_data = json.dumps(payload).encode("utf-8")
-
-    request = urllib.request.Request(
-        change_provider_endpoint, data=json_data, headers=headers, method="POST"
-    )
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
-        return response_data, response.status
+    return _change_provider(args, "move")
 
 
 def list_files(args):
@@ -238,42 +161,23 @@ def list_files(args):
 
     Returns
     -------
-    tuple
-        (files_data, page) or None if error
+    list or None
+        List of file dictionaries, or None if error
     """
-    # Build query parameters for filtering
-    query_params = {}
+    params = {}
+    for attr, key in [
+        ("group_id", "group_id"),
+        ("dp_id", "data_provider_id"),
+        ("user_id", "user_id"),
+        ("parent_id", "parent_id"),
+        ("file_type", "type"),
+    ]:
+        val = getattr(args, attr, None)
+        if val is not None:
+            params[key] = str(val)
 
-    # Add filter parameters if provided
-    if hasattr(args, "group_id") and args.group_id is not None:
-        query_params["group_id"] = str(args.group_id)
-
-    if hasattr(args, "dp_id") and args.dp_id is not None:
-        query_params["data_provider_id"] = str(args.dp_id)
-
-    if hasattr(args, "user_id") and args.user_id is not None:
-        query_params["user_id"] = str(args.user_id)
-
-    if hasattr(args, "parent_id") and args.parent_id is not None:
-        query_params["parent_id"] = str(args.parent_id)
-
-    if hasattr(args, "file_type") and args.file_type is not None:
-        query_params["type"] = args.file_type
-
-    query_params = pagination(args, query_params)
-
-    userfiles_endpoint = f"{cbrain_url}/userfiles"
-    query_string = urllib.parse.urlencode(query_params)
-    userfiles_endpoint = f"{userfiles_endpoint}?{query_string}"
-
-    headers = auth_headers(api_token)
-    request = urllib.request.Request(userfiles_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        files_data = json.loads(data)
-
-    return files_data
+    params = pagination(args, params)
+    return api_get(f"{cbrain_url}/userfiles", api_token, params)
 
 
 def delete_file(args):
@@ -287,28 +191,16 @@ def delete_file(args):
 
     Returns
     -------
-    tuple
-        (response_data, response_status) or None if error
+    dict or None
+        Response data, or None if error
     """
-    # Get the file ID from the argument.
     file_id = getattr(args, "file_id", None)
     if not file_id:
-        print("Error: File ID is required")
-        return None
-
-    delete_endpoint = f"{cbrain_url}/userfiles/delete_files"
-    headers = auth_headers(api_token)
-    headers["Content-Type"] = "application/json"
-
-    payload = {"file_ids": [str(file_id)]}
-
-    json_data = json.dumps(payload).encode("utf-8")
-
-    request = urllib.request.Request(
-        delete_endpoint, data=json_data, headers=headers, method="DELETE"
+        raise CliValidationError("File ID is required", field="file_id")
+    data, _ = api_send(
+        f"{cbrain_url}/userfiles/delete_files",
+        api_token,
+        method="DELETE",
+        payload={"file_ids": [str(file_id)]},
     )
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        response_data = json.loads(data)
-        return response_data
+    return data

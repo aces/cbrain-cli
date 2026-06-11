@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_projects_list(projects_data, args):
@@ -12,23 +12,17 @@ def print_projects_list(projects_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
+    if projects_data is None:
+        return
+
     formatted_data = [
-        {
-            "id": project.get("id"),
-            "type": project.get("type"),
-            "name": project.get("name"),
-        }
-        for project in projects_data
+        {"id": p.get("id"), "type": p.get("type"), "name": p.get("name")} for p in projects_data
     ]
 
-    if getattr(args, "json", False):
-        json_printer(formatted_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(formatted_data)
+    if output_json(args, formatted_data):
         return
 
-    dynamic_table_print(projects_data, ["id", "type", "name"], ["ID", "Type", "Project Name"])
+    dynamic_table_print(formatted_data, ["id", "type", "name"], ["ID", "Type", "Project Name"])
 
 
 def print_current_project(project_data):
@@ -56,36 +50,27 @@ def print_project_details(project_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(project_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(project_data)
+    if output_json(args, project_data):
         return
 
     print("PROJECT DETAILS")
     print("-" * 30)
+    display_key_value_table(
+        [
+            ("ID", str(project_data.get("id", "N/A"))),
+            ("Name", str(project_data.get("name", "N/A"))),
+            ("Type", str(project_data.get("type", "N/A"))),
+            ("Site ID", str(project_data.get("site_id", "N/A"))),
+            ("Invisible", str(project_data.get("invisible", "N/A"))),
+        ]
+    )
 
-    # Basic project information
-    basic_info = [
-        {"field": "ID", "value": str(project_data.get("id", "N/A"))},
-        {"field": "Name", "value": str(project_data.get("name", "N/A"))},
-        {"field": "Type", "value": str(project_data.get("type", "N/A"))},
-        {"field": "Site ID", "value": str(project_data.get("site_id", "N/A"))},
-        {"field": "Invisible", "value": str(project_data.get("invisible", "N/A"))},
-    ]
-
-    dynamic_table_print(basic_info, ["field", "value"], ["Field", "Value"])
-
-    # Display description if available
     if project_data.get("description"):
         print()
         print("DESCRIPTION")
         print("-" * 30)
-        description = project_data.get("description").strip()
-        # Handle multi-line descriptions
-        for line in description.split("\n"):
-            print(f"{line}")
+        for line in project_data.get("description").strip().split("\n"):
+            print(line)
 
 
 def print_no_project():

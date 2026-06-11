@@ -1,25 +1,22 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import dynamic_table_print, json_printer, output_json
 
 
 def print_tool_configs_list(tool_configs, args):
     """
     Pretty print a list of tool configurations.
     """
-    if getattr(args, "json", False):
-        json_printer(tool_configs)
+    if output_json(args, tool_configs):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(tool_configs)
+
+    if tool_configs is None:
         return
 
     if not tool_configs:
         print("No tool configurations found.")
         return
-
-    # Prepare data for better display
-    formatted_configs = []
-    for config in tool_configs:
-        formatted_config = {
+    # Prepare data for better display.
+    formatted_configs = [
+        {
             "id": config.get("id", ""),
             "version_name": config.get("version_name", ""),
             "tool_id": config.get("tool_id", ""),
@@ -28,7 +25,8 @@ def print_tool_configs_list(tool_configs, args):
             "ncpus": config.get("ncpus", "1"),
             "description": config.get("description", ""),
         }
-        formatted_configs.append(formatted_config)
+        for config in tool_configs
+    ]
 
     dynamic_table_print(
         formatted_configs,
@@ -56,11 +54,10 @@ def print_tool_config_details(tool_config, args):
     """
     Pretty print the details of a tool configuration.
     """
-    if getattr(args, "json", False):
-        json_printer(tool_config)
+    if output_json(args, tool_config):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(tool_config)
+
+    if tool_config is None:
         return
 
     if not tool_config:
@@ -84,6 +81,9 @@ def print_boutiques_descriptor(boutiques_descriptor, args):
     """
     Pretty print the Boutiques descriptor for a tool configuration.
     """
+    if boutiques_descriptor is None:
+        return
+
     if not boutiques_descriptor:
         print("No Boutiques descriptor found.")
         return

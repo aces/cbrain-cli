@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_resources_list(resources_data, args):
@@ -12,11 +12,10 @@ def print_resources_list(resources_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(resources_data)
+    if output_json(args, resources_data):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(resources_data)
+
+    if resources_data is None:
         return
 
     if not resources_data:
@@ -26,18 +25,17 @@ def print_resources_list(resources_data, args):
     print("REMOTE RESOURCES (EXECUTION SERVERS)")
     print("-" * 80)
 
-    # Prepare data with formatted boolean values for better display
-    formatted_resources = []
-    for resource in resources_data:
-        formatted_resource = {
-            "id": resource.get("id", ""),
-            "name": resource.get("name", ""),
-            "user_id": resource.get("user_id", ""),
-            "group_id": resource.get("group_id", ""),
-            "online": "Yes" if resource.get("online", False) else "No",
-            "read_only": "Yes" if resource.get("read_only", False) else "No",
+    formatted_resources = [
+        {
+            "id": r.get("id", ""),
+            "name": r.get("name", ""),
+            "user_id": r.get("user_id", ""),
+            "group_id": r.get("group_id", ""),
+            "online": "Yes" if r.get("online", False) else "No",
+            "read_only": "Yes" if r.get("read_only", False) else "No",
         }
-        formatted_resources.append(formatted_resource)
+        for r in resources_data
+    ]
 
     dynamic_table_print(
         formatted_resources,
@@ -60,36 +58,28 @@ def print_resource_details(resource_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(resource_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(resource_data)
+    if output_json(args, resource_data):
         return
 
     print("REMOTE RESOURCE DETAILS")
     print("-" * 30)
-
-    # Prepare basic details as key-value pairs for table display
-    basic_details = [
-        {"field": "ID", "value": str(resource_data.get("id", "N/A"))},
-        {"field": "Name", "value": str(resource_data.get("name", "N/A"))},
-        {"field": "Type", "value": str(resource_data.get("type", "N/A"))},
-    ]
-
-    dynamic_table_print(basic_details, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("ID", str(resource_data.get("id", "N/A"))),
+            ("Name", str(resource_data.get("name", "N/A"))),
+            ("Type", str(resource_data.get("type", "N/A"))),
+        ]
+    )
     print()
 
     print("OWNERSHIP & ACCESS")
     print("-" * 30)
-
-    # Prepare ownership details as key-value pairs for table display
-    ownership_details = [
-        {"field": "User ID", "value": str(resource_data.get("user_id", "N/A"))},
-        {"field": "Group ID", "value": str(resource_data.get("group_id", "N/A"))},
-        {"field": "Online", "value": str(resource_data.get("online", "N/A"))},
-        {"field": "Read Only", "value": str(resource_data.get("read_only", "N/A"))},
-    ]
-
-    dynamic_table_print(ownership_details, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("User ID", str(resource_data.get("user_id", "N/A"))),
+            ("Group ID", str(resource_data.get("group_id", "N/A"))),
+            ("Online", str(resource_data.get("online", "N/A"))),
+            ("Read Only", str(resource_data.get("read_only", "N/A"))),
+        ]
+    )
     print()

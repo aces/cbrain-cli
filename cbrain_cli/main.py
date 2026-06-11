@@ -353,17 +353,17 @@ def main():
     # task list
     task_list_parser = task_subparsers.add_parser("list", help="List tasks")
     task_list_parser.add_argument(
-        "filter_type", nargs="?", choices=["bourreau-id"], help="Filter type (optional)"
+        "filter_name", nargs="?", choices=["bourreau-id"], help="Filter type (optional)"
     )
     task_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
     task_list_parser.add_argument(
         "--per-page", type=int, default=25, help="Number of tasks per page (5-1000, default: 25)"
     )
     task_list_parser.add_argument(
-        "filter_value",
+        "bourreau_id",
         type=int,
         nargs="?",
-        help="Filter value (required if filter_type is specified)",
+        help="Bourreau ID (required when filter is bourreau-id)",
     )
     task_list_parser.set_defaults(func=handle_errors(handle_task_list))
 
