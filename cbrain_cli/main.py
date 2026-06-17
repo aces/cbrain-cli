@@ -5,7 +5,14 @@ Setup and commands for the CBRAIN CLI command line interface.
 import argparse
 import sys
 
-from cbrain_cli.cli_utils import handle_errors, is_authenticated, version_info
+from cbrain_cli.cli_utils import (
+    PAGINATABLE_ACTIONS,
+    CliValidationError,
+    handle_errors,
+    is_authenticated,
+    pagination,
+    version_info,
+)
 from cbrain_cli.data.tasks import operation_task
 from cbrain_cli.handlers import (
     handle_background_list,
@@ -235,7 +242,7 @@ def main():
     tool_show_parser.add_argument("id", type=int, help="Tool ID")
     tool_show_parser.set_defaults(func=handle_errors(handle_tool_show))
 
-    # tool list (reusing show_tool without id)
+    # tool list
     tool_list_parser = tool_subparsers.add_parser("list", help="List all tools")
     tool_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
     tool_list_parser.add_argument(
@@ -404,9 +411,18 @@ def main():
         parser.print_help()
         return
 
-    # Handle session commands (no authentication needed for login, version, and whoami).
+    if (args.command, getattr(args, "action", None)) in PAGINATABLE_ACTIONS:
+        try:
+            pagination(args, {})
+        except CliValidationError as e:
+            print(f"Error: {e}")
+            return 1
+
+    # Handle session commands (no authentication needed for login, logout, version, and whoami).
     if args.command == "login":
         return handle_errors(create_session)(args)
+    elif args.command == "logout":
+        return handle_errors(logout_session)(args)
     elif args.command == "version":
         return handle_errors(version_info)(args)
     elif args.command == "whoami":
@@ -417,9 +433,7 @@ def main():
         return 1
 
     # Handle authenticated commands.
-    if args.command == "logout":
-        return handle_errors(logout_session)(args)
-    elif args.command in [
+    if args.command in [
         "file",
         "dataprovider",
         "project",

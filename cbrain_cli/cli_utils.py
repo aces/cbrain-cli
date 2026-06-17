@@ -6,23 +6,22 @@ import urllib.parse
 import urllib.request
 
 # import importlib.metadata
-from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_HEADERS, auth_headers
+from cbrain_cli.config import DEFAULT_HEADERS, auth_headers, load_credentials
 
-try:
-    # MARK: Credentials.
-    with open(CREDENTIALS_FILE) as f:
-        credentials = json.load(f)
+credentials = load_credentials() or {}
+cbrain_url = credentials.get("cbrain_url")
+api_token = credentials.get("api_token")
+user_id = credentials.get("user_id")
+cbrain_timestamp = credentials.get("timestamp")
 
-    # Get credentials.
-    cbrain_url = credentials.get("cbrain_url")
-    api_token = credentials.get("api_token")
-    user_id = credentials.get("user_id")
-    cbrain_timestamp = credentials.get("timestamp")
-except FileNotFoundError:
-    cbrain_url = None
-    api_token = None
-    user_id = None
-    cbrain_timestamp = None
+PAGINATABLE_ACTIONS = {
+    ("file", "list"),
+    ("dataprovider", "list"),
+    ("tool", "list"),
+    ("tool-config", "list"),
+    ("tag", "list"),
+    ("task", "list"),
+}
 
 
 class CliValidationError(Exception):

@@ -50,6 +50,10 @@ def print_files_list(files_data, args):
     if output_json(args, files_data):
         return
 
+    if not files_data:
+        print("No files found.")
+        return
+
     # Use the reusable dynamic table formatter
     dynamic_table_print(files_data, ["id", "type", "name"], ["ID", "Type", "File Name"])
 

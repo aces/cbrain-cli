@@ -1,4 +1,3 @@
-import json
 import urllib.error
 
 from cbrain_cli.cli_utils import (
@@ -9,7 +8,7 @@ from cbrain_cli.cli_utils import (
     api_token,
     cbrain_url,
 )
-from cbrain_cli.config import CREDENTIALS_FILE
+from cbrain_cli.config import load_credentials, save_credentials
 
 
 def switch_project(args):
@@ -46,17 +45,50 @@ def switch_project(args):
     api_send(f"{cbrain_url}/groups/switch?id={group_id}", api_token)
     group_data = api_get(f"{cbrain_url}/groups/{group_id}", api_token)
 
-    if CREDENTIALS_FILE.exists():
-        with open(CREDENTIALS_FILE) as f:
-            credentials = json.load(f)
-
+    credentials = load_credentials()
+    if credentials is not None:
         credentials["current_group_id"] = group_id
         credentials["current_group_name"] = group_data.get("name", "Unknown")
-
-        with open(CREDENTIALS_FILE, "w") as f:
-            json.dump(credentials, f, indent=2)
+        save_credentials(credentials)
 
     return group_data
+
+
+def unswitch_project(args):
+    """
+    Clear the current project/group on the server and in local credentials.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments
+
+    Returns
+    -------
+    dict
+        Previous and current group identifiers (all None when no project was set)
+    """
+    credentials = load_credentials()
+    previous_group_id = None
+    previous_group_name = None
+
+    if credentials is not None:
+        previous_group_id = credentials.get("current_group_id")
+        previous_group_name = credentials.get("current_group_name")
+
+    api_send(f"{cbrain_url}/groups/switch", api_token)
+
+    if credentials is not None:
+        credentials.pop("current_group_id", None)
+        credentials.pop("current_group_name", None)
+        save_credentials(credentials)
+
+    return {
+        "previous_group_id": previous_group_id,
+        "previous_group_name": previous_group_name,
+        "current_group_id": None,
+        "current_group_name": None,
+    }
 
 
 def show_project(args):
@@ -77,7 +109,7 @@ def show_project(args):
     project_id = getattr(args, "project_id", None)
 
     if project_id:
-    # Show specific project by ID
+        # Show specific project by ID
         try:
             return api_get(f"{cbrain_url}/groups/{project_id}", api_token)
         except urllib.error.HTTPError as e:
@@ -85,8 +117,9 @@ def show_project(args):
                 raise CliApiError(f"Project with ID {project_id} not found")
             raise
 
-    with open(CREDENTIALS_FILE) as f:
-        credentials = json.load(f)
+    credentials = load_credentials()
+    if credentials is None:
+        return None
 
     current_group_id = credentials.get("current_group_id")
     if not current_group_id:
@@ -98,11 +131,8 @@ def show_project(args):
         if e.code == 404:
             credentials.pop("current_group_id", None)
             credentials.pop("current_group_name", None)
-            with open(CREDENTIALS_FILE, "w") as f:
-                json.dump(credentials, f, indent=2)
-            raise CliApiError(
-                f"Current project (ID {current_group_id}) no longer exists"
-            )
+            save_credentials(credentials)
+            raise CliApiError(f"Current project (ID {current_group_id}) no longer exists")
         raise
 
 
