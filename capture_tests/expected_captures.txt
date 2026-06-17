@@ -489,22 +489,29 @@ Stderr:
 ############################
 Command: cbrain --json  project switch 10
 Status: 0
-Stdout: 37 bytes
+Stdout: 125 bytes
 Stderr: 0 bytes
 
 Stdout:
-Current project is "NormTest1" ID=10
+{
+  "id": 10,
+  "name": "NormTest1",
+  "description": null,
+  "type": "WorkGroup",
+  "site_id": null,
+  "invisible": false
+}
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch 10
 Status: 0
-Stdout: 37 bytes
+Stdout: 100 bytes
 Stderr: 0 bytes
 
 Stdout:
-Current project is "NormTest1" ID=10
+{"id":10,"name":"NormTest1","description":null,"type":"WorkGroup","site_id":null,"invisible":false}
 Stderr:
 (No output)
 
