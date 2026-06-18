@@ -100,9 +100,7 @@ def update_tag(args):
     if not tag_id:
         raise CliValidationError("Tag ID is required", field="tag_id")
     payload = _tag_payload(args)
-    data, status = api_send(
-        f"{cbrain_url}/tags/{tag_id}", api_token, method="PUT", payload=payload
-    )
+    data, status = api_send(f"{cbrain_url}/tags/{tag_id}", api_token, method="PUT", payload=payload)
     success = status in (200, 201, 204)
     return data, success, None, status
 

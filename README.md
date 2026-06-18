@@ -68,7 +68,7 @@ When prompted for "Enter CBRAIN server URL prefix", enter:
 ## API Reference
 
 This CLI interfaces with the CBRAIN REST API. For complete API documentation and specifications, refer to:
-- [CBRAIN API Documentation (Swagger)](https://app.swaggerhub.com/apis/prioux/CBRAIN/7.0.0)
+- [CBRAIN API Documentation (Swagger)](https://portal.cbrain.mcgill.ca/swagger)
 
 ## CLI Usage
 
@@ -197,7 +197,7 @@ The hooks currently:
 - run `ruff --fix`;
 - run `ruff format`.
 
-The generated capture fixture `capture_tests/expected_captures.txt` is excluded from whitespace and Ruff hooks because exact captured output is intentional there.
+The generated capture fixture `capture_tests/expected_captures.txt` is excluded from whitespace hooks and from Ruff (via `pyproject.toml`) because exact captured output is intentional there.
 
 To run the hooks manually:
 

@@ -40,7 +40,7 @@ def switch_project(args):
     except ValueError:
         raise CliValidationError(
             f"Invalid group ID '{group_id}'. Must be a number or 'all'", field="group_id"
-        )
+        ) from None
 
     api_send(f"{cbrain_url}/groups/switch?id={group_id}", api_token)
     group_data = api_get(f"{cbrain_url}/groups/{group_id}", api_token)
@@ -76,7 +76,8 @@ def unswitch_project(args):
         previous_group_id = credentials.get("current_group_id")
         previous_group_name = credentials.get("current_group_name")
 
-    api_send(f"{cbrain_url}/groups/switch", api_token)
+    if previous_group_id:
+        api_send(f"{cbrain_url}/groups/switch", api_token)
 
     if credentials is not None:
         credentials.pop("current_group_id", None)
@@ -114,7 +115,7 @@ def show_project(args):
             return api_get(f"{cbrain_url}/groups/{project_id}", api_token)
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                raise CliApiError(f"Project with ID {project_id} not found")
+                raise CliApiError(f"Project with ID {project_id} not found") from None
             raise
 
     credentials = load_credentials()
@@ -132,7 +133,7 @@ def show_project(args):
             credentials.pop("current_group_id", None)
             credentials.pop("current_group_name", None)
             save_credentials(credentials)
-            raise CliApiError(f"Current project (ID {current_group_id}) no longer exists")
+            raise CliApiError(f"Current project (ID {current_group_id}) no longer exists") from None
         raise
 
 
