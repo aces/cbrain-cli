@@ -489,11 +489,11 @@ Stderr:
 ############################
 Command: cbrain         project unswitch
 Status: 0
-Stdout: 75 bytes
+Stdout: 42 bytes
 Stderr: 0 bytes
 
 Stdout:
-No current project set. Use 'cbrain project switch <ID>' to set a project.
+Cleared current project "NormTest1" ID=10
 Stderr:
 (No output)
 
@@ -518,13 +518,13 @@ Stderr:
 ############################
 Command: cbrain --json  project unswitch
 Status: 0
-Stdout: 121 bytes
+Stdout: 126 bytes
 Stderr: 0 bytes
 
 Stdout:
 {
-  "previous_group_id": null,
-  "previous_group_name": null,
+  "previous_group_id": 10,
+  "previous_group_name": "NormTest1",
   "current_group_id": null,
   "current_group_name": null
 }
@@ -545,11 +545,11 @@ Stderr:
 ############################
 Command: cbrain --jsonl project unswitch
 Status: 0
-Stdout: 104 bytes
+Stdout: 109 bytes
 Stderr: 0 bytes
 
 Stdout:
-{"previous_group_id":null,"previous_group_name":null,"current_group_id":null,"current_group_name":null}
+{"previous_group_id":10,"previous_group_name":"NormTest1","current_group_id":null,"current_group_name":null}
 Stderr:
 (No output)
 
