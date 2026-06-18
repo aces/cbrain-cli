@@ -70,13 +70,14 @@ cbrain         project show 10
 cbrain --json  project show 10
 cbrain --jsonl project show 10
 
-cbrain         project unswitch
-cbrain --json  project unswitch
-cbrain --jsonl project unswitch
-
 cbrain         project switch 10
+cbrain         project unswitch
+
 cbrain --json  project switch 10
+cbrain --json  project unswitch
+
 cbrain --jsonl project switch 10
+cbrain --jsonl project unswitch
 
 cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
 cbrain --json  project switch all

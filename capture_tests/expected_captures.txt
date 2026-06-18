@@ -476,44 +476,6 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain         project unswitch
-Status: 0
-Stdout: 75 bytes
-Stderr: 0 bytes
-
-Stdout:
-No current project set. Use 'cbrain project switch <ID>' to set a project.
-Stderr:
-(No output)
-
-############################
-Command: cbrain --json  project unswitch
-Status: 0
-Stdout: 121 bytes
-Stderr: 0 bytes
-
-Stdout:
-{
-  "previous_group_id": null,
-  "previous_group_name": null,
-  "current_group_id": null,
-  "current_group_name": null
-}
-Stderr:
-(No output)
-
-############################
-Command: cbrain --jsonl project unswitch
-Status: 0
-Stdout: 104 bytes
-Stderr: 0 bytes
-
-Stdout:
-{"previous_group_id":null,"previous_group_name":null,"current_group_id":null,"current_group_name":null}
-Stderr:
-(No output)
-
-############################
 Command: cbrain         project switch 10
 Status: 0
 Stdout: 37 bytes
@@ -521,6 +483,17 @@ Stderr: 0 bytes
 
 Stdout:
 Current project is "NormTest1" ID=10
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project unswitch
+Status: 0
+Stdout: 75 bytes
+Stderr: 0 bytes
+
+Stdout:
+No current project set. Use 'cbrain project switch <ID>' to set a project.
 Stderr:
 (No output)
 
@@ -543,6 +516,22 @@ Stderr:
 (No output)
 
 ############################
+Command: cbrain --json  project unswitch
+Status: 0
+Stdout: 121 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "previous_group_id": null,
+  "previous_group_name": null,
+  "current_group_id": null,
+  "current_group_name": null
+}
+Stderr:
+(No output)
+
+############################
 Command: cbrain --jsonl project switch 10
 Status: 0
 Stdout: 100 bytes
@@ -550,6 +539,17 @@ Stderr: 0 bytes
 
 Stdout:
 {"id":10,"name":"NormTest1","description":null,"type":"WorkGroup","site_id":null,"invisible":false}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl project unswitch
+Status: 0
+Stdout: 104 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"previous_group_id":null,"previous_group_name":null,"current_group_id":null,"current_group_name":null}
 Stderr:
 (No output)
 
