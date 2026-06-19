@@ -78,7 +78,5 @@ def delete_unregistered_files(args):
     data_provider_id = getattr(args, "id", None)
     if not data_provider_id:
         raise CliValidationError("Data provider ID is required", field="id")
-    data, _ = api_send(
-        f"{cbrain_url}/data_providers/{data_provider_id}/delete", api_token
-    )
+    data, _ = api_send(f"{cbrain_url}/data_providers/{data_provider_id}/delete", api_token)
     return data

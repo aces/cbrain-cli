@@ -105,9 +105,7 @@ def _change_provider(args, operation):
     if not file_ids:
         raise CliValidationError("File ID(s) are required", field="--file-id")
     if not dest_provider_id:
-        raise CliValidationError(
-            "Destination data provider ID is required", field="--dp-id"
-        )
+        raise CliValidationError("Destination data provider ID is required", field="--dp-id")
     payload = {
         "file_ids": file_ids,
         "data_provider_id_for_mv_cp": dest_provider_id,

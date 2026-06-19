@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, display_key_value_table, output_json
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_provider_details(provider_data, args):

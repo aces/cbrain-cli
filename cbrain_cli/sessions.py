@@ -1,6 +1,5 @@
 import datetime
 import getpass
-import json
 import urllib.error
 
 from cbrain_cli.cli_utils import (
@@ -10,7 +9,7 @@ from cbrain_cli.cli_utils import (
     api_token,
     cbrain_url,
 )
-from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_BASE_URL
+from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_BASE_URL, load_credentials, save_credentials
 
 
 # MARK: Create Session.
@@ -41,7 +40,9 @@ def create_session(args):
     if not password:
         raise CliValidationError("Password is required", field="password")
 
-    response_data = api_post_form(f"{cbrain_url}/session", {"login": username, "password": password})
+    response_data = api_post_form(
+        f"{cbrain_url}/session", {"login": username, "password": password}
+    )
 
     cbrain_api_token = response_data.get("cbrain_api_token")
     cbrain_user_id = response_data.get("user_id")
@@ -57,8 +58,7 @@ def create_session(args):
         "timestamp": datetime.datetime.now().isoformat(),
     }
 
-    with open(CREDENTIALS_FILE, "w") as f:
-        json.dump(credentials, f, indent=2)
+    save_credentials(credentials)
 
     print(f"Connection successful, API token saved in {CREDENTIALS_FILE}")
     return 0
@@ -75,9 +75,21 @@ def logout_session(args):
         A command is run via inputs from the user.
     """
 
+    if not CREDENTIALS_FILE.exists():
+        print("Not logged in. Use 'cbrain login' to login first.")
+        return 0
+
+    credentials = load_credentials()
+    if credentials is None:
+        print("Invalid credentials file. Removing local session.")
+        CREDENTIALS_FILE.unlink(missing_ok=True)
+        print(f"Local session removed from {CREDENTIALS_FILE}")
+        return 0
+
     if not cbrain_url or not api_token:
         print("Invalid credentials file. Removing local session.")
-        CREDENTIALS_FILE.unlink()
+        CREDENTIALS_FILE.unlink(missing_ok=True)
+        print(f"Local session removed from {CREDENTIALS_FILE}")
         return 0
 
     try:
@@ -94,7 +106,7 @@ def logout_session(args):
     except urllib.error.URLError as e:
         print(f"Network error during logout: {e}")
 
-    # Always remove local credentials file.
-    CREDENTIALS_FILE.unlink()
-    print(f"Local session removed from {CREDENTIALS_FILE}")
+    if CREDENTIALS_FILE.exists():
+        CREDENTIALS_FILE.unlink()
+        print(f"Local session removed from {CREDENTIALS_FILE}")
     return 0

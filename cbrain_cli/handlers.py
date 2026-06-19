@@ -136,13 +136,13 @@ def handle_project_switch(args):
     result = projects.switch_project(args)
     if result is None:
         return 1
-    projects_fmt.print_current_project(result)
+    projects_fmt.print_current_project(result, args)
 
 
 def handle_project_show(args):
     """Display information about the currently active project or a specific project by ID."""
     result = projects.show_project(args)
-    if result:
+    if result is not None:
         # Check if a specific project ID was requested
         project_id = getattr(args, "project_id", None)
         if project_id:
@@ -150,23 +150,24 @@ def handle_project_show(args):
             projects_fmt.print_project_details(result, args)
         else:
             # Show current project information
-            projects_fmt.print_current_project(result)
+            projects_fmt.print_current_project(result, args)
     else:
         # Only show "no project" message if no specific ID was requested
         project_id = getattr(args, "project_id", None)
         if not project_id:
-            projects_fmt.print_no_project()
+            projects_fmt.print_no_project(args)
 
 
 def handle_project_unswitch(args):
     """Unswitch from current project context."""
-    print("Project Unswitch 'all' not yet implemented as of Aug 2025")
+    result = projects.unswitch_project(args)
+    projects_fmt.print_unswitch_result(result, args)
 
 
 # Tool command handlers
 def handle_tool_show(args):
     """Retrieve and display detailed information about a specific computational tool."""
-    result = tools.list_tools(args)
+    result = tools.show_tool(args)
     if result is None:
         return 1
     tools_fmt.print_tool_details(result, args)

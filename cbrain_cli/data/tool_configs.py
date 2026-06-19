@@ -48,6 +48,4 @@ def tool_config_boutiques_descriptor(args):
     config_id = getattr(args, "id", None)
     if not config_id:
         raise CliValidationError("Tool configuration ID is required", field="id")
-    return api_get(
-        f"{cbrain_url}/tool_configs/{config_id}/boutiques_descriptor", api_token
-    )
+    return api_get(f"{cbrain_url}/tool_configs/{config_id}/boutiques_descriptor", api_token)
