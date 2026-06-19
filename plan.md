@@ -12,6 +12,11 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 - **Phase 4:** incremental architecture cleanup.
 - **Phase 5:** documentation and compatibility.
 
+## Progress
+
+- Phase 1 items 2-7 completed in PR #45.
+- Phase 2 item 8 completed in PR #45.
+
 # Phase 1: Correctness Fixes
 
 ## 1. Fix `task list bourreau-id <id>` filtering
@@ -27,6 +32,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 2. Stop execution after invalid pagination
 
+**Status:** Completed in PR #45.
+
 **Problem:** `pagination()` returns `None` for invalid input, but callers continue. Some crash; others make the wrong request.
 
 **Do:**
@@ -37,6 +44,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** `--per-page 1` and `--page 0` return a clear error and non-zero exit.
 
 ## 3. Fix `tool show <id>` lookup
+
+**Status:** Completed in PR #45.
 
 **Problem:** `tool show` fetches only the first `/tools` page and filters client-side, so valid tools outside page 1 can appear missing.
 
@@ -49,6 +58,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 4. Allow `logout` to clean up invalid credentials
 
+**Status:** Completed in PR #45.
+
 **Problem:** `main()` blocks `logout` behind `is_authenticated()`, making cleanup unreachable for malformed credentials.
 
 **Do:**
@@ -58,6 +69,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** A malformed credentials file is removed by `cbrain logout`.
 
 ## 5. Remove import-time config directory creation
+
+**Status:** Completed in PR #45.
 
 **Problem:** `config.py` creates `~/.config/cbrain` at import time, so read-only commands can fail before parsing.
 
@@ -70,6 +83,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 6. Print empty list results consistently
 
+**Status:** Completed in PR #45.
+
 **Problem:** Handlers using `if result:` suppress valid empty lists.
 
 **Do:**
@@ -80,6 +95,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Empty API list responses produce useful normal output and valid JSON/JSONL behavior.
 
 ## 7. Implement or remove `project unswitch`
+
+**Status:** Completed in PR #45.
 
 **Problem:** `project unswitch` is advertised but only prints a not-implemented message.
 
@@ -93,6 +110,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 # Phase 2: Low-Hanging Guardrails
 
 ## 8. Add CI enforcement for Ruff linting and formatting
+
+**Status:** Completed in PR #45.
 
 **Problem:** Ruff is configured, pre-commit hooks exist, and README documents local lint/format commands. What is still missing is a CI check that fails when linting or formatting drifts.
 
