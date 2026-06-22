@@ -16,6 +16,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 - Phase 1 items 2-7 completed in PR #45.
 - Phase 2 item 8 completed in PR #45.
+- Phase 2 item 13 completed in PR #46.
 
 # Phase 1: Correctness Fixes
 
@@ -169,6 +170,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Reported version matches package metadata and release tags.
 
 ## 13. Add general contributor checklist and quality-gate docs
+
+**Status:** Completed in PR #46.
 
 **Problem:** README now documents local developer commands, and `summer-student-scope.md` has a student PR checklist, but the repository still lacks a general contributor checklist that applies to all PRs.
 
