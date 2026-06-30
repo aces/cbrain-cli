@@ -154,7 +154,9 @@ def test_handle_file_copy_failure_returns_1(monkeypatch):
         "cbrain_cli.handlers.files.copy_file",
         lambda _: ({"error": "fail"}, 400),
     )
-    monkeypatch.setattr("cbrain_cli.handlers.files_fmt.print_move_copy_result", lambda *_, **__: None)
+    monkeypatch.setattr(
+        "cbrain_cli.handlers.files_fmt.print_move_copy_result", lambda *_, **__: None
+    )
     assert handlers.handle_file_copy(make_args()) == 1
 
 
@@ -177,14 +179,18 @@ def test_handle_tool_config_boutiques_descriptor(monkeypatch, capsys):
 
 
 @pytest.mark.parametrize("handler_name,data_fn,fmt_fn,sample,arg_kwargs", SHOW_HANDLER_CASES)
-def test_show_handler_success(monkeypatch, capsys, handler_name, data_fn, fmt_fn, sample, arg_kwargs):
+def test_show_handler_success(
+    monkeypatch, capsys, handler_name, data_fn, fmt_fn, sample, arg_kwargs
+):
     monkeypatch.setattr(data_fn, lambda _: sample)
     getattr(handlers, handler_name)(make_args(**arg_kwargs))
     assert capsys.readouterr().out
 
 
 @pytest.mark.parametrize("handler_name,data_fn,fmt_fn,sample,arg_kwargs", SHOW_HANDLER_CASES)
-def test_show_handler_none_returns_1(monkeypatch, handler_name, data_fn, fmt_fn, sample, arg_kwargs):
+def test_show_handler_none_returns_1(
+    monkeypatch, handler_name, data_fn, fmt_fn, sample, arg_kwargs
+):
     fmt_called = []
     monkeypatch.setattr(data_fn, lambda _: None)
     monkeypatch.setattr(fmt_fn, lambda *_: fmt_called.append(True))

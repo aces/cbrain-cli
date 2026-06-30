@@ -48,7 +48,9 @@ def test_main_version_does_not_create_config_dir(monkeypatch, tmp_path):
     assert not (home / ".config").exists()
 
 
-def test_main_task_list_bourreau_id_parses_and_dispatches(monkeypatch, fake_credentials, capture_urlopen):
+def test_main_task_list_bourreau_id_parses_and_dispatches(
+    monkeypatch, fake_credentials, capture_urlopen
+):
     patch_module_locals(monkeypatch, "cbrain_cli.data.tasks")
     configure, captured = capture_urlopen
     configure([])

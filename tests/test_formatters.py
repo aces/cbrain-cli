@@ -140,7 +140,9 @@ def test_print_upload_result_success(capsys):
 def test_print_move_copy_result_success(capsys):
     from cbrain_cli.formatter import files_fmt
 
-    files_fmt.print_move_copy_result({"message": "queued", "background_activity_id": 9}, 200, "copy")
+    files_fmt.print_move_copy_result(
+        {"message": "queued", "background_activity_id": 9}, 200, "copy"
+    )
     out = capsys.readouterr().out
     assert "queued" in out
     assert "Background activity ID: 9" in out
@@ -246,7 +248,9 @@ def test_print_projects_list_with_data(capsys):
 
 
 def test_print_project_details_normal(capsys):
-    projects_fmt.print_project_details({"id": 1, "name": "A", "description": "line1\nline2"}, make_args())
+    projects_fmt.print_project_details(
+        {"id": 1, "name": "A", "description": "line1\nline2"}, make_args()
+    )
     out = capsys.readouterr().out
     assert "PROJECT DETAILS" in out
     assert "line1" in out
@@ -261,7 +265,16 @@ def test_print_unswitch_result_normal(capsys):
 
 def test_print_task_data_normal_with_rows(capsys):
     tasks_fmt.print_task_data(
-        [{"id": 1, "type": "BoutiquesTask::X", "status": "Done", "bourreau_id": 2, "user_id": 3, "group_id": 4}],
+        [
+            {
+                "id": 1,
+                "type": "BoutiquesTask::X",
+                "status": "Done",
+                "bourreau_id": 2,
+                "user_id": 3,
+                "group_id": 4,
+            }
+        ],
         make_args(),
     )
     assert "Total: 1 task(s)" in capsys.readouterr().out

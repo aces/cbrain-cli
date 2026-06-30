@@ -2,8 +2,7 @@ import pytest
 
 from cbrain_cli.cli_utils import CliValidationError
 from cbrain_cli.data.tasks import list_tasks, show_task
-from tests.conftest import make_args
-from tests.conftest import patch_module_locals
+from tests.conftest import make_args, patch_module_locals
 
 
 @pytest.fixture(autouse=True)

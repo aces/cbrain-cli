@@ -153,7 +153,9 @@ def mock_urlopen(monkeypatch):
 
     def configure_mock_response(response_json, status=200):
         mock_http_response = MagicMock()
-        mock_http_response.__enter__.return_value.read.return_value = json.dumps(response_json).encode()
+        mock_http_response.__enter__.return_value.read.return_value = json.dumps(
+            response_json
+        ).encode()
         mock_http_response.__enter__.return_value.status = status
         monkeypatch.setattr("urllib.request.urlopen", MagicMock(return_value=mock_http_response))
 

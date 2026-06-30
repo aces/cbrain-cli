@@ -45,6 +45,7 @@ def test_list_files_passes_filter_params(monkeypatch):
 
     def fake_urlopen(req):
         from unittest.mock import MagicMock
+
         captured["url"] = req.full_url
         cm = MagicMock()
         cm.__enter__.return_value.read.return_value = b"[]"

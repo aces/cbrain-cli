@@ -5,8 +5,7 @@ import pytest
 
 from cbrain_cli.cli_utils import CliApiError, CliValidationError
 from cbrain_cli.data.tools import list_tools, show_tool
-from tests.conftest import make_args
-from tests.conftest import patch_module_locals
+from tests.conftest import make_args, patch_module_locals
 
 
 @pytest.fixture(autouse=True)
