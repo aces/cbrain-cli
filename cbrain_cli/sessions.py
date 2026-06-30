@@ -17,10 +17,15 @@ def create_session(args):
     """
     Create a new CBRAIN session by logging in and saving credentials.
 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed command-line arguments (unused; login is interactive).
+
     Returns
     -------
-    None
-        A command is run via inputs from the user.
+    int
+        Exit code (0 on success, 1 on failure).
     """
 
     if CREDENTIALS_FILE.exists():
@@ -69,10 +74,15 @@ def logout_session(args):
     """
     Logout from CBRAIN by deleting the session file.
 
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed command-line arguments (unused).
+
     Returns
     -------
-    None
-        A command is run via inputs from the user.
+    int
+        Exit code (0 on success).
     """
 
     if not CREDENTIALS_FILE.exists():

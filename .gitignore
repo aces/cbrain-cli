@@ -10,5 +10,8 @@ build/
 # Virtual Environment
 venv/
 
+# Coverage
+.coverage
+
 # macOS
 .DS_Store

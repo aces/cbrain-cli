@@ -50,14 +50,15 @@ from cbrain_cli.sessions import create_session, logout_session
 from cbrain_cli.users import whoami_user
 
 
-def main():
+def build_parser():
     """
-    The function that controls the CBRAIN CLI.
+    Build and return the CBRAIN CLI argument parser and command subparsers.
 
     Returns
     -------
-    None
-        A command is run via inputs from the user.
+    tuple
+        (parser, command_parsers) where command_parsers maps command names
+        to their top-level subparsers for help display.
     """
     parser = argparse.ArgumentParser(description="CBRAIN CLI")
     parser.add_argument("-j", "--json", action="store_true", help="Output in JSON format")
@@ -404,8 +405,36 @@ def main():
     remote_resource_show_parser.add_argument("remote_resource", type=int, help="Remote resource ID")
     remote_resource_show_parser.set_defaults(func=handle_errors(handle_remote_resource_show))
 
-    # MARK: Setup CLI
-    args = parser.parse_args()
+    command_parsers = {
+        "file": file_parser,
+        "dataprovider": dataprovider_parser,
+        "project": project_parser,
+        "tool": tool_parser,
+        "tool-config": tool_configs_parser,
+        "tag": tag_parser,
+        "background": background_parser,
+        "task": task_parser,
+        "remote-resource": remote_resource_parser,
+    }
+    return parser, command_parsers
+
+
+def main(argv=None):
+    """
+    The function that controls the CBRAIN CLI.
+
+    Parameters
+    ----------
+    argv : list of str, optional
+        Command-line arguments excluding the program name.
+
+    Returns
+    -------
+    int or None
+        Exit code when applicable.
+    """
+    parser, command_parsers = build_parser()
+    args = parser.parse_args(argv)
 
     if not args.command:
         parser.print_help()
@@ -446,24 +475,7 @@ def main():
     ]:
         if not hasattr(args, "action") or not args.action:
             # Show help for the specific model command.
-            if args.command == "file":
-                file_parser.print_help()
-            elif args.command == "dataprovider":
-                dataprovider_parser.print_help()
-            elif args.command == "project":
-                project_parser.print_help()
-            elif args.command == "tool":
-                tool_parser.print_help()
-            elif args.command == "tool-config":
-                tool_configs_parser.print_help()
-            elif args.command == "tag":
-                tag_parser.print_help()
-            elif args.command == "background":
-                background_parser.print_help()
-            elif args.command == "task":
-                task_parser.print_help()
-            elif args.command == "remote-resource":
-                remote_resource_parser.print_help()
+            command_parsers[args.command].print_help()
             return 1
         else:
             # Execute the function associated with the command.
