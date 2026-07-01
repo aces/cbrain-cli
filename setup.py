@@ -6,6 +6,7 @@ setup(
         "dev": [
             "pre-commit>=3.5.0",
             "pytest>=8.0.0",
+            "pytest-cov>=5.0.0",
             "ruff>=0.8.5",
         ],
     },
