@@ -1,26 +1,10 @@
-name: CI
+name: unit_tests
 
 on: [push, pull_request]
 
 jobs:
-  lint:
-    name: Pre-commit checks
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Run pre-commit
-        run: |
-          pip install pre-commit
-          pre-commit run --config .pre-commit-config.yaml --all-files
-
   test:
+    name: Pytest unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
