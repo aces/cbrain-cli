@@ -1,10 +1,7 @@
-import urllib.error
-
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliApiError,
     CliValidationError,
-    api_get,
-    api_send,
 )
 from cbrain_cli.config import load_credentials, save_credentials
 
@@ -40,10 +37,11 @@ def switch_project(args):
             f"Invalid group ID '{group_id}'. Must be a number or 'all'", field="group_id"
         ) from None
 
-    _, switch_status = api_send(f"/groups/switch?id={group_id}")
+    client = CbrainClient.from_credentials()
+    _, switch_status = client.send("POST", f"/groups/switch?id={group_id}")
     if switch_status not in (200, 201, 204):
         raise CliApiError(f"Failed to switch project (HTTP {switch_status})")
-    group_data = api_get(f"/groups/{group_id}")
+    group_data = client.get(f"/groups/{group_id}")
 
     credentials = load_credentials()
     if credentials is not None:
@@ -77,7 +75,7 @@ def unswitch_project(args):
         previous_group_name = credentials.get("current_group_name")
 
     if previous_group_id:
-        api_send("/groups/switch")
+        CbrainClient.from_credentials().send("POST", "/groups/switch")
 
     if credentials is not None:
         credentials.pop("current_group_id", None)
@@ -112,9 +110,9 @@ def show_project(args):
     if project_id:
         # Show specific project by ID
         try:
-            return api_get(f"/groups/{project_id}")
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
+            return CbrainClient.from_credentials().get(f"/groups/{project_id}")
+        except CliApiError as e:
+            if e.status == 404:
                 raise CliApiError(f"Project with ID {project_id} not found") from None
             raise
 
@@ -127,9 +125,9 @@ def show_project(args):
         return None
 
     try:
-        return api_get(f"/groups/{current_group_id}")
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
+        return CbrainClient.from_credentials().get(f"/groups/{current_group_id}")
+    except CliApiError as e:
+        if e.status == 404:
             credentials.pop("current_group_id", None)
             credentials.pop("current_group_name", None)
             save_credentials(credentials)
@@ -151,4 +149,4 @@ def list_projects(args):
     list
         List of project dictionaries
     """
-    return api_get("/groups")
+    return CbrainClient.from_credentials().get("/groups")

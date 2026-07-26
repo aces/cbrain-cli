@@ -1,7 +1,7 @@
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliApiError,
     CliValidationError,
-    api_get,
     pagination,
 )
 
@@ -11,7 +11,7 @@ def list_tools(args):
     Get paginated list of tools from CBRAIN.
     """
     params = pagination(args, {})
-    return api_get("/tools", params=params)
+    return CbrainClient.from_credentials().get("/tools", params=params)
 
 
 def show_tool(args):
@@ -28,7 +28,7 @@ def show_tool(args):
     per_page = 20
     page = 1
     while True:
-        tools_page = api_get(
+        tools_page = CbrainClient.from_credentials().get(
             "/tools",
             params={"page": str(page), "per_page": str(per_page)},
         )

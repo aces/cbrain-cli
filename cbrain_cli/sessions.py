@@ -4,9 +4,9 @@ import urllib.error
 
 from cbrain_cli import config as cbrain_config
 from cbrain_cli.cli_utils import (
+    CbrainClient,
+    CliApiError,
     CliValidationError,
-    api_post_form,
-    api_send,
 )
 from cbrain_cli.config import DEFAULT_BASE_URL
 
@@ -46,8 +46,8 @@ def create_session(args):
     if not password:
         raise CliValidationError("Password is required", field="password")
 
-    response_data = api_post_form(
-        f"{cbrain_url}/session", {"login": username, "password": password}
+    response_data = CbrainClient(cbrain_url).post_form(
+        "/session", {"login": username, "password": password}
     )
 
     cbrain_api_token = response_data.get("cbrain_api_token")
@@ -106,16 +106,16 @@ def logout_session(args):
         return 0
 
     try:
-        _, status = api_send("/session", method="DELETE")
+        _, status = CbrainClient.from_credentials().send("DELETE", "/session")
         if status == 200:
             print("Successfully logged out from CBRAIN server.")
         else:
             print("Logout failed")
-    except urllib.error.HTTPError as e:
-        if e.code == 401:
+    except CliApiError as e:
+        if e.status == 401:
             print("Session already expired on server.")
         else:
-            print(f"Logout request failed: HTTP {e.code}")
+            print(f"Logout request failed: HTTP {e.status}")
     except urllib.error.URLError as e:
         print(f"Network error during logout: {e}")
 

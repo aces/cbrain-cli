@@ -1,10 +1,8 @@
 import argparse
-import urllib.error
-from unittest.mock import MagicMock
 
 import pytest
 
-from cbrain_cli.cli_utils import CliValidationError
+from cbrain_cli.cli_utils import CliApiError, CliValidationError
 from cbrain_cli.sessions import create_session, logout_session
 
 
@@ -28,8 +26,8 @@ def test_create_session_empty_credentials_file_allows_login(
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
     monkeypatch.setattr("getpass.getpass", lambda _: "secret")
     monkeypatch.setattr(
-        "cbrain_cli.sessions.api_post_form",
-        lambda *_a, **_k: {"cbrain_api_token": "newtok", "user_id": 1},
+        "cbrain_cli.cli_utils.CbrainClient.post_form",
+        lambda self, *_a, **_k: {"cbrain_api_token": "newtok", "user_id": 1},
     )
     result = create_session(argparse.Namespace())
     assert result == 0
@@ -53,7 +51,9 @@ def test_create_session_empty_password_raises(monkeypatch, sessions_creds_file):
 def test_create_session_no_token_in_response_returns_1(monkeypatch, sessions_creds_file, capsys):
     monkeypatch.setattr("builtins.input", lambda _: "admin")
     monkeypatch.setattr("getpass.getpass", lambda _: "secret")
-    monkeypatch.setattr("cbrain_cli.sessions.api_post_form", lambda *_: {"user_id": 1})
+    monkeypatch.setattr(
+        "cbrain_cli.cli_utils.CbrainClient.post_form", lambda self, *_: {"user_id": 1}
+    )
     result = create_session(argparse.Namespace())
     assert result == 1
     assert "Login failed" in capsys.readouterr().out
@@ -63,8 +63,8 @@ def test_create_session_success_saves_credentials(monkeypatch, sessions_creds_fi
     monkeypatch.setattr("builtins.input", lambda _: "admin")
     monkeypatch.setattr("getpass.getpass", lambda _: "secret")
     monkeypatch.setattr(
-        "cbrain_cli.sessions.api_post_form",
-        lambda *_: {"cbrain_api_token": "tok123", "user_id": 99},
+        "cbrain_cli.cli_utils.CbrainClient.post_form",
+        lambda self, *_: {"cbrain_api_token": "tok123", "user_id": 99},
     )
     result = create_session(argparse.Namespace())
     assert result == 0
@@ -96,7 +96,7 @@ def test_logout_session_success_sends_delete_and_removes_file(
     monkeypatch, sessions_creds_file, capsys
 ):
     sessions_creds_file.write_text('{"api_token": "tok", "cbrain_url": "http://localhost:3000"}')
-    monkeypatch.setattr("cbrain_cli.sessions.api_send", lambda *_, **__: ({}, 200))
+    monkeypatch.setattr("cbrain_cli.cli_utils.CbrainClient.send", lambda self, *_, **__: ({}, 200))
     result = logout_session(argparse.Namespace())
     assert result == 0
     assert not sessions_creds_file.exists()
@@ -105,14 +105,11 @@ def test_logout_session_success_sends_delete_and_removes_file(
 
 def test_logout_session_server_401_still_removes_file(monkeypatch, sessions_creds_file, capsys):
     sessions_creds_file.write_text('{"api_token": "tok", "cbrain_url": "http://localhost:3000"}')
-    monkeypatch.setattr(
-        "cbrain_cli.sessions.api_send",
-        MagicMock(
-            side_effect=urllib.error.HTTPError(
-                "http://localhost:3000/session", 401, "Unauthorized", {}, None
-            )
-        ),
-    )
+
+    def _raise_401(self, *_, **__):
+        raise CliApiError("Unauthorized", status=401)
+
+    monkeypatch.setattr("cbrain_cli.cli_utils.CbrainClient.send", _raise_401)
     result = logout_session(argparse.Namespace())
     assert result == 0
     assert not sessions_creds_file.exists()
@@ -124,8 +121,8 @@ def test_create_session_uses_default_url(monkeypatch, sessions_creds_file):
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
     monkeypatch.setattr("getpass.getpass", lambda _: "secret")
     monkeypatch.setattr(
-        "cbrain_cli.sessions.api_post_form",
-        lambda url, _: {"cbrain_api_token": "tok123", "user_id": 99},
+        "cbrain_cli.cli_utils.CbrainClient.post_form",
+        lambda self, url, _: {"cbrain_api_token": "tok123", "user_id": 99},
     )
     result = create_session(argparse.Namespace())
     assert result == 0

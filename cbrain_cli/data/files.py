@@ -2,10 +2,8 @@ import mimetypes
 import os
 
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliValidationError,
-    api_get,
-    api_post_multipart,
-    api_send,
     pagination,
 )
 
@@ -28,7 +26,7 @@ def show_file(args):
     file_id = getattr(args, "file", None)
     if not file_id:
         raise CliValidationError("File ID is required", field="file")
-    return api_get(f"/userfiles/{file_id}")
+    return CbrainClient.from_credentials().get(f"/userfiles/{file_id}")
 
 
 def upload_file(args):
@@ -80,7 +78,7 @@ def upload_file(args):
         file_content = f.read()
 
     body = body_text.encode("utf-8") + file_content + f"\r\n--{boundary}--\r\n".encode()
-    response_data, status = api_post_multipart(
+    response_data, status = CbrainClient.from_credentials().post_multipart(
         "/userfiles", body, f"multipart/form-data; boundary={boundary}"
     )
     return response_data, status, file_name, file_size, args.data_provider
@@ -100,7 +98,9 @@ def _change_provider(args, operation):
         "data_provider_id_for_mv_cp": dest_provider_id,
         operation: "",
     }
-    return api_send("/userfiles/change_provider", payload=payload)
+    return CbrainClient.from_credentials().send(
+        "POST", "/userfiles/change_provider", payload=payload
+    )
 
 
 def copy_file(args):
@@ -164,7 +164,7 @@ def list_files(args):
             params[key] = str(val)
 
     params = pagination(args, params)
-    return api_get("/userfiles", params=params)
+    return CbrainClient.from_credentials().get("/userfiles", params=params)
 
 
 def delete_file(args):
@@ -184,9 +184,9 @@ def delete_file(args):
     file_id = getattr(args, "file_id", None)
     if not file_id:
         raise CliValidationError("File ID is required", field="file_id")
-    data, _ = api_send(
+    data, _ = CbrainClient.from_credentials().send(
+        "DELETE",
         "/userfiles/delete_files",
-        method="DELETE",
         payload={"file_ids": [str(file_id)]},
     )
     return data

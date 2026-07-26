@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import CliValidationError, api_get
+from cbrain_cli.cli_utils import CbrainClient, CliValidationError
 
 
 def list_background_activities(args):
@@ -15,7 +15,7 @@ def list_background_activities(args):
     list or None
         List of background activity dictionaries if successful, None if error
     """
-    return api_get("/background_activities")
+    return CbrainClient.from_credentials().get("/background_activities")
 
 
 def show_background_activity(args):
@@ -36,4 +36,4 @@ def show_background_activity(args):
     activity_id = getattr(args, "id", None)
     if not activity_id:
         raise CliValidationError("Background activity ID is required", field="id")
-    return api_get(f"/background_activities/{activity_id}")
+    return CbrainClient.from_credentials().get(f"/background_activities/{activity_id}")

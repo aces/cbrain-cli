@@ -1,7 +1,6 @@
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliValidationError,
-    api_get,
-    api_send,
     json_printer,
     pagination,
 )
@@ -18,8 +17,8 @@ def list_tasks(args):
 
     Returns
     -------
-    list or None
-        List of task dictionaries, or None on error
+    list
+        List of task dictionaries
     """
     params = {}
     filter_name = getattr(args, "filter_name", None)
@@ -41,7 +40,7 @@ def list_tasks(args):
         )
 
     params = pagination(args, params)
-    return api_get("/tasks", params=params)
+    return CbrainClient.from_credentials().get("/tasks", params=params)
 
 
 def show_task(args):
@@ -55,18 +54,18 @@ def show_task(args):
 
     Returns
     -------
-    dict or None
-        Task details dictionary, or None on error
+    dict
+        Task details dictionary
     """
     task_id = getattr(args, "task", None)
     if not task_id:
         raise CliValidationError("Task ID is required", field="task")
-    return api_get(f"/tasks/{task_id}")
+    return CbrainClient.from_credentials().get(f"/tasks/{task_id}")
 
 
 def operation_task(args):
     """
     Operation on a task.
     """
-    data, _ = api_send("/tasks/operation")
+    data, _ = CbrainClient.from_credentials().send("POST", "/tasks/operation")
     json_printer(data)

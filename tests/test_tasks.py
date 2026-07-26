@@ -73,8 +73,8 @@ def test_list_tasks_unsupported_filter_raises():
 
 def test_operation_task_prints_json(monkeypatch, capsys):
     monkeypatch.setattr(
-        "cbrain_cli.data.tasks.api_send",
-        lambda *_, **__: ({"status": "ok"}, 200),
+        "cbrain_cli.cli_utils.CbrainClient.send",
+        lambda self, *_, **__: ({"status": "ok"}, 200),
     )
     from cbrain_cli.data.tasks import operation_task
 

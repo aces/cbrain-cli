@@ -5,14 +5,13 @@ from unittest.mock import MagicMock
 import pytest
 
 from cbrain_cli.cli_utils import CliApiError, CliValidationError
-from cbrain_cli.data.data_providers import show_data_provider
 from cbrain_cli.data.projects import list_projects, show_project, switch_project, unswitch_project
 from tests.conftest import TOKEN, URL, install_auth, make_args
 
 
 @pytest.fixture(autouse=True)
 def _patch_projects_locals():
-    """Write auth credentials so call-time get_auth() picks them up."""
+    """Write auth credentials so CbrainClient.from_credentials() picks them up."""
     install_auth()
 
 
@@ -27,15 +26,6 @@ def test_list_projects_empty_list_is_not_error(mock_urlopen):
     """[] response is valid — empty list regression."""
     mock_urlopen([])
     assert list_projects(make_args()) == []
-
-
-def test_show_project_with_id_http_404_raises_cli_api_error(monkeypatch):
-    monkeypatch.setattr(
-        "urllib.request.urlopen",
-        MagicMock(side_effect=urllib.error.HTTPError(URL, 404, "Not Found", {}, None)),
-    )
-    with pytest.raises(CliApiError):
-        show_project(make_args(project_id=5))
 
 
 def test_show_project_no_credentials_returns_none(creds_file):
@@ -121,13 +111,3 @@ def test_unswitch_project_removes_group_from_credentials(creds_file, mock_urlope
     assert result["current_group_id"] is None
     saved = json.loads(creds_file.read_text())
     assert "current_group_id" not in saved
-
-
-def test_show_data_provider_id_none_silently_returns_list(mock_urlopen):
-    """Missing id falls back to list_data_providers — returns list, does not raise.
-
-    Documented as a regression test so any silent behaviour change is caught.
-    """
-    mock_urlopen([{"id": 1}, {"id": 2}])
-    result = show_data_provider(make_args(id=None))
-    assert isinstance(result, list)

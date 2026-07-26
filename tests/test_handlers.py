@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import cbrain_cli.handlers as handlers
-from cbrain_cli.cli_utils import CliValidationError, handle_errors
+from cbrain_cli.cli_utils import CliApiError, CliValidationError, handle_errors
 from cbrain_cli.handlers import (
     handle_project_switch,
     handle_project_unswitch,
@@ -61,6 +61,8 @@ LIST_HANDLER_CASES = [
     ),
 ]
 
+NONE_RETURNS_1_CASES = [c for c in LIST_HANDLER_CASES if c[0] != "handle_task_list"]
+
 
 @pytest.mark.parametrize("handler_name,list_fn,fmt_fn", LIST_HANDLER_CASES)
 def test_list_handler_empty_list_returns_none(monkeypatch, capsys, handler_name, list_fn, fmt_fn):
@@ -72,7 +74,7 @@ def test_list_handler_empty_list_returns_none(monkeypatch, capsys, handler_name,
     assert "FORMATTED" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("handler_name,list_fn,fmt_fn", LIST_HANDLER_CASES)
+@pytest.mark.parametrize("handler_name,list_fn,fmt_fn", NONE_RETURNS_1_CASES)
 def test_list_handler_none_returns_1(monkeypatch, handler_name, list_fn, fmt_fn):
     fmt_called = []
     monkeypatch.setattr(list_fn, lambda _: None)
@@ -134,15 +136,13 @@ def test_handle_task_show_success_returns_none(monkeypatch):
     assert handle_task_show(make_args(task=2)) is None
 
 
-def test_handle_task_show_none_returns_1(monkeypatch):
-    monkeypatch.setattr("cbrain_cli.handlers.tasks.show_task", lambda _: None)
-    fmt_called = []
+def test_handle_task_show_api_error_returns_1(monkeypatch, capsys):
     monkeypatch.setattr(
-        "cbrain_cli.handlers.tasks_fmt.print_task_details",
-        lambda *_: fmt_called.append(True),
+        "cbrain_cli.handlers.tasks.show_task",
+        MagicMock(side_effect=CliApiError("Not Found", status=404)),
     )
-    assert handle_task_show(make_args(task=2)) == 1
-    assert fmt_called == []
+    assert handle_errors(handle_task_show)(make_args(task=2)) == 1
+    assert "Not Found" in capsys.readouterr().out
 
 
 def test_list_handler_validation_error_returns_1(monkeypatch):

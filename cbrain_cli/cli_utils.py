@@ -13,6 +13,86 @@ from pathlib import Path
 from cbrain_cli import config as cbrain_config
 from cbrain_cli.config import DEFAULT_HEADERS, DEFAULT_TIMEOUT, auth_headers
 
+
+class CbrainClient:
+    """
+    Holds auth state and issues JSON requests against a CBRAIN server.
+    """
+
+    def __init__(self, base_url, token=None, user_id=None, timeout=None):
+        self.base_url = base_url.rstrip("/")
+        self.token = token
+        self.user_id = user_id
+        self.timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
+
+    @classmethod
+    def from_credentials(cls, timeout=None):
+        """
+        Build a client from the saved credentials file.
+        """
+        creds = cbrain_config.load_credentials() or {}
+        return cls(
+            creds.get("cbrain_url", ""),
+            creds.get("api_token", ""),
+            creds.get("user_id"),
+            timeout,
+        )
+
+    def _request(self, method, path, *, headers=None, body=None, params=None):
+        """
+        Issue an HTTP request and return (raw_bytes, status).
+        """
+        target = path if path.startswith(("http://", "https://")) else f"{self.base_url}{path}"
+        if params:
+            target = f"{target}?{urllib.parse.urlencode(params)}"
+        hdrs = headers or auth_headers(self.token)
+        req = urllib.request.Request(target, data=body, headers=hdrs, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                return r.read(), r.status
+        except urllib.error.HTTPError as e:
+            raise CliApiError(e.reason or f"HTTP {e.code}", status=e.code) from e
+
+    def get(self, path, params=None):
+        """
+        Authenticated GET; returns parsed JSON.
+        """
+        raw, _ = self._request("GET", path, params=params)
+        return json.loads(raw.decode())
+
+    def send(self, method, path, payload=None):
+        """
+        Authenticated POST/PUT/DELETE with optional JSON body; returns (parsed, status).
+        """
+        hdrs = auth_headers(self.token)
+        body = None
+        if payload is not None:
+            hdrs["Content-Type"] = "application/json"
+            body = json.dumps(payload).encode()
+        raw, status = self._request(method, path, headers=hdrs, body=body)
+        decoded = raw.decode()
+        return (json.loads(decoded) if decoded.strip() else {}), status
+
+    def post_form(self, path, form_data, headers=None):
+        """
+        POST form-urlencoded data (unauthenticated); returns parsed JSON.
+        """
+        hdrs = headers or DEFAULT_HEADERS
+        body = urllib.parse.urlencode(form_data).encode()
+        raw, _ = self._request("POST", path, headers=hdrs, body=body)
+        return json.loads(raw.decode())
+
+    def post_multipart(self, path, body, content_type):
+        """
+        Authenticated multipart POST; returns (parsed JSON, status).
+        """
+        hdrs = auth_headers(self.token)
+        hdrs["Content-Type"] = content_type
+        hdrs["Content-Length"] = str(len(body))
+        raw, status = self._request("POST", path, headers=hdrs, body=body)
+        return json.loads(raw.decode()), status
+
+
 PAGINATABLE_ACTIONS = {
     ("file", "list"),
     ("dataprovider", "list"),
@@ -50,40 +130,25 @@ class CliApiError(Exception):
     Raised when the API returns an expected error response.
     """
 
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status
+
 
 class CliResponseError(Exception):
     """
     Raised when the API response is malformed or unexpected.
     """
 
-
-def get_auth():
-    """
-    Return (cbrain_url, api_token, user_id) from current credentials file.
-    """
-    creds = cbrain_config.load_credentials() or {}
-    return creds.get("cbrain_url"), creds.get("api_token"), creds.get("user_id")
-
-
-def _request_target(path, token=None):
-    """
-    Resolve (url, token) from path + optional token using call-time credentials.
-    """
-    if token is not None:
-        return path, token
-    base, token, _ = get_auth()
-    if path.startswith(("http://", "https://")):
-        return path, token
-    return f"{base}{path}", token
+    pass
 
 
 def is_authenticated():
     """
     Check if the user is authenticated.
     """
-    # Check if user is logged in.
-    cbrain_url, api_token, user_id = get_auth()
-    if not api_token or not cbrain_url or not user_id:
+    client = CbrainClient.from_credentials()
+    if not client.token or not client.base_url or not client.user_id:
         print("Not logged in. Use 'cbrain login' to login first.")
         return False
     return True
@@ -212,8 +277,10 @@ def handle_connection_error(error):
                 "Check your connection or set CBRAIN_TIMEOUT env var."
             )
         elif "Connection refused" in str(error):
-            cbrain_url, _, _ = get_auth()
-            print(f"Error: Cannot connect to CBRAIN server at {cbrain_url}")
+            print(
+                "Error: Cannot connect to CBRAIN server at "
+                f"{CbrainClient.from_credentials().base_url}"
+            )
             print("Please check if the CBRAIN server is running and accessible.")
         else:
             print(f"Connection failed: {error.reason}")
@@ -235,27 +302,29 @@ def handle_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except urllib.error.HTTPError as e:
-            handle_connection_error(e)
-            return 1
-        except urllib.error.URLError as e:
-            handle_connection_error(e)
-            return 1
-        except socket.timeout as e:
-            # Read-stage timeouts are raised bare, not wrapped in URLError.
-            handle_connection_error(urllib.error.URLError(e))
-            return 1
         except json.JSONDecodeError:
             print("Failed: Invalid response from server")
             return 1
         except KeyboardInterrupt:
             print("\nOperation cancelled")
             return 1
-        except (CliValidationError, CliApiError, CliResponseError) as e:
+        except (CliValidationError, CliResponseError) as e:
             print(f"Error: {e}")
             return 1
+        except CliApiError as e:
+            if isinstance(e.__cause__, urllib.error.HTTPError):
+                handle_connection_error(e.__cause__)
+            else:
+                print(f"Error: {e}")
+            return 1
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            handle_connection_error(e)
+            return 1
+        except socket.timeout as e:
+            handle_connection_error(urllib.error.URLError(e))
+            return 1
         except Exception as e:
-            print(f"Operation failed: {str(e)}")
+            print(f"Operation failed: {e}")
             return 1
 
     return wrapper
@@ -289,59 +358,6 @@ def version_info(args):
         return 0
     print(f"cbrain cli client version {cbrain_cli_version}")
     return 0
-
-
-def api_get(path, token=None, params=None):
-    """
-    Execute an authenticated GET request and return parsed JSON.
-    """
-    url, token = _request_target(path, token)
-    if params:
-        url = f"{url}?{urllib.parse.urlencode(params)}"
-    req = urllib.request.Request(url, headers=auth_headers(token), method="GET")
-    with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as r:
-        return json.loads(r.read().decode())
-
-
-def api_post_form(url, form_data, headers=None):
-    """
-    POST form-urlencoded data (unauthenticated) and return parsed JSON.
-    """
-    headers = headers or DEFAULT_HEADERS
-    body = urllib.parse.urlencode(form_data).encode()
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as r:
-        return json.loads(r.read().decode())
-
-
-def api_send(path, token=None, method="POST", payload=None):
-    """
-    Authenticated POST/PUT/DELETE. ``path`` is root-relative or absolute URL.
-    When ``token`` is omitted, credentials load at call time via ``get_auth()``.
-    """
-    url, token = _request_target(path, token)
-    headers = auth_headers(token)
-    body = None
-    if payload is not None:
-        headers["Content-Type"] = "application/json"
-        body = json.dumps(payload).encode()
-    req = urllib.request.Request(url, data=body, headers=headers, method=method)
-    with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as r:
-        raw = r.read().decode()
-        return (json.loads(raw) if raw.strip() else {}), r.status
-
-
-def api_post_multipart(path, body, content_type, token=None):
-    """
-    Authenticated multipart/form-data POST. Returns (parsed JSON, status).
-    """
-    url, token = _request_target(path, token)
-    headers = auth_headers(token)
-    headers["Content-Type"] = content_type
-    headers["Content-Length"] = str(len(body))
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=DEFAULT_TIMEOUT) as r:
-        return json.loads(r.read().decode()), r.status
 
 
 def output_json(args, data):

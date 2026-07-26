@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import CliValidationError, api_get
+from cbrain_cli.cli_utils import CbrainClient, CliValidationError
 
 
 def list_remote_resources(args):
@@ -15,7 +15,7 @@ def list_remote_resources(args):
     list
         List of remote resource dictionaries
     """
-    return api_get("/bourreaux")
+    return CbrainClient.from_credentials().get("/bourreaux")
 
 
 def show_remote_resource(args):
@@ -35,4 +35,4 @@ def show_remote_resource(args):
     resource_id = getattr(args, "remote_resource", None)
     if not resource_id:
         raise CliValidationError("Remote resource ID is required", field="remote_resource")
-    return api_get(f"/bourreaux/{resource_id}")
+    return CbrainClient.from_credentials().get(f"/bourreaux/{resource_id}")

@@ -1,7 +1,6 @@
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliValidationError,
-    api_get,
-    api_send,
     pagination,
 )
 
@@ -34,7 +33,7 @@ def list_tags(args):
         List of tag dictionaries
     """
     params = pagination(args, {})
-    return api_get("/tags", params=params)
+    return CbrainClient.from_credentials().get("/tags", params=params)
 
 
 def show_tag(args):
@@ -55,7 +54,7 @@ def show_tag(args):
     tag_id = getattr(args, "id", None)
     if not tag_id:
         raise CliValidationError("Tag ID is required", field="id")
-    return api_get(f"/tags/{tag_id}")
+    return CbrainClient.from_credentials().get(f"/tags/{tag_id}")
 
 
 def create_tag(args):
@@ -74,7 +73,7 @@ def create_tag(args):
     """
     # Get tag details from command line arguments
     payload = _tag_payload(args)
-    data, status = api_send("/tags", payload=payload)
+    data, status = CbrainClient.from_credentials().send("POST", "/tags", payload=payload)
     success = status in (200, 201, 204)
     return data, success, None, status
 
@@ -98,7 +97,7 @@ def update_tag(args):
     if not tag_id:
         raise CliValidationError("Tag ID is required", field="tag_id")
     payload = _tag_payload(args)
-    data, status = api_send(f"/tags/{tag_id}", method="PUT", payload=payload)
+    data, status = CbrainClient.from_credentials().send("PUT", f"/tags/{tag_id}", payload=payload)
     success = status in (200, 201, 204)
     return data, success, None, status
 
@@ -121,6 +120,6 @@ def delete_tag(args):
     tag_id = getattr(args, "tag_id", None)
     if not tag_id:
         raise CliValidationError("Tag ID is required", field="tag_id")
-    _, status = api_send(f"/tags/{tag_id}", method="DELETE")
+    _, status = CbrainClient.from_credentials().send("DELETE", f"/tags/{tag_id}")
     success = status in (200, 201, 204)
     return success, None, status

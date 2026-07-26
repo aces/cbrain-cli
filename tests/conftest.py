@@ -31,7 +31,7 @@ def write_auth_credentials(path, *, user_id=42, **overrides):
 
 
 def install_auth(*, user_id=None):
-    """Write auth credentials so call-time get_auth() / api_* helpers pick them up."""
+    """Write auth credentials so CbrainClient.from_credentials() picks them up."""
     from cbrain_cli import config
 
     uid = 42 if user_id is None else user_id
@@ -115,7 +115,7 @@ def capture_urlopen(monkeypatch):
 
 @pytest.fixture
 def fake_credentials(_isolate_credentials):
-    """Write known credentials so get_auth() / is_authenticated() see them."""
+    """Write known credentials so CbrainClient.from_credentials() / is_authenticated() see them."""
     write_auth_credentials(_isolate_credentials, user_id=1)
 
 
