@@ -34,11 +34,14 @@ def test_show_data_provider_with_id_returns_dict(mock_urlopen):
     assert result["id"] == 2
 
 
-def test_show_data_provider_id_none_silently_returns_list(mock_urlopen):
-    """Missing id falls back to list_data_providers — returns list, does not raise."""
-    mock_urlopen([{"id": 1}, {"id": 2}])
+def test_show_data_provider_id_none_falls_back_to_list(capture_urlopen):
+    """Missing id falls back to list_data_providers hits list endpoint, does not raise."""
+    configure, captured = capture_urlopen
+    configure(raw_body=b'[{"id": 1}, {"id": 2}]')
     result = show_data_provider(_args(id=None))
     assert isinstance(result, list)
+    assert "/data_providers" in captured["url"]
+    assert "/data_providers/" not in captured["url"].split("?")[0]
 
 
 def test_show_data_provider_api_error_in_body_raises(mock_urlopen):

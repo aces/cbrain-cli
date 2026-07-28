@@ -33,7 +33,8 @@ def test_show_project_no_credentials_returns_none(creds_file):
     assert result is None
 
 
-def test_show_project_by_id_not_found_raises(monkeypatch):
+def test_show_project_by_id_http_404_raises_cli_api_error(monkeypatch):
+    """HTTP 404 on project lookup is converted to CliApiError."""
     monkeypatch.setattr(
         "urllib.request.urlopen",
         MagicMock(side_effect=urllib.error.HTTPError(URL, 404, "Not Found", {}, None)),

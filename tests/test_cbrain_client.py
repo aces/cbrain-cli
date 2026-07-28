@@ -44,6 +44,30 @@ def test_get_params(client, capture_urlopen):
     assert "page=1" in captured["url"]
 
 
+def test_get_multiple_params(client, capture_urlopen):
+    configure, captured = capture_urlopen
+    configure(raw_body=b"[]")
+    client.get("/tools", params={"page": "1", "per_page": "25"})
+    assert "page=1" in captured["url"]
+    assert "per_page=25" in captured["url"]
+
+
+def test_get_absolute_url(client, capture_urlopen):
+    configure, captured = capture_urlopen
+    configure({"id": 1})
+    client.get(f"{URL}/tools")
+    assert captured["url"] == f"{URL}/tools"
+
+
+def test_get_relative_path_from_credentials(capture_urlopen):
+    install_auth()
+    configure, captured = capture_urlopen
+    configure({})
+    CbrainClient.from_credentials().get("/tools")
+    assert captured["url"] == f"{URL}/tools"
+    assert captured["headers"].get("Authorization") == f"Bearer {TOKEN}"
+
+
 def test_get_wraps_http_error(client, capture_urlopen):
     configure, _ = capture_urlopen
     configure(side_effect=urllib.error.HTTPError(URL, 404, "Not Found", {}, None))
