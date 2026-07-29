@@ -4,6 +4,18 @@ This is the 3-month project brief. The detailed technical backlog is in `plan.md
 
 The goal is not to rewrite the CLI. The goal is to fix the highest-impact correctness issues, add development guardrails, and establish one clean pattern that future contributors can continue.
 
+## Current Progress
+
+As of PR #50:
+
+- Phase 1 correctness work is complete.
+- The planned Phase 2 guardrails are complete.
+- Phase 3 items 14 and 17 are complete; items 15, 16, and 18 remain in the backlog.
+- Phase 4 items 19-26 are complete. The work went beyond the original pattern-only target: all current data command families now use `CbrainClient`.
+- The testing strategy, compatibility target, and architecture boundaries are documented in `README.md`.
+
+The authoritative item-by-item status remains in `plan.md`.
+
 ## Project Goal
 
 Improve CBRAIN CLI reliability and maintainability by:
@@ -11,7 +23,7 @@ Improve CBRAIN CLI reliability and maintainability by:
 - fixing the correctness bugs in Phase 1 of `plan.md`;
 - adding tests, linting, formatting, and CI/pre-commit guardrails from Phase 2;
 - improving output consistency for a selected command slice from Phase 3;
-- starting, but not completing, the architecture cleanup in Phase 4;
+- originally establishing a Phase 4 architecture pattern, which was later completed across the current data command families in PR #50;
 - documenting what changed and what remains.
 
 Success means reviewed, tested, merged improvements. It does not mean touching every module.
@@ -32,9 +44,9 @@ Do not try to make every command perfect. Pick a representative subset, preferab
 
 Avoid broad public command renaming during the summer unless explicitly agreed.
 
-### Phase 4: Pattern Only
+### Phase 4: Pattern Target (Completed)
 
-Start Phase 4 by establishing a pattern, not by migrating the whole codebase.
+The original scope was to establish a pattern without requiring a whole-codebase migration. PR #50 completed that pattern and migrated the current data command families.
 
 Recommended target:
 
@@ -43,15 +55,19 @@ Recommended target:
 - introduce a small `CbrainClient` or shared API helper;
 - migrate one command family, preferably `task` or `project`.
 
+**Result:** Completed and exceeded in PR #50. Future work should preserve the established boundaries rather than introduce parallel request helpers.
+
 ### Phase 5: Lightweight
 
 Document the architecture boundaries, test workflow, Ruff workflow, supported/tested CBRAIN API version if known, and remaining follow-up work.
 
+**Result:** Completed after PR #50. The compatibility statement deliberately names the tested server branch rather than promising an unsupported numbered API version.
+
 ## Out Of Scope
 
-Do not attempt these unless the required work is already complete and reviewed:
+These were originally out of scope unless required work was complete and reviewed:
 
-- migrating every command to `CbrainClient`;
+- migrating every command to `CbrainClient` (completed and reviewed in PR #50);
 - rewriting all return contracts across the whole CLI;
 - making every command fully output-consistent;
 - redesigning all destructive command safety behavior;
@@ -104,6 +120,8 @@ Note: in this repository, "capture tests" means the existing shell-based CLI out
 - Add tests for the new pattern.
 - Document the remaining backlog against `plan.md`.
 
+**Progress:** Completed in PR #50, including broader migration and regression coverage.
+
 ## Expectations For You
 
 - Work from your own fork of the repository.
@@ -140,3 +158,5 @@ The summer project is successful if:
 - the selected command slice has consistent output behavior;
 - one command family demonstrates the new architecture pattern;
 - documentation explains what was done and what remains.
+
+All definition-of-done criteria above are now met. Remaining Phase 3 and ongoing documentation work stay tracked in `plan.md`.
