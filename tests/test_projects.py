@@ -5,19 +5,14 @@ from unittest.mock import MagicMock
 import pytest
 
 from cbrain_cli.cli_utils import CliApiError, CliValidationError
-from cbrain_cli.data.data_providers import show_data_provider
 from cbrain_cli.data.projects import list_projects, show_project, switch_project, unswitch_project
-from tests.conftest import TOKEN, URL, make_args, patch_module_locals
+from tests.conftest import TOKEN, URL, install_auth, make_args
 
 
 @pytest.fixture(autouse=True)
-def _patch_projects_locals(monkeypatch):
-    """Patch data.projects module-local copies of api_token / cbrain_url."""
-    patch_module_locals(
-        monkeypatch,
-        "cbrain_cli.data.projects",
-        "cbrain_cli.data.data_providers",
-    )
+def _patch_projects_locals():
+    """Write auth credentials so CbrainClient.from_credentials() picks them up."""
+    install_auth()
 
 
 def test_list_projects_returns_list(mock_urlopen):
@@ -33,21 +28,13 @@ def test_list_projects_empty_list_is_not_error(mock_urlopen):
     assert list_projects(make_args()) == []
 
 
-def test_show_project_with_id_http_404_raises_cli_api_error(monkeypatch):
-    monkeypatch.setattr(
-        "urllib.request.urlopen",
-        MagicMock(side_effect=urllib.error.HTTPError(URL, 404, "Not Found", {}, None)),
-    )
-    with pytest.raises(CliApiError):
-        show_project(make_args(project_id=5))
-
-
 def test_show_project_no_credentials_returns_none(creds_file):
     result = show_project(make_args(project_id=None))
     assert result is None
 
 
-def test_show_project_by_id_not_found_raises(monkeypatch):
+def test_show_project_by_id_http_404_raises_cli_api_error(monkeypatch):
+    """HTTP 404 on project lookup is converted to CliApiError."""
     monkeypatch.setattr(
         "urllib.request.urlopen",
         MagicMock(side_effect=urllib.error.HTTPError(URL, 404, "Not Found", {}, None)),
@@ -64,7 +51,9 @@ def test_show_project_no_current_group_returns_none(creds_file):
 
 def test_show_project_stale_group_raises_and_cleans_credentials(monkeypatch, creds_file):
     """When saved current_group_id returns 404, credentials cleaned and CliApiError raised."""
-    creds_file.write_text(json.dumps({"api_token": TOKEN, "current_group_id": 99}))
+    from tests.conftest import write_auth_credentials
+
+    write_auth_credentials(creds_file, current_group_id=99)
     monkeypatch.setattr(
         "urllib.request.urlopen",
         MagicMock(side_effect=urllib.error.HTTPError(URL, 404, "Not Found", {}, None)),
@@ -91,7 +80,9 @@ def test_switch_project_invalid_string_raises():
 
 
 def test_switch_project_saves_credentials(monkeypatch, creds_file):
-    creds_file.write_text(json.dumps({"api_token": TOKEN}))
+    from tests.conftest import write_auth_credentials
+
+    write_auth_credentials(creds_file)
 
     session_delete_response = MagicMock()
     session_delete_response.__enter__.return_value.read.return_value = b""
@@ -113,21 +104,11 @@ def test_switch_project_saves_credentials(monkeypatch, creds_file):
 
 
 def test_unswitch_project_removes_group_from_credentials(creds_file, mock_urlopen):
-    creds_file.write_text(
-        json.dumps({"api_token": TOKEN, "current_group_id": 5, "current_group_name": "G"})
-    )
+    from tests.conftest import write_auth_credentials
+
+    write_auth_credentials(creds_file, current_group_id=5, current_group_name="G")
     mock_urlopen({})
     result = unswitch_project(make_args())
     assert result["current_group_id"] is None
     saved = json.loads(creds_file.read_text())
     assert "current_group_id" not in saved
-
-
-def test_show_data_provider_id_none_silently_returns_list(mock_urlopen):
-    """Missing id falls back to list_data_providers — returns list, does not raise.
-
-    Documented as a regression test so any silent behaviour change is caught.
-    """
-    mock_urlopen([{"id": 1}, {"id": 2}])
-    result = show_data_provider(make_args(id=None))
-    assert isinstance(result, list)

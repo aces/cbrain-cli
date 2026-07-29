@@ -2,13 +2,13 @@ import pytest
 
 from cbrain_cli.cli_utils import CliValidationError
 from cbrain_cli.data.tags import create_tag, delete_tag, list_tags, show_tag, update_tag
+from tests.conftest import install_auth
 from tests.conftest import make_args as _args
-from tests.conftest import patch_module_locals
 
 
 @pytest.fixture(autouse=True)
-def _patch_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.tags")
+def _patch_locals():
+    install_auth()
 
 
 def _tag_args(**kwargs):

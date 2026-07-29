@@ -2,12 +2,12 @@ import pytest
 
 from cbrain_cli.cli_utils import CliValidationError
 from cbrain_cli.data.tasks import list_tasks, show_task
-from tests.conftest import make_args, patch_module_locals
+from tests.conftest import install_auth, make_args
 
 
 @pytest.fixture(autouse=True)
-def _patch_tasks_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.tasks")
+def _patch_tasks_locals():
+    install_auth()
 
 
 def make_task_args(**kwargs):
@@ -20,8 +20,8 @@ def make_task_args(**kwargs):
     "filter_name,bourreau_id,raises",
     [
         (None, None, False),
-        ("bourreau-id", 7, False),
-        ("bourreau-id", None, True),
+        ("bourreau_id", 7, False),
+        ("bourreau_id", None, True),
         (None, 7, True),
     ],
 )
@@ -57,8 +57,13 @@ def test_show_task_returns_dict(mock_urlopen):
 def test_list_tasks_sends_bourreau_id_query(capture_urlopen):
     configure, captured = capture_urlopen
     configure([])
-    list_tasks(make_task_args(filter_name="bourreau-id", bourreau_id=7))
+    list_tasks(make_task_args(filter_name="bourreau_id", bourreau_id=7))
     assert "bourreau_id=7" in captured["url"]
+
+
+def test_list_tasks_rejects_kebab_filter_name():
+    with pytest.raises(CliValidationError):
+        list_tasks(make_task_args(filter_name="bourreau-id", bourreau_id=7))
 
 
 def test_list_tasks_unsupported_filter_raises():
@@ -68,8 +73,8 @@ def test_list_tasks_unsupported_filter_raises():
 
 def test_operation_task_prints_json(monkeypatch, capsys):
     monkeypatch.setattr(
-        "cbrain_cli.data.tasks.api_send",
-        lambda *_, **__: ({"status": "ok"}, 200),
+        "cbrain_cli.cli_utils.CbrainClient.send",
+        lambda self, *_, **__: ({"status": "ok"}, 200),
     )
     from cbrain_cli.data.tasks import operation_task
 

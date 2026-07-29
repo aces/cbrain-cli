@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import cbrain_cli.handlers as handlers
-from cbrain_cli.cli_utils import CliValidationError, handle_errors
+from cbrain_cli.cli_utils import CliApiError, CliValidationError, handle_errors
 from cbrain_cli.handlers import (
     handle_project_switch,
     handle_project_unswitch,
@@ -11,7 +11,7 @@ from cbrain_cli.handlers import (
     handle_task_show,
 )
 from cbrain_cli.users import user_details, whoami_user
-from tests.conftest import make_args, parse_json_output, patch_module_locals
+from tests.conftest import install_auth, make_args, parse_json_output
 
 LIST_HANDLER_CASES = [
     (
@@ -61,6 +61,8 @@ LIST_HANDLER_CASES = [
     ),
 ]
 
+NONE_RETURNS_1_CASES = [c for c in LIST_HANDLER_CASES if c[0] != "handle_task_list"]
+
 
 @pytest.mark.parametrize("handler_name,list_fn,fmt_fn", LIST_HANDLER_CASES)
 def test_list_handler_empty_list_returns_none(monkeypatch, capsys, handler_name, list_fn, fmt_fn):
@@ -72,7 +74,7 @@ def test_list_handler_empty_list_returns_none(monkeypatch, capsys, handler_name,
     assert "FORMATTED" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("handler_name,list_fn,fmt_fn", LIST_HANDLER_CASES)
+@pytest.mark.parametrize("handler_name,list_fn,fmt_fn", NONE_RETURNS_1_CASES)
 def test_list_handler_none_returns_1(monkeypatch, handler_name, list_fn, fmt_fn):
     fmt_called = []
     monkeypatch.setattr(list_fn, lambda _: None)
@@ -134,15 +136,13 @@ def test_handle_task_show_success_returns_none(monkeypatch):
     assert handle_task_show(make_args(task=2)) is None
 
 
-def test_handle_task_show_none_returns_1(monkeypatch):
-    monkeypatch.setattr("cbrain_cli.handlers.tasks.show_task", lambda _: None)
-    fmt_called = []
+def test_handle_task_show_api_error_returns_1(monkeypatch, capsys):
     monkeypatch.setattr(
-        "cbrain_cli.handlers.tasks_fmt.print_task_details",
-        lambda *_: fmt_called.append(True),
+        "cbrain_cli.handlers.tasks.show_task",
+        MagicMock(side_effect=CliApiError("Not Found", status=404)),
     )
-    assert handle_task_show(make_args(task=2)) == 1
-    assert fmt_called == []
+    assert handle_errors(handle_task_show)(make_args(task=2)) == 1
+    assert "Not Found" in capsys.readouterr().out
 
 
 def test_list_handler_validation_error_returns_1(monkeypatch):
@@ -153,10 +153,11 @@ def test_list_handler_validation_error_returns_1(monkeypatch):
     assert handle_errors(handle_task_list)(make_args()) == 1
 
 
-def test_user_details_sends_current_token_in_header(monkeypatch, capture_urlopen):
-    """auth_headers(api_token) is called inside user_details, not at import time."""
-    patch_module_locals(monkeypatch, "cbrain_cli.users")
-    monkeypatch.setattr("cbrain_cli.users.api_token", "new-token")
+def test_user_details_sends_current_token_in_header(monkeypatch, capture_urlopen, creds_file):
+    """auth_headers(api_token) uses call-time credentials, not import-time globals."""
+    from tests.conftest import write_auth_credentials
+
+    write_auth_credentials(creds_file, api_token="new-token")
 
     configure, captured = capture_urlopen
     configure({"id": 1, "login": "admin"})
@@ -167,7 +168,7 @@ def test_user_details_sends_current_token_in_header(monkeypatch, capture_urlopen
 
 def test_whoami_user_version_does_not_print_debug_lines(monkeypatch, capsys):
     """whoami_user with version=True must not print DEBUG: lines."""
-    patch_module_locals(monkeypatch, "cbrain_cli.users", user_id=1)
+    install_auth(user_id=1)
 
     monkeypatch.setattr(
         "cbrain_cli.users.user_details",

@@ -9,13 +9,13 @@ from cbrain_cli.data.files import (
     show_file,
     upload_file,
 )
+from tests.conftest import install_auth
 from tests.conftest import make_args as _args
-from tests.conftest import patch_module_locals
 
 
 @pytest.fixture(autouse=True)
-def _patch_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.files")
+def _patch_locals():
+    install_auth()
 
 
 def test_show_file_missing_id_raises():
@@ -53,8 +53,12 @@ def test_list_files_passes_filter_params(monkeypatch):
         return cm
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
-    list_files(_args(group_id=5, dp_id=None, user_id=None, parent_id=None, file_type=None))
+    list_files(_args(group_id=5, dp_id=9, user_id=None, parent_id=None, file_type="TextFile"))
     assert "group_id=5" in captured["url"]
+    assert "data_provider_id=9" in captured["url"]
+    assert "type=TextFile" in captured["url"]
+    assert "dp_id=" not in captured["url"]
+    assert "file_type=" not in captured["url"]
 
 
 def test_delete_file_missing_id_raises():

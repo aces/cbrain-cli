@@ -5,13 +5,13 @@ from cbrain_cli.data.background_activities import (
     list_background_activities,
     show_background_activity,
 )
+from tests.conftest import install_auth
 from tests.conftest import make_args as _args
-from tests.conftest import patch_module_locals
 
 
 @pytest.fixture(autouse=True)
-def _patch_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.background_activities")
+def _patch_locals():
+    install_auth()
 
 
 def test_list_background_activities_returns_list(mock_urlopen):

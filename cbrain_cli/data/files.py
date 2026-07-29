@@ -1,17 +1,11 @@
-import json
 import mimetypes
 import os
-import urllib.request
 
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliValidationError,
-    api_get,
-    api_send,
-    api_token,
-    cbrain_url,
     pagination,
 )
-from cbrain_cli.config import DEFAULT_TIMEOUT, auth_headers
 
 
 def show_file(args):
@@ -32,7 +26,7 @@ def show_file(args):
     file_id = getattr(args, "file", None)
     if not file_id:
         raise CliValidationError("File ID is required", field="file")
-    return api_get(f"{cbrain_url}/userfiles/{file_id}", api_token)
+    return CbrainClient.from_credentials().get(f"/userfiles/{file_id}")
 
 
 def upload_file(args):
@@ -84,17 +78,10 @@ def upload_file(args):
         file_content = f.read()
 
     body = body_text.encode("utf-8") + file_content + f"\r\n--{boundary}--\r\n".encode()
-
-    headers = auth_headers(api_token)
-    headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
-    headers["Content-Length"] = str(len(body))
-
-    request = urllib.request.Request(
-        f"{cbrain_url}/userfiles", data=body, headers=headers, method="POST"
+    response_data, status = CbrainClient.from_credentials().post_multipart(
+        "/userfiles", body, f"multipart/form-data; boundary={boundary}"
     )
-    with urllib.request.urlopen(request, timeout=DEFAULT_TIMEOUT) as response:
-        response_data = json.loads(response.read().decode("utf-8"))
-        return response_data, response.status, file_name, file_size, args.data_provider
+    return response_data, status, file_name, file_size, args.data_provider
 
 
 def _change_provider(args, operation):
@@ -111,7 +98,9 @@ def _change_provider(args, operation):
         "data_provider_id_for_mv_cp": dest_provider_id,
         operation: "",
     }
-    return api_send(f"{cbrain_url}/userfiles/change_provider", api_token, payload=payload)
+    return CbrainClient.from_credentials().send(
+        "POST", "/userfiles/change_provider", payload=payload
+    )
 
 
 def copy_file(args):
@@ -175,7 +164,7 @@ def list_files(args):
             params[key] = str(val)
 
     params = pagination(args, params)
-    return api_get(f"{cbrain_url}/userfiles", api_token, params)
+    return CbrainClient.from_credentials().get("/userfiles", params=params)
 
 
 def delete_file(args):
@@ -195,10 +184,9 @@ def delete_file(args):
     file_id = getattr(args, "file_id", None)
     if not file_id:
         raise CliValidationError("File ID is required", field="file_id")
-    data, _ = api_send(
-        f"{cbrain_url}/userfiles/delete_files",
-        api_token,
-        method="DELETE",
+    data, _ = CbrainClient.from_credentials().send(
+        "DELETE",
+        "/userfiles/delete_files",
         payload={"file_ids": [str(file_id)]},
     )
     return data

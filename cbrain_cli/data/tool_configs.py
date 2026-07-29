@@ -1,8 +1,6 @@
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliValidationError,
-    api_get,
-    api_token,
-    cbrain_url,
     pagination,
 )
 
@@ -18,7 +16,7 @@ def list_tool_configs(args):
         configuration details.
     """
     params = pagination(args, {})
-    return api_get(f"{cbrain_url}/tool_configs", api_token, params)
+    return CbrainClient.from_credentials().get("/tool_configs", params=params)
 
 
 def show_tool_config(args):
@@ -33,7 +31,7 @@ def show_tool_config(args):
     config_id = getattr(args, "id", None)
     if not config_id:
         raise CliValidationError("Tool configuration ID is required", field="id")
-    return api_get(f"{cbrain_url}/tool_configs/{config_id}", api_token)
+    return CbrainClient.from_credentials().get(f"/tool_configs/{config_id}")
 
 
 def tool_config_boutiques_descriptor(args):
@@ -48,4 +46,4 @@ def tool_config_boutiques_descriptor(args):
     config_id = getattr(args, "id", None)
     if not config_id:
         raise CliValidationError("Tool configuration ID is required", field="id")
-    return api_get(f"{cbrain_url}/tool_configs/{config_id}/boutiques_descriptor", api_token)
+    return CbrainClient.from_credentials().get(f"/tool_configs/{config_id}/boutiques_descriptor")

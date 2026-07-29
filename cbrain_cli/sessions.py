@@ -2,14 +2,13 @@ import datetime
 import getpass
 import urllib.error
 
+from cbrain_cli import config as cbrain_config
 from cbrain_cli.cli_utils import (
+    CbrainClient,
+    CliApiError,
     CliValidationError,
-    api_post_form,
-    api_send,
-    api_token,
-    cbrain_url,
 )
-from cbrain_cli.config import CREDENTIALS_FILE, DEFAULT_BASE_URL, load_credentials, save_credentials
+from cbrain_cli.config import DEFAULT_BASE_URL
 
 
 # MARK: Create Session.
@@ -28,8 +27,8 @@ def create_session(args):
         Exit code (0 on success, 1 on failure).
     """
 
-    if CREDENTIALS_FILE.exists():
-        creds = load_credentials()
+    if cbrain_config.CREDENTIALS_FILE.exists():
+        creds = cbrain_config.load_credentials()
         if creds and creds.get("api_token") and creds.get("cbrain_url"):
             print("Already logged in. Use 'cbrain logout' to logout.")
             return 1
@@ -47,8 +46,8 @@ def create_session(args):
     if not password:
         raise CliValidationError("Password is required", field="password")
 
-    response_data = api_post_form(
-        f"{cbrain_url}/session", {"login": username, "password": password}
+    response_data = CbrainClient(cbrain_url).post_form(
+        "/session", {"login": username, "password": password}
     )
 
     cbrain_api_token = response_data.get("cbrain_api_token")
@@ -65,9 +64,9 @@ def create_session(args):
         "timestamp": datetime.datetime.now().isoformat(),
     }
 
-    save_credentials(credentials)
+    cbrain_config.save_credentials(credentials)
 
-    print(f"Connection successful, API token saved in {CREDENTIALS_FILE}")
+    print(f"Connection successful, API token saved in {cbrain_config.CREDENTIALS_FILE}")
     return 0
 
 
@@ -87,38 +86,40 @@ def logout_session(args):
         Exit code (0 on success).
     """
 
-    if not CREDENTIALS_FILE.exists():
+    if not cbrain_config.CREDENTIALS_FILE.exists():
         print("Not logged in. Use 'cbrain login' to login first.")
         return 0
 
-    credentials = load_credentials()
+    credentials = cbrain_config.load_credentials()
     if credentials is None:
         print("Invalid credentials file. Removing local session.")
-        CREDENTIALS_FILE.unlink(missing_ok=True)
-        print(f"Local session removed from {CREDENTIALS_FILE}")
+        cbrain_config.CREDENTIALS_FILE.unlink(missing_ok=True)
+        print(f"Local session removed from {cbrain_config.CREDENTIALS_FILE}")
         return 0
 
+    cbrain_url = credentials.get("cbrain_url")
+    api_token = credentials.get("api_token")
     if not cbrain_url or not api_token:
         print("Invalid credentials file. Removing local session.")
-        CREDENTIALS_FILE.unlink(missing_ok=True)
-        print(f"Local session removed from {CREDENTIALS_FILE}")
+        cbrain_config.CREDENTIALS_FILE.unlink(missing_ok=True)
+        print(f"Local session removed from {cbrain_config.CREDENTIALS_FILE}")
         return 0
 
     try:
-        _, status = api_send(f"{cbrain_url}/session", api_token, method="DELETE")
+        _, status = CbrainClient.from_credentials().send("DELETE", "/session")
         if status == 200:
             print("Successfully logged out from CBRAIN server.")
         else:
             print("Logout failed")
-    except urllib.error.HTTPError as e:
-        if e.code == 401:
+    except CliApiError as e:
+        if e.status == 401:
             print("Session already expired on server.")
         else:
-            print(f"Logout request failed: HTTP {e.code}")
+            print(f"Logout request failed: HTTP {e.status}")
     except urllib.error.URLError as e:
         print(f"Network error during logout: {e}")
 
-    if CREDENTIALS_FILE.exists():
-        CREDENTIALS_FILE.unlink()
-        print(f"Local session removed from {CREDENTIALS_FILE}")
+    if cbrain_config.CREDENTIALS_FILE.exists():
+        cbrain_config.CREDENTIALS_FILE.unlink()
+        print(f"Local session removed from {cbrain_config.CREDENTIALS_FILE}")
     return 0

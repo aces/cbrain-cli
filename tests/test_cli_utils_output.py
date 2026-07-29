@@ -64,8 +64,14 @@ def test_dynamic_table_print_header_mismatch_raises():
 
 
 def test_version_info(capsys):
-    version_info(MagicMock(json=False, jsonl=False))
-    assert f"cbrain cli client version {_setup_cfg_version()}" in capsys.readouterr().out
+    import importlib.metadata
+
+    try:
+        expected = importlib.metadata.version("cbrain-cli")
+    except importlib.metadata.PackageNotFoundError:
+        expected = _setup_cfg_version()
+    assert version_info(MagicMock(json=False, jsonl=False)) == 0
+    assert f"cbrain cli client version {expected}" in capsys.readouterr().out
 
 
 def test_version_info_prefers_package_metadata(monkeypatch, capsys):
