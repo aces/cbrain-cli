@@ -20,10 +20,12 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 - Phase 2 items 10-12 completed in PR #49.
 - Phase 2 item 13 completed in PR #46.
 - Phase 3 items 14 and 17 completed in PR #49.
-- Phase 4 items 19-26 completed in PR #50.
-- Phase 5 items 27-29 documented after PR #50.
+- Phase 4 item 24 completed in PR #48.
+- Phase 4 items 20, 22, 23, 25, and 26 completed in PR #50.
+- Phase 4 items 19 and 21 partially completed in PR #50.
+- Phase 5 items 28 and 29 completed in the documentation update after PR #50; item 27 is partially complete.
 
-Open work is concentrated in Phase 3 items 15, 16, and 18. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
+Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and Phase 5 item 27. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
 
 # Phase 1: Correctness Fixes
 
@@ -222,7 +224,7 @@ Open work is concentrated in Phase 3 items 15, 16, and 18. Phase 5 documentation
 
 **Problem:** Not-implemented paths print prose and return inconsistently.
 
-**Known examples:** `project switch all`, `project unswitch`, `task operation`.
+**Known example:** `project switch all`. `project unswitch` and `task operation` are implemented; the remaining layering issue in `task operation` is tracked under items 19 and 21.
 
 **Do:**
 - Decide whether each command should exist.
@@ -273,7 +275,9 @@ Open work is concentrated in Phase 3 items 15, 16, and 18. Phase 5 documentation
 
 ## 19. Define command return contracts
 
-**Status:** Completed in PR #50.
+**Status:** Partially completed in PR #50.
+
+**Remaining:** `task operation` is still dispatched directly to a data-layer function that formats output. Move orchestration to a handler and return structured domain data from the data function.
 
 **Problem:** Functions return mixed values: `None`, `1`, lists, dicts, and tuples.
 
@@ -299,7 +303,9 @@ Open work is concentrated in Phase 3 items 15, 16, and 18. Phase 5 documentation
 
 ## 21. Move printing out of data modules
 
-**Status:** Completed in PR #50.
+**Status:** Partially completed in PR #50.
+
+**Remaining:** `cbrain_cli/data/tasks.py::operation_task()` still calls `json_printer()` directly. Return data instead and let a handler or formatter own presentation.
 
 **Problem:** Data modules mix API work, validation, and presentation by printing directly.
 
@@ -335,7 +341,7 @@ Open work is concentrated in Phase 3 items 15, 16, and 18. Phase 5 documentation
 
 ## 24. Split parser construction from execution
 
-**Status:** Completed in PR #50.
+**Status:** Completed in PR #48.
 
 **Problem:** `main()` builds the parser and executes commands, making parser behavior harder to test.
 
@@ -376,7 +382,9 @@ Open work is concentrated in Phase 3 items 15, 16, and 18. Phase 5 documentation
 
 ## 27. Define supported CBRAIN API compatibility
 
-**Status:** Completed in the documentation update after PR #50.
+**Status:** Partially completed in the documentation update after PR #50.
+
+**Remaining:** The tested compatibility target and representative response handling are documented and tested, but endpoint paths remain distributed across data modules.
 
 **Problem:** README links to CBRAIN/API references, but it does not state which CBRAIN server or API version this CLI is tested against.
 
