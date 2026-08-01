@@ -2,13 +2,13 @@ import pytest
 
 from cbrain_cli.cli_utils import CliValidationError
 from cbrain_cli.data.remote_resources import list_remote_resources, show_remote_resource
+from tests.conftest import install_auth
 from tests.conftest import make_args as _args
-from tests.conftest import patch_module_locals
 
 
 @pytest.fixture(autouse=True)
-def _patch_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.remote_resources")
+def _patch_locals():
+    install_auth()
 
 
 def test_list_remote_resources_returns_list(mock_urlopen):

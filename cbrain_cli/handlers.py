@@ -306,16 +306,12 @@ def handle_background_show(args):
 def handle_task_list(args):
     """Retrieve and display a paginated list of computational tasks with optional filtering."""
     result = tasks.list_tasks(args)
-    if result is None:
-        return 1
     tasks_fmt.print_task_data(result, args)
 
 
 def handle_task_show(args):
     """Retrieve and display detailed information about a specific computational task."""
     result = tasks.show_task(args)
-    if result is None:
-        return 1
     tasks_fmt.print_task_details(result, args)
 
 

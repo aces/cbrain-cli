@@ -14,8 +14,41 @@ def test_task_list_bourreau_id_args():
     args = parser.parse_args(["task", "list", "bourreau-id", "7"])
     assert args.command == "task"
     assert args.action == "list"
-    assert args.filter_name == "bourreau-id"
+    assert args.filter_name == "bourreau_id"
     assert args.bourreau_id == 7
+
+
+def test_file_list_kebab_options_normalize_to_snake_case():
+    parser, _command_parsers = build_parser()
+    args = parser.parse_args(
+        [
+            "file",
+            "list",
+            "--group-id",
+            "5",
+            "--dp-id",
+            "9",
+            "--file-type",
+            "TextFile",
+            "--per-page",
+            "50",
+        ]
+    )
+    assert args.group_id == 5
+    assert args.dp_id == 9
+    assert args.file_type == "TextFile"
+    assert args.per_page == 50
+
+
+def test_tag_create_kebab_options_normalize_to_snake_case():
+    parser, _command_parsers = build_parser()
+    args = parser.parse_args(
+        ["tag", "create", "--name", "demo", "--user-id", "1", "--group-id", "2"]
+    )
+    assert args.user_id == 1
+    assert args.group_id == 2
+    assert not hasattr(args, "user-id")
+    assert not hasattr(args, "group-id")
 
 
 def test_project_unswitch_subcommand():

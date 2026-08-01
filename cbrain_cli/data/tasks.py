@@ -1,9 +1,6 @@
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliValidationError,
-    api_get,
-    api_send,
-    api_token,
-    cbrain_url,
     json_printer,
     pagination,
 )
@@ -20,15 +17,15 @@ def list_tasks(args):
 
     Returns
     -------
-    list or None
-        List of task dictionaries, or None on error
+    list
+        List of task dictionaries
     """
     params = {}
     filter_name = getattr(args, "filter_name", None)
     bourreau_id = getattr(args, "bourreau_id", None)
 
     if filter_name is not None:
-        if filter_name != "bourreau-id":
+        if filter_name != "bourreau_id":
             raise CliValidationError(f"Unsupported filter: {filter_name}", field="filter_name")
         if bourreau_id is None:
             raise CliValidationError(
@@ -43,7 +40,7 @@ def list_tasks(args):
         )
 
     params = pagination(args, params)
-    return api_get(f"{cbrain_url}/tasks", api_token, params)
+    return CbrainClient.from_credentials().get("/tasks", params=params)
 
 
 def show_task(args):
@@ -57,18 +54,18 @@ def show_task(args):
 
     Returns
     -------
-    dict or None
-        Task details dictionary, or None on error
+    dict
+        Task details dictionary
     """
     task_id = getattr(args, "task", None)
     if not task_id:
         raise CliValidationError("Task ID is required", field="task")
-    return api_get(f"{cbrain_url}/tasks/{task_id}", api_token)
+    return CbrainClient.from_credentials().get(f"/tasks/{task_id}")
 
 
 def operation_task(args):
     """
     Operation on a task.
     """
-    data, _ = api_send(f"{cbrain_url}/tasks/operation", api_token)
+    data, _ = CbrainClient.from_credentials().send("POST", "/tasks/operation")
     json_printer(data)

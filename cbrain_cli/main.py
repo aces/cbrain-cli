@@ -96,14 +96,28 @@ def build_parser():
 
     # file list
     file_list_parser = file_subparsers.add_parser("list", help="List files")
-    file_list_parser.add_argument("--group-id", type=int, help="Filter files by group ID")
-    file_list_parser.add_argument("--dp-id", type=int, help="Filter files by data provider ID")
-    file_list_parser.add_argument("--user-id", type=int, help="Filter files by user ID")
-    file_list_parser.add_argument("--parent-id", type=int, help="Filter files by parent ID")
-    file_list_parser.add_argument("--file-type", type=str, help="Filter files by type")
+    file_list_parser.add_argument(
+        "--group-id", dest="group_id", type=int, help="Filter files by group ID"
+    )
+    file_list_parser.add_argument(
+        "--dp-id", dest="dp_id", type=int, help="Filter files by data provider ID"
+    )
+    file_list_parser.add_argument(
+        "--user-id", dest="user_id", type=int, help="Filter files by user ID"
+    )
+    file_list_parser.add_argument(
+        "--parent-id", dest="parent_id", type=int, help="Filter files by parent ID"
+    )
+    file_list_parser.add_argument(
+        "--file-type", dest="file_type", type=str, help="Filter files by type"
+    )
     file_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
     file_list_parser.add_argument(
-        "--per-page", type=int, default=25, help="Number of files per page (5-1000, default: 25)"
+        "--per-page",
+        dest="per_page",
+        type=int,
+        default=25,
+        help="Number of files per page (5-1000, default: 25)",
     )
     file_list_parser.set_defaults(func=handle_errors(handle_file_list))
 
@@ -116,9 +130,13 @@ def build_parser():
     file_upload_parser = file_subparsers.add_parser("upload", help="Upload a file to CBRAIN")
     file_upload_parser.add_argument("file_path", help="Path to the file to upload")
     file_upload_parser.add_argument(
-        "--data-provider", type=int, required=True, help="Data provider ID"
+        "--data-provider",
+        dest="data_provider",
+        type=int,
+        required=True,
+        help="Data provider ID",
     )
-    file_upload_parser.add_argument("--group-id", type=int, help="Group ID")
+    file_upload_parser.add_argument("--group-id", dest="group_id", type=int, help="Group ID")
 
     file_upload_parser.set_defaults(func=handle_errors(handle_file_upload))
 
@@ -128,13 +146,18 @@ def build_parser():
     )
     file_copy_parser.add_argument(
         "--file-id",
+        dest="file_id",
         type=int,
         nargs="+",
         required=True,
         help="One or more file IDs to copy",
     )
     file_copy_parser.add_argument(
-        "--dp-id", type=int, required=True, help="Destination data provider ID"
+        "--dp-id",
+        dest="dp_id",
+        type=int,
+        required=True,
+        help="Destination data provider ID",
     )
     file_copy_parser.set_defaults(func=handle_errors(handle_file_copy))
 
@@ -144,13 +167,18 @@ def build_parser():
     )
     file_move_parser.add_argument(
         "--file-id",
+        dest="file_id",
         type=int,
         nargs="+",
         required=True,
         help="One or more file IDs to move",
     )
     file_move_parser.add_argument(
-        "--dp-id", type=int, required=True, help="Destination data provider ID"
+        "--dp-id",
+        dest="dp_id",
+        type=int,
+        required=True,
+        help="Destination data provider ID",
     )
     file_move_parser.set_defaults(func=handle_errors(handle_file_move))
 
@@ -316,8 +344,12 @@ def build_parser():
     # tag create
     tag_create_parser = tag_subparsers.add_parser("create", help="Create a new tag")
     tag_create_parser.add_argument("--name", type=str, required=True, help="Tag name")
-    tag_create_parser.add_argument("--user-id", type=int, required=True, help="User ID")
-    tag_create_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
+    tag_create_parser.add_argument(
+        "--user-id", dest="user_id", type=int, required=True, help="User ID"
+    )
+    tag_create_parser.add_argument(
+        "--group-id", dest="group_id", type=int, required=True, help="Group ID"
+    )
     tag_create_parser.set_defaults(func=handle_errors(handle_tag_create))
 
     # tag update
@@ -328,8 +360,12 @@ def build_parser():
         help="Tag ID to update",
     )
     tag_update_parser.add_argument("--name", type=str, required=True, help="Tag name")
-    tag_update_parser.add_argument("--user-id", type=int, required=True, help="User ID")
-    tag_update_parser.add_argument("--group-id", type=int, required=True, help="Group ID")
+    tag_update_parser.add_argument(
+        "--user-id", dest="user_id", type=int, required=True, help="User ID"
+    )
+    tag_update_parser.add_argument(
+        "--group-id", dest="group_id", type=int, required=True, help="Group ID"
+    )
     tag_update_parser.set_defaults(func=handle_errors(handle_tag_update))
 
     # tag delete
@@ -370,11 +406,20 @@ def build_parser():
     # task list
     task_list_parser = task_subparsers.add_parser("list", help="List tasks")
     task_list_parser.add_argument(
-        "filter_name", nargs="?", choices=["bourreau-id"], help="Filter type (optional)"
+        "filter_name",
+        nargs="?",
+        type=lambda value: value.replace("-", "_"),
+        choices=["bourreau_id"],
+        metavar="bourreau-id",
+        help="Filter type (optional)",
     )
     task_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
     task_list_parser.add_argument(
-        "--per-page", type=int, default=25, help="Number of tasks per page (5-1000, default: 25)"
+        "--per-page",
+        dest="per_page",
+        type=int,
+        default=25,
+        help="Number of tasks per page (5-1000, default: 25)",
     )
     task_list_parser.add_argument(
         "bourreau_id",

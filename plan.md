@@ -20,6 +20,12 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 - Phase 2 items 10-12 completed in PR #49.
 - Phase 2 item 13 completed in PR #46.
 - Phase 3 items 14 and 17 completed in PR #49.
+- Phase 4 item 24 completed in PR #48.
+- Phase 4 items 20, 22, 23, 25, and 26 completed in PR #50.
+- Phase 4 items 19 and 21 partially completed in PR #50.
+- Phase 5 items 28 and 29 completed in the documentation update after PR #50; item 27 is partially complete.
+
+Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and Phase 5 item 27. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
 
 # Phase 1: Correctness Fixes
 
@@ -214,9 +220,11 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 15. Make not-implemented behavior structured
 
+**Status:** Open.
+
 **Problem:** Not-implemented paths print prose and return inconsistently.
 
-**Known examples:** `project switch all`, `project unswitch`, `task operation`.
+**Known example:** `project switch all`. `project unswitch` and `task operation` are implemented; the remaining layering issue in `task operation` is tracked under items 19 and 21.
 
 **Do:**
 - Decide whether each command should exist.
@@ -225,6 +233,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Not-implemented commands behave consistently in all output modes.
 
 ## 16. Stabilize command vocabulary
+
+**Status:** Open.
 
 **Problem:** Public terms and option names are inconsistent: `dataprovider`, `remote-resource`, `bourreau-id`, `dp-id`, `data-provider`, etc.
 
@@ -250,6 +260,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 18. Add coherent verbose/debug mode
 
+**Status:** Open.
+
 **Problem:** Debug behavior is ad hoc and mostly tied to `whoami --version`.
 
 **Do:**
@@ -263,6 +275,10 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 19. Define command return contracts
 
+**Status:** Partially completed in PR #50.
+
+**Remaining:** `task operation` is still dispatched directly to a data-layer function that formats output. Move orchestration to a handler and return structured domain data from the data function.
+
 **Problem:** Functions return mixed values: `None`, `1`, lists, dicts, and tuples.
 
 **Do:**
@@ -275,6 +291,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 20. Add typed CLI exceptions
 
+**Status:** Completed in PR #50.
+
 **Problem:** Broad exception handling hides intent and makes failures inconsistent.
 
 **Do:**
@@ -284,6 +302,10 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Expected failures get stable messages; unexpected failures still return non-zero.
 
 ## 21. Move printing out of data modules
+
+**Status:** Partially completed in PR #50.
+
+**Remaining:** `cbrain_cli/data/tasks.py::operation_task()` still calls `json_printer()` directly. Return data instead and let a handler or formatter own presentation.
 
 **Problem:** Data modules mix API work, validation, and presentation by printing directly.
 
@@ -295,6 +317,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 22. Remove ad hoc background activity error handling
 
+**Status:** Completed in PR #50.
+
 **Problem:** `list_background_activities()` catches all exceptions and bypasses shared error handling.
 
 **Do:**
@@ -304,6 +328,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Background activity failures match other command error styles.
 
 ## 23. Normalize CLI argument names before data-layer use
+
+**Status:** Completed in PR #50.
 
 **Problem:** Raw public CLI spellings leak into data modules, causing bugs like `bourreau-id` vs `bourreau_id`.
 
@@ -315,6 +341,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 24. Split parser construction from execution
 
+**Status:** Completed in PR #48.
+
 **Problem:** `main()` builds the parser and executes commands, making parser behavior harder to test.
 
 **Do:**
@@ -324,6 +352,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Parser tests can run without API calls.
 
 ## 25. Introduce a small CBRAIN API client and centralize request handling
+
+**Status:** Completed in PR #50.
 
 **Problem:** Data modules duplicate request creation, auth headers, URL joining, JSON decoding, timeouts, and error handling.
 
@@ -336,6 +366,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 **Verify:** Client tests mock `urlopen`; URL generation and JSON handling are unit tested; migrated commands still pass capture tests.
 
 ## 26. Load authentication state at command execution time
+
+**Status:** Completed in PR #50.
 
 **Problem:** Credentials are read into module globals at import time and can become stale.
 
@@ -350,16 +382,22 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 27. Define supported CBRAIN API compatibility
 
+**Status:** Partially completed in the documentation update after PR #50.
+
+**Remaining:** The tested compatibility target and representative response handling are documented and tested, but endpoint paths remain distributed across data modules.
+
 **Problem:** README links to CBRAIN/API references, but it does not state which CBRAIN server or API version this CLI is tested against.
 
 **Do:**
-- Document the supported/tested CBRAIN API or server version.
+- Document the supported/tested CBRAIN API or server version. The current target is the default branch of `aces/cbrain` exercised by capture-test CI; no numbered API release is promised.
 - Centralize endpoint paths where practical.
 - Add tests for representative response shapes.
 
 **Verify:** README states the compatibility target.
 
 ## 28. Document test strategy
+
+**Status:** Completed in the documentation update after PR #50.
 
 **Problem:** README explains capture tests, but the overall testing strategy should distinguish what belongs in capture tests versus unit tests once unit tests exist.
 
@@ -372,6 +410,8 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 
 ## 29. Document internal boundaries
 
+**Status:** Completed in the documentation update after PR #50.
+
 **Problem:** The intended layering is implicit.
 
 **Do:**
@@ -380,7 +420,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
   - `handlers.py`: orchestration and exit codes.
   - `data/`: API calls and domain data.
   - `formatter/`: user-facing output.
-  - `cli_utils.py` or `api.py`: shared helpers and errors.
+  - `cli_utils.py`: `CbrainClient`, shared helpers, and errors.
 - State that data modules should not print.
 
 **Verify:** Contributor docs match the architecture used by migrated command families.

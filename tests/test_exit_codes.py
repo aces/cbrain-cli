@@ -51,21 +51,17 @@ def test_handle_connection_error_http(code, expected, capsys):
     assert expected in capsys.readouterr().out
 
 
-def test_handle_connection_error_url_error_connection_refused(monkeypatch, capsys):
-    monkeypatch.setattr("cbrain_cli.cli_utils.cbrain_url", URL)
+def test_handle_connection_error_url_error_connection_refused(fake_credentials, capsys):
     handle_connection_error(URLError("Connection refused"))
     assert "Cannot connect to CBRAIN server" in capsys.readouterr().out
 
 
 def test_is_authenticated_false_when_no_credentials():
-    # _reset_globals autouse fixture leaves api_token=None
     assert is_authenticated() is False
 
 
-def test_is_authenticated_false_when_cbrain_url_is_none(monkeypatch):
-    monkeypatch.setattr("cbrain_cli.cli_utils.api_token", "tok")
-    monkeypatch.setattr("cbrain_cli.cli_utils.user_id", 1)
-    # cbrain_url stays None from _reset_globals
+def test_is_authenticated_false_when_cbrain_url_is_none(creds_file):
+    creds_file.write_text(json.dumps({"api_token": "tok", "user_id": 1}))
     assert is_authenticated() is False
 
 
@@ -142,8 +138,7 @@ def test_handle_errors_bare_read_timeout(capsys):
     assert "timed out" in capsys.readouterr().out
 
 
-def test_handle_connection_error_generic_url_error(capsys, monkeypatch):
-    monkeypatch.setattr("cbrain_cli.cli_utils.cbrain_url", URL)
+def test_handle_connection_error_generic_url_error(capsys):
     handle_connection_error(URLError("timed out"))
     assert "Connection failed" in capsys.readouterr().out
 

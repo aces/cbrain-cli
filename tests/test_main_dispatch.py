@@ -1,7 +1,7 @@
 import importlib
 from pathlib import Path
 
-from tests.conftest import patch_module_locals, run_main
+from tests.conftest import install_auth, run_main
 
 
 def test_main_invalid_pagination_skips_network(monkeypatch):
@@ -51,7 +51,7 @@ def test_main_version_does_not_create_config_dir(monkeypatch, tmp_path):
 def test_main_task_list_bourreau_id_parses_and_dispatches(
     monkeypatch, fake_credentials, capture_urlopen
 ):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.tasks")
+    install_auth()
     configure, captured = capture_urlopen
     configure([])
     result = run_main(monkeypatch, ["cbrain", "task", "list", "bourreau-id", "7"])

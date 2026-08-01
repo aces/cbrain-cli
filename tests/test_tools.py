@@ -5,12 +5,12 @@ import pytest
 
 from cbrain_cli.cli_utils import CliApiError, CliValidationError
 from cbrain_cli.data.tools import list_tools, show_tool
-from tests.conftest import make_args, patch_module_locals
+from tests.conftest import install_auth, make_args
 
 
 @pytest.fixture(autouse=True)
-def _patch_tools_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.tools")
+def _patch_tools_locals():
+    install_auth()
 
 
 def test_list_tools_passes_page_and_per_page(monkeypatch):

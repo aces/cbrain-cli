@@ -1,15 +1,7 @@
-import json
-import urllib.error
-import urllib.request
-
 from cbrain_cli.cli_utils import (
-    api_token,
-    cbrain_url,
-    handle_connection_error,
+    CbrainClient,
     json_printer,
-    user_id,
 )
-from cbrain_cli.config import DEFAULT_TIMEOUT, auth_headers
 
 
 def user_details(user_id):
@@ -23,26 +15,10 @@ def user_details(user_id):
 
     Returns
     -------
-    dict or None
-        User data dictionary, or None if the request fails.
+    dict
+        User data dictionary.
     """
-    user_endpoint = f"{cbrain_url}/users/{user_id}"
-
-    user_request = urllib.request.Request(
-        user_endpoint, headers=auth_headers(api_token), method="GET"
-    )
-
-    try:
-        with urllib.request.urlopen(user_request, timeout=DEFAULT_TIMEOUT) as response:
-            user_data = json.loads(response.read().decode("utf-8"))
-            return user_data
-
-    except (urllib.error.URLError, urllib.error.HTTPError) as e:
-        handle_connection_error(e)
-        return None
-    except Exception as e:
-        print(f"Error getting user details: {e}")
-        return None
+    return CbrainClient.from_credentials().get(f"/users/{user_id}")
 
 
 # MARK: Whoami
@@ -61,60 +37,42 @@ def whoami_user(args):
         Exit code on credential or API failure; otherwise None after printing.
     """
     version = getattr(args, "version", False)
+    client = CbrainClient.from_credentials()
 
     # Check if we have credentials first
-    if user_id is None or cbrain_url is None or api_token is None:
+    if not client.user_id or not client.base_url or not client.token:
         if getattr(args, "json", False):
             json_printer({"error": "Credential file is missing", "logged_in": False})
         else:
             print("Credential file is missing. Use 'cbrain login' to login first.")
         return 1
 
-    user_data = user_details(user_id)
-
-    # Check if user_data is valid before proceeding
-    if user_data is None:
-        return 1
+    user_data = user_details(client.user_id)
 
     # Handle JSON output first
     if getattr(args, "json", False):
         output = {
             "login": user_data.get("login", ""),
             "full_name": user_data.get("full_name", ""),
-            "server": cbrain_url,
+            "server": client.base_url,
         }
         json_printer(output)
         return 0
 
     if version:
         # Verify token by making a session request.
-        session_endpoint = f"{cbrain_url}/session"
+        session_data = client.get("/session")
 
-        session_request = urllib.request.Request(
-            session_endpoint, headers=auth_headers(api_token), method="GET"
-        )
+        # Verify local credentials match server response.
+        remote_user_id = session_data.get("user_id")
+        remote_token = session_data.get("cbrain_api_token")
 
-        try:
-            with urllib.request.urlopen(session_request, timeout=DEFAULT_TIMEOUT) as response:
-                session_data = json.loads(response.read().decode("utf-8"))
+        if str(remote_user_id) != str(client.user_id):
+            print(f"WARNING: User ID mismatch - Local: {client.user_id}, Remote: {remote_user_id}")
 
-                # Verify local credentials match server response.
-                remote_user_id = session_data.get("user_id")
-                remote_token = session_data.get("cbrain_api_token")
-
-                if str(remote_user_id) != str(user_id):
-                    print(f"WARNING: User ID mismatch - Local: {user_id}, Remote: {remote_user_id}")
-
-                if remote_token != api_token:
-                    print("WARNING: Token mismatch - tokens don't match")
-
-        except (urllib.error.URLError, urllib.error.HTTPError) as e:
-            handle_connection_error(e)
-            return 1
-        except Exception as e:
-            print(f"Error verifying session: {e}")
-            return 1
+        if remote_token != client.token:
+            print("WARNING: Token mismatch - tokens don't match")
 
     login = user_data.get("login", "")
     full_name = user_data.get("full_name", "")
-    print(f"Current user: {login} ({full_name}) on server {cbrain_url}")
+    print(f"Current user: {login} ({full_name}) on server {client.base_url}")

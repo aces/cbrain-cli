@@ -1,10 +1,7 @@
 from cbrain_cli.cli_utils import (
+    CbrainClient,
     CliApiError,
     CliValidationError,
-    api_get,
-    api_send,
-    api_token,
-    cbrain_url,
     pagination,
 )
 
@@ -27,7 +24,7 @@ def show_data_provider(args):
     data_provider_id = getattr(args, "id", None)
     if not data_provider_id:
         return list_data_providers(args)
-    data = api_get(f"{cbrain_url}/data_providers/{data_provider_id}", api_token)
+    data = CbrainClient.from_credentials().get(f"/data_providers/{data_provider_id}")
     if data.get("error"):
         raise CliApiError(data.get("error"))
     return data
@@ -48,7 +45,7 @@ def list_data_providers(args):
         List of data provider dictionaries
     """
     params = pagination(args, {})
-    return api_get(f"{cbrain_url}/data_providers", api_token, params)
+    return CbrainClient.from_credentials().get("/data_providers", params=params)
 
 
 def is_alive(args):
@@ -63,7 +60,7 @@ def is_alive(args):
     data_provider_id = getattr(args, "id", None)
     if not data_provider_id:
         raise CliValidationError("Data provider ID is required", field="id")
-    return api_get(f"{cbrain_url}/data_providers/{data_provider_id}/is_alive", api_token)
+    return CbrainClient.from_credentials().get(f"/data_providers/{data_provider_id}/is_alive")
 
 
 def delete_unregistered_files(args):
@@ -78,5 +75,7 @@ def delete_unregistered_files(args):
     data_provider_id = getattr(args, "id", None)
     if not data_provider_id:
         raise CliValidationError("Data provider ID is required", field="id")
-    data, _ = api_send(f"{cbrain_url}/data_providers/{data_provider_id}/delete", api_token)
+    data, _ = CbrainClient.from_credentials().send(
+        "POST", f"/data_providers/{data_provider_id}/delete"
+    )
     return data

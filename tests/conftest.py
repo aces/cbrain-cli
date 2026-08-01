@@ -17,20 +17,25 @@ def make_args(**kwargs):
     return argparse.Namespace(**defaults)
 
 
-def patch_credentials_file(monkeypatch, path, *, sessions=False):
+def patch_credentials_file(monkeypatch, path):
     """Redirect credential file path away from the real ~/.config/cbrain."""
     monkeypatch.setattr("cbrain_cli.config.CREDENTIALS_FILE", path)
-    if sessions:
-        monkeypatch.setattr("cbrain_cli.sessions.CREDENTIALS_FILE", path)
 
 
-def patch_module_locals(monkeypatch, *module_paths, user_id=None):
-    """Patch module-local api_token / cbrain_url (and optional user_id) copies."""
-    for module_path in module_paths:
-        monkeypatch.setattr(f"{module_path}.api_token", TOKEN)
-        monkeypatch.setattr(f"{module_path}.cbrain_url", URL)
-        if user_id is not None:
-            monkeypatch.setattr(f"{module_path}.user_id", user_id)
+def write_auth_credentials(path, *, user_id=42, **overrides):
+    """Write call-time auth credentials into an isolated credentials file."""
+    credentials = {"api_token": TOKEN, "cbrain_url": URL, "user_id": user_id}
+    credentials.update(overrides)
+    path.write_text(json.dumps(credentials))
+    return credentials
+
+
+def install_auth(*, user_id=None):
+    """Write auth credentials so CbrainClient.from_credentials() picks them up."""
+    from cbrain_cli import config
+
+    uid = 42 if user_id is None else user_id
+    write_auth_credentials(config.CREDENTIALS_FILE, user_id=uid)
 
 
 def sample_credentials(**overrides):
@@ -53,20 +58,24 @@ def parse_json_output(capsys):
     return json.loads(capsys.readouterr().out.strip())
 
 
-@pytest.fixture
-def creds_file(tmp_path, monkeypatch):
-    """Temp credentials file patched on cbrain_cli.config."""
+@pytest.fixture(autouse=True)
+def _isolate_credentials(tmp_path, monkeypatch):
+    """Redirect credentials file so real home config never leaks into tests."""
     path = tmp_path / CREDS_FILE
     patch_credentials_file(monkeypatch, path)
     return path
 
 
 @pytest.fixture
-def sessions_creds_file(tmp_path, monkeypatch):
-    """Temp credentials file patched on config and sessions modules."""
-    path = tmp_path / CREDS_FILE
-    patch_credentials_file(monkeypatch, path, sessions=True)
-    return path
+def creds_file(_isolate_credentials):
+    """Temp credentials file patched on cbrain_cli.config."""
+    return _isolate_credentials
+
+
+@pytest.fixture
+def sessions_creds_file(_isolate_credentials):
+    """Alias of the isolated credentials file used by session tests."""
+    return _isolate_credentials
 
 
 @pytest.fixture
@@ -104,30 +113,10 @@ def capture_urlopen(monkeypatch):
     return configure, captured
 
 
-@pytest.fixture(autouse=True)
-def _reset_globals(monkeypatch):
-    """Reset cli_utils module-level globals before every test.
-
-    Prevents real credentials on disk from leaking into tests.
-    """
-    monkeypatch.setattr("cbrain_cli.cli_utils.api_token", None)
-    monkeypatch.setattr("cbrain_cli.cli_utils.cbrain_url", None)
-    monkeypatch.setattr("cbrain_cli.cli_utils.user_id", None)
-
-
 @pytest.fixture
-def fake_credentials(monkeypatch, _reset_globals):
-    """Set known credentials on cbrain_cli.cli_utils globals.
-
-    Explicit dependency on _reset_globals guarantees ordering — _reset_globals
-    runs first (sets None), then this fixture overwrites with real values.
-
-    Tests for data modules must ALSO patch the module-local copy, e.g.:
-        patch_module_locals(monkeypatch, "cbrain_cli.data.tasks")
-    """
-    monkeypatch.setattr("cbrain_cli.cli_utils.api_token", TOKEN)
-    monkeypatch.setattr("cbrain_cli.cli_utils.cbrain_url", URL)
-    monkeypatch.setattr("cbrain_cli.cli_utils.user_id", 1)
+def fake_credentials(_isolate_credentials):
+    """Write known credentials so CbrainClient.from_credentials() / is_authenticated() see them."""
+    write_auth_credentials(_isolate_credentials, user_id=1)
 
 
 @pytest.fixture

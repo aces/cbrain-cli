@@ -6,13 +6,13 @@ from cbrain_cli.data.tool_configs import (
     show_tool_config,
     tool_config_boutiques_descriptor,
 )
+from tests.conftest import install_auth
 from tests.conftest import make_args as _args
-from tests.conftest import patch_module_locals
 
 
 @pytest.fixture(autouse=True)
-def _patch_locals(monkeypatch):
-    patch_module_locals(monkeypatch, "cbrain_cli.data.tool_configs")
+def _patch_locals():
+    install_auth()
 
 
 def test_list_tool_configs_returns_list(mock_urlopen):
