@@ -6,15 +6,42 @@ from cbrain_cli.cli_utils import CliApiError, CliValidationError
 from cbrain_cli.sessions import create_session, logout_session
 
 
-def test_create_session_already_logged_in(sessions_creds_file, capsys):
+def test_create_session_already_logged_in(sessions_creds_file, monkeypatch, capsys):
     import json
 
     sessions_creds_file.write_text(
-        json.dumps({"api_token": "tok", "cbrain_url": "http://localhost:3000"})
+        json.dumps({"api_token": "tok", "cbrain_url": "http://localhost:3000", "user_id": 1})
+    )
+    monkeypatch.setattr(
+        "cbrain_cli.cli_utils.CbrainClient.get",
+        lambda self, *_: {"user_id": 1, "cbrain_api_token": "tok"},
     )
     result = create_session(argparse.Namespace())
     assert result == 1
     assert "Already logged in" in capsys.readouterr().out
+
+
+def test_create_session_expired_token_allows_relogin(sessions_creds_file, monkeypatch, capsys):
+    import json
+
+    sessions_creds_file.write_text(
+        json.dumps({"api_token": "dead", "cbrain_url": "http://localhost:3000", "user_id": 1})
+    )
+
+    def _raise_401(self, *_):
+        raise CliApiError("Unauthorized", status=401)
+
+    monkeypatch.setattr("cbrain_cli.cli_utils.CbrainClient.get", _raise_401)
+    inputs = iter(["http://localhost:3000", "admin"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+    monkeypatch.setattr("getpass.getpass", lambda _: "secret")
+    monkeypatch.setattr(
+        "cbrain_cli.cli_utils.CbrainClient.post_form",
+        lambda self, *_a, **_k: {"cbrain_api_token": "newtok", "user_id": 1},
+    )
+    result = create_session(argparse.Namespace())
+    assert result == 0
+    assert "Saved session expired" in capsys.readouterr().out
 
 
 def test_create_session_empty_credentials_file_allows_login(

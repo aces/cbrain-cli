@@ -103,7 +103,8 @@ def test_handle_connection_error_401(capsys):
     handle_connection_error(HTTPError(URL, 401, "Unauthorized", {}, io.BytesIO(b"")))
     out = capsys.readouterr().out
     assert "Authentication error (401)" in out
-    assert "authorized credentials" in out
+    assert "cbrain logout" in out
+    assert "cbrain login" in out
 
 
 def test_handle_connection_error_json_body(capsys):

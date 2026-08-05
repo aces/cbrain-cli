@@ -69,9 +69,29 @@ def test_switch_project_missing_group_id_raises():
         switch_project(make_args(group_id=None))
 
 
-def test_switch_project_all_raises():
-    with pytest.raises(CliValidationError):
-        switch_project(make_args(group_id="all"))
+def test_switch_project_all_saves_credentials(monkeypatch, creds_file):
+    from tests.conftest import write_auth_credentials
+
+    write_auth_credentials(creds_file)
+
+    switch_response = MagicMock()
+    switch_response.__enter__.return_value.read.return_value = b""
+    switch_response.__enter__.return_value.status = 200
+    monkeypatch.setattr("urllib.request.urlopen", MagicMock(side_effect=[switch_response]))
+
+    result = switch_project(make_args(group_id="all"))
+    assert result == {"id": "all", "name": "all"}
+    saved = json.loads(creds_file.read_text())
+    assert saved["current_group_id"] == "all"
+    assert saved["current_group_name"] == "all"
+
+
+def test_show_project_all_returns_synthetic(creds_file):
+    from tests.conftest import write_auth_credentials
+
+    write_auth_credentials(creds_file, current_group_id="all", current_group_name="all")
+    result = show_project(make_args(project_id=None))
+    assert result == {"id": "all", "name": "all"}
 
 
 def test_switch_project_invalid_string_raises():

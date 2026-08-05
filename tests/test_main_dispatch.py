@@ -69,3 +69,21 @@ def test_main_no_command_prints_help(capsys):
 def test_main_missing_subcommand_action_returns_1(monkeypatch, fake_credentials, capsys):
     result = run_main(monkeypatch, ["cbrain", "file"])
     assert result == 1
+
+
+def test_main_dataprovider_alias_dispatches(monkeypatch, fake_credentials, capture_urlopen):
+    install_auth()
+    configure, captured = capture_urlopen
+    configure([])
+    result = run_main(monkeypatch, ["cbrain", "dataprovider", "list"])
+    assert result is None
+    assert "/data_providers" in captured["url"]
+
+
+def test_main_data_provider_canonical_dispatches(monkeypatch, fake_credentials, capture_urlopen):
+    install_auth()
+    configure, captured = capture_urlopen
+    configure([])
+    result = run_main(monkeypatch, ["cbrain", "data-provider", "list"])
+    assert result is None
+    assert "/data_providers" in captured["url"]

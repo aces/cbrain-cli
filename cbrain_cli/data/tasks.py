@@ -1,8 +1,26 @@
 from cbrain_cli.cli_utils import (
     CbrainClient,
     CliValidationError,
-    json_printer,
     pagination,
+)
+
+# Names accepted by CBRAIN POST /tasks/operation
+TASK_OPERATIONS = (
+    "terminate",
+    "archive",
+    "archive_file",
+    "unarchive",
+    "zap_wd",
+    "save_wd",
+    "hold",
+    "release",
+    "suspend",
+    "resume",
+    "duplicate",
+    "recover",
+    "restart_setup",
+    "restart_cluster",
+    "restart_postprocess",
 )
 
 
@@ -65,7 +83,39 @@ def show_task(args):
 
 def operation_task(args):
     """
-    Operation on a task.
+    Run a bulk operation on tasks.
     """
-    data, _ = CbrainClient.from_credentials().send("POST", "/tasks/operation")
-    json_printer(data)
+    operation = getattr(args, "operation", None)
+    if not operation:
+        raise CliValidationError("Operation is required", field="operation")
+    if operation not in TASK_OPERATIONS:
+        raise CliValidationError(
+            f"Unsupported operation: {operation}",
+            field="operation",
+        )
+
+    task_ids = getattr(args, "task_id", None) or []
+    batch_ids = getattr(args, "batch_id", None) or []
+    if not task_ids and not batch_ids:
+        raise CliValidationError(
+            "At least one --task-id or --batch-id is required",
+            field="--task-id",
+        )
+
+    payload = {"operation": operation}
+    if task_ids:
+        payload["tasklist"] = list(task_ids)
+    if batch_ids:
+        payload["batch_ids"] = list(batch_ids)
+
+    dup_bourreau_id = getattr(args, "dup_bourreau_id", None)
+    if dup_bourreau_id is not None:
+        payload["dup_bourreau_id"] = dup_bourreau_id
+    archive_dp_id = getattr(args, "archive_dp_id", None)
+    if archive_dp_id is not None:
+        payload["archive_dp_id"] = archive_dp_id
+    if getattr(args, "nozip", False):
+        payload["nozip"] = True
+
+    data, _ = CbrainClient.from_credentials().send("POST", "/tasks/operation", payload=payload)
+    return data

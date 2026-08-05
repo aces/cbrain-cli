@@ -558,40 +558,43 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
-Status: 1
-Stdout: 74 bytes
+Command: cbrain         project switch all
+Status: 0
+Stdout: 32 bytes
 Stderr: 0 bytes
 
 Stdout:
-Error: Project switch 'all' not yet implemented as of Aug 2025 (group_id)
+Current project is "all" ID=all
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  project switch all
-Status: 1
-Stdout: 74 bytes
+Status: 0
+Stdout: 35 bytes
 Stderr: 0 bytes
 
 Stdout:
-Error: Project switch 'all' not yet implemented as of Aug 2025 (group_id)
+{
+  "id": "all",
+  "name": "all"
+}
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch all
-Status: 1
-Stdout: 74 bytes
+Status: 0
+Stdout: 26 bytes
 Stderr: 0 bytes
 
 Stdout:
-Error: Project switch 'all' not yet implemented as of Aug 2025 (group_id)
+{"id":"all","name":"all"}
 Stderr:
 (No output)
 
 ############################
-Command: cbrain         project switch 3 # need to reset for rest of test to work
+Command: cbrain         project switch 3 # reset project filter for task list below
 Status: 0
 Stdout: 31 bytes
 Stderr: 0 bytes
@@ -998,15 +1001,64 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain         task operation   # should provide error message
+Command: cbrain         task operation hold --task-id 2
 Status: 0
-Stdout: 41 bytes
+Stdout: 182 bytes
+Stderr: 0 bytes
+
+Stdout:
+TASK OPERATION RESULT
+------------------------------
+Operation: hold
+Succeeded: 0
+Skipped:   1
+Failed:    0
+
+SKIPPED
+------------------------------
+Tasks have incompatible states: 2
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  task operation hold --task-id 2
+Status: 0
+Stdout: 142 bytes
 Stderr: 0 bytes
 
 Stdout:
 {
-  "message": "No operation selected"
+  "skipped_list": {
+    "Tasks have incompatible states": [
+      2
+    ]
+  },
+  "success_list": [],
+  "failed_list": {},
+  "bac_ids": []
 }
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl task operation hold --task-id 2
+Status: 0
+Stdout: 104 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"skipped_list":{"Tasks have incompatible states":[2]},"success_list":[],"failed_list":{},"bac_ids":[]}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         task operation hold  # missing --task-id / --batch-id
+Status: 1
+Stdout: 68 bytes
+Stderr: 0 bytes
+
+Stdout:
+Error: At least one --task-id or --batch-id is required (--task-id)
 Stderr:
 (No output)
 

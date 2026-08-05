@@ -13,6 +13,20 @@ from pathlib import Path
 from cbrain_cli import config as cbrain_config
 from cbrain_cli.config import DEFAULT_HEADERS, DEFAULT_TIMEOUT, auth_headers
 
+_debug = False
+
+
+def set_debug(flag: bool) -> None:
+    """Enable or disable debug output."""
+    global _debug
+    _debug = bool(flag)
+
+
+def debug_log(message: str) -> None:
+    """Print a debug line to stderr when debug mode is active."""
+    if _debug:
+        print(f"[DEBUG] {message}", file=sys.stderr)
+
 
 class CbrainClient:
     """
@@ -46,11 +60,21 @@ class CbrainClient:
         if params:
             target = f"{target}?{urllib.parse.urlencode(params)}"
         hdrs = headers or auth_headers(self.token)
+        # strip path from full URL for debug display to keep it readable
+        display_path = target.split("?")[0]
+        if display_path.startswith(self.base_url):
+            display_path = display_path[len(self.base_url) :]
+        if params:
+            display_path = f"{display_path}?{urllib.parse.urlencode(params)}"
+        debug_log(f"{method} {display_path}")
         req = urllib.request.Request(target, data=body, headers=hdrs, method=method)
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as r:
-                return r.read(), r.status
+                status = r.status
+                debug_log(f"→ HTTP {status}")
+                return r.read(), status
         except urllib.error.HTTPError as e:
+            debug_log(f"→ HTTP {e.code} ({e.reason})")
             raise CliApiError(e.reason or f"HTTP {e.code}", status=e.code) from e
 
     def get(self, path, params=None):
@@ -95,7 +119,7 @@ class CbrainClient:
 
 PAGINATABLE_ACTIONS = {
     ("file", "list"),
-    ("dataprovider", "list"),
+    ("data-provider", "list"),
     ("tool", "list"),
     ("tool-config", "list"),
     ("tag", "list"),
@@ -204,7 +228,7 @@ def handle_connection_error(error):
 
         if error.code == 401:
             print(f"{status_description}: {error.reason}")
-            print("Error: Access denied. Please log in using authorized credentials.")
+            print("Error: Session expired or invalid. " "Run 'cbrain logout' then 'cbrain login'.")
         elif error.code in (400, 404, 422, 500):
             # Try to extract specific error message from response
             try:

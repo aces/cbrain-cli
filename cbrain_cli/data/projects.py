@@ -25,23 +25,25 @@ def switch_project(args):
     if not group_id:
         raise CliValidationError("Group ID is required", field="group_id")
 
-    if group_id == "all":
-        raise CliValidationError(
-            "Project switch 'all' not yet implemented as of Aug 2025", field="group_id"
-        )
-
-    try:
-        group_id = int(group_id)
-    except ValueError:
-        raise CliValidationError(
-            f"Invalid group ID '{group_id}'. Must be a number or 'all'", field="group_id"
-        ) from None
+    # Server accepts numeric id or "all" (no single project filter).
+    if group_id != "all":
+        try:
+            group_id = int(group_id)
+        except ValueError:
+            raise CliValidationError(
+                f"Invalid group ID '{group_id}'. Must be a number or 'all'", field="group_id"
+            ) from None
 
     client = CbrainClient.from_credentials()
     _, switch_status = client.send("POST", f"/groups/switch?id={group_id}")
     if switch_status not in (200, 201, 204):
         raise CliApiError(f"Failed to switch project (HTTP {switch_status})")
-    group_data = client.get(f"/groups/{group_id}")
+
+    # "all" is session state only — no /groups/all resource.
+    if group_id == "all":
+        group_data = {"id": "all", "name": "all"}
+    else:
+        group_data = client.get(f"/groups/{group_id}")
 
     credentials = load_credentials()
     if credentials is not None:
@@ -123,6 +125,13 @@ def show_project(args):
     current_group_id = credentials.get("current_group_id")
     if not current_group_id:
         return None
+
+    # Session "all" has no Group row; mirror switch_project synthetic result.
+    if current_group_id == "all":
+        return {
+            "id": "all",
+            "name": credentials.get("current_group_name") or "all",
+        }
 
     try:
         return CbrainClient.from_credentials().get(f"/groups/{current_group_id}")
