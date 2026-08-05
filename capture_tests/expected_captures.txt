@@ -1239,36 +1239,36 @@ Stderr:
 ############################
 Command: cbrain         tool-config show 19 # visible to user admin
 Status: 1
-Stdout: 107 bytes
+Stdout: 117 bytes
 Stderr: 0 bytes
 
 Stdout:
 Authentication error (401): Unauthorized
-Error: Access denied. Please log in using authorized credentials.
+Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  tool-config show 19
 Status: 1
-Stdout: 107 bytes
+Stdout: 117 bytes
 Stderr: 0 bytes
 
 Stdout:
 Authentication error (401): Unauthorized
-Error: Access denied. Please log in using authorized credentials.
+Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 1
-Stdout: 107 bytes
+Stdout: 117 bytes
 Stderr: 0 bytes
 
 Stdout:
 Authentication error (401): Unauthorized
-Error: Access denied. Please log in using authorized credentials.
+Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.
 Stderr:
 (No output)
 
