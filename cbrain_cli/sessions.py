@@ -37,10 +37,13 @@ def create_session(args):
                 if e.status == 401:
                     print("Saved session expired. Please log in again.")
                 else:
-                    print("Already logged in. Use 'cbrain logout' to logout.")
+                    print(f"Server returned HTTP {e.status} during session check.")
+                    print("Use 'cbrain logout' to reset local credentials.")
                     return 1
             except urllib.error.URLError:
-                print("Already logged in. Use 'cbrain logout' to logout.")
+                url = creds.get("cbrain_url", "the server")
+                print(f"Cannot reach CBRAIN server at {url}.")
+                print("Check your connection. Use 'cbrain logout' to reset local credentials.")
                 return 1
             else:
                 print("Already logged in. Use 'cbrain logout' to logout.")

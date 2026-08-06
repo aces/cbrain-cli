@@ -72,6 +72,7 @@ def build_parser():
     )
     parser.add_argument(
         "--debug",
+        "--verbose",
         dest="debug",
         action="store_true",
         help="Print sanitized request/response diagnostics to stderr",

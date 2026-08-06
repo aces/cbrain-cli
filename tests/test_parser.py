@@ -33,6 +33,12 @@ def test_global_debug_flag():
     assert args.debug is True
 
 
+def test_global_verbose_alias():
+    parser, _command_parsers = build_parser()
+    args = parser.parse_args(["--verbose", "task", "list"])
+    assert args.debug is True
+
+
 def test_file_list_kebab_options_normalize_to_snake_case():
     parser, _command_parsers = build_parser()
     args = parser.parse_args(

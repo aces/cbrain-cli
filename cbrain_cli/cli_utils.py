@@ -60,12 +60,14 @@ class CbrainClient:
         if params:
             target = f"{target}?{urllib.parse.urlencode(params)}"
         hdrs = headers or auth_headers(self.token)
-        # strip path from full URL for debug display to keep it readable
-        display_path = target.split("?")[0]
+        # strip host from full URL for debug display; preserve all query params
+        parsed = urllib.parse.urlsplit(target)
+        display_path = parsed.path
         if display_path.startswith(self.base_url):
             display_path = display_path[len(self.base_url) :]
-        if params:
-            display_path = f"{display_path}?{urllib.parse.urlencode(params)}"
+        query = urllib.parse.urlencode(params) if params else parsed.query
+        if query:
+            display_path = f"{display_path}?{query}"
         debug_log(f"{method} {display_path}")
         req = urllib.request.Request(target, data=body, headers=hdrs, method=method)
         try:
