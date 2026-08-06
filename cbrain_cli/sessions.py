@@ -36,13 +36,16 @@ def create_session(args):
             except CliApiError as e:
                 if e.status == 401:
                     print("Saved session expired. Please log in again.")
+                elif e.status >= 500:
+                    print(f"Server returned HTTP {e.status} during session check.")
+                    print("The server may be temporarily unavailable. Try again later.")
+                    return 1
                 else:
                     print(f"Server returned HTTP {e.status} during session check.")
                     print("Use 'cbrain logout' to reset local credentials.")
                     return 1
             except urllib.error.URLError:
-                url = creds.get("cbrain_url", "the server")
-                print(f"Cannot reach CBRAIN server at {url}.")
+                print(f"Cannot reach CBRAIN server at {creds['cbrain_url']}.")
                 print("Check your connection. Use 'cbrain logout' to reset local credentials.")
                 return 1
             else:
