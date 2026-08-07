@@ -315,6 +315,12 @@ def handle_task_show(args):
     tasks_fmt.print_task_details(result, args)
 
 
+def handle_task_operation(args):
+    """Run a task operation and display the result."""
+    result = tasks.operation_task(args)
+    tasks_fmt.print_task_operation_result(result, args)
+
+
 # Remote resource command handlers
 def handle_remote_resource_list(args):
     """Retrieve and display a list of remote computational resources available in CBRAIN."""

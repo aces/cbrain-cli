@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from cbrain_cli.cli_utils import CliValidationError
@@ -71,12 +73,53 @@ def test_list_tasks_unsupported_filter_raises():
         list_tasks(make_task_args(filter_name="other", bourreau_id=1))
 
 
-def test_operation_task_prints_json(monkeypatch, capsys):
-    monkeypatch.setattr(
-        "cbrain_cli.cli_utils.CbrainClient.send",
-        lambda self, *_, **__: ({"status": "ok"}, 200),
-    )
+def test_operation_task_returns_data(capture_urlopen):
+    configure, captured = capture_urlopen
+    configure({"status": "ok"})
     from cbrain_cli.data.tasks import operation_task
 
-    operation_task(make_task_args())
-    assert '"status": "ok"' in capsys.readouterr().out
+    args = make_task_args(operation="terminate", task_id=[1, 2])
+    assert operation_task(args) == {"status": "ok"}
+    assert json.loads(captured["data"]) == {
+        "operation": "terminate",
+        "tasklist": [1, 2],
+    }
+
+
+def test_operation_task_requires_operation():
+    from cbrain_cli.data.tasks import operation_task
+
+    with pytest.raises(CliValidationError, match="Operation is required"):
+        operation_task(make_task_args(task_id=[1]))
+
+
+def test_operation_task_requires_task_or_batch():
+    from cbrain_cli.data.tasks import operation_task
+
+    with pytest.raises(CliValidationError, match="--task-id"):
+        operation_task(make_task_args(operation="hold"))
+
+
+def test_operation_task_optional_flags(capture_urlopen):
+    configure, captured = capture_urlopen
+    configure({"ok": True})
+    from cbrain_cli.data.tasks import operation_task
+
+    operation_task(
+        make_task_args(
+            operation="duplicate",
+            task_id=[5],
+            batch_id=[9],
+            dup_bourreau_id=3,
+            archive_dp_id=15,
+            nozip=True,
+        )
+    )
+    assert json.loads(captured["data"]) == {
+        "operation": "duplicate",
+        "tasklist": [5],
+        "batch_ids": [9],
+        "dup_bourreau_id": 3,
+        "archive_dp_id": 15,
+        "nozip": True,
+    }

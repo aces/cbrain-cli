@@ -1,6 +1,10 @@
 import json
 
-from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
+from cbrain_cli.cli_utils import (
+    display_key_value_table,
+    dynamic_table_print,
+    output_json,
+)
 
 
 def print_task_data(tasks_data, args):
@@ -117,3 +121,68 @@ def print_task_details(task_data, args):
         print("PARAMETERS")
         print("-" * 30)
         print(json.dumps(task_data.get("params"), indent=2))
+
+
+def print_task_operation_result(result, args):
+    """
+    Print the result of a bulk task operation.
+
+    Parameters
+    ----------
+    result : dict
+        Operation result payload from the API
+    args : argparse.Namespace
+        Command line arguments, including the --json flag
+    """
+    if output_json(args, result):
+        return
+
+    if not result:
+        print("No operation result.")
+        return
+
+    # Server sometimes returns a single message (e.g. no operation / no tasks).
+    if "message" in result and "success_list" not in result:
+        print(result["message"])
+        return
+
+    operation = getattr(args, "operation", None)
+    success = result.get("success_list") or []
+    failed = result.get("failed_list") or {}
+    skipped = result.get("skipped_list") or {}
+    bac_ids = result.get("bac_ids") or []
+
+    print("TASK OPERATION RESULT")
+    print("-" * 30)
+    if operation:
+        print(f"Operation: {operation}")
+    print(f"Succeeded: {len(success)}")
+    print(f"Skipped:   {sum(len(v) for v in skipped.values())}")
+    print(f"Failed:    {sum(len(v) for v in failed.values())}")
+
+    if success:
+        print()
+        print("SUCCEEDED TASKS")
+        print("-" * 30)
+        print(", ".join(str(task_id) for task_id in success))
+
+    if skipped:
+        print()
+        print("SKIPPED")
+        print("-" * 30)
+        for reason, ids in skipped.items():
+            print(f"{reason}: {', '.join(str(i) for i in ids)}")
+
+    if failed:
+        print()
+        print("FAILED")
+        print("-" * 30)
+        for reason, ids in failed.items():
+            print(f"{reason}: {', '.join(str(i) for i in ids)}")
+
+    if bac_ids:
+        print()
+        print("BACKGROUND ACTIVITIES")
+        print("-" * 30)
+        print(", ".join(str(bac_id) for bac_id in bac_ids))
+        print("Track with: cbrain background show <id>")

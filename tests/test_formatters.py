@@ -296,3 +296,36 @@ def test_print_task_details_normal(capsys):
     out = capsys.readouterr().out
     assert "Ready" in out
     assert "PARAMETERS" in out
+
+
+def test_print_task_operation_result_summary(capsys):
+    tasks_fmt.print_task_operation_result(
+        {
+            "success_list": [1, 2],
+            "skipped_list": {"Tasks have incompatible states": [3]},
+            "failed_list": {},
+            "bac_ids": [33],
+        },
+        make_args(operation="terminate"),
+    )
+    out = capsys.readouterr().out
+    assert "Operation: terminate" in out
+    assert "Succeeded: 2" in out
+    assert "Skipped:   1" in out
+    assert "3" in out
+    assert "33" in out
+    assert "cbrain background show" in out
+
+
+def test_print_task_operation_result_message(capsys):
+    tasks_fmt.print_task_operation_result(
+        {"message": "No tasks selected"},
+        make_args(),
+    )
+    assert capsys.readouterr().out.strip() == "No tasks selected"
+
+
+def test_print_task_operation_result_json(capsys):
+    data = {"success_list": [1], "bac_ids": [9]}
+    tasks_fmt.print_task_operation_result(data, make_args(json=True))
+    assert parse_json_output(capsys) == data
