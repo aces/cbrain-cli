@@ -1,6 +1,6 @@
-# Welcome to the CBRAIN CLI Formatter Layer! 🎨
+# Welcome to the CBRAIN CLI Formatter Layer!
 
-This directory is all about **presentation**. Once the CLI fetches raw data objects from the CBRAIN backend (using the `data/` modules), it hands them over to these formatter scripts to make them look great in your terminal.
+This directory is all about **presentation**. Once a handler has domain data from the `data/` API layer, it hands that data to these formatters for terminal output.
 
 These formatters are responsible for creating the clean tables, organized summaries, and human-readable text you see when you run a command.
 
@@ -16,20 +16,36 @@ Imagine you ask CBRAIN for a list of your files using `cbrain file list`. The ra
 
 Instead of throwing that raw JSON at you, the formatter layer catches the data and turns it into a beautiful, easy-to-read table right in your terminal. Here is exactly what these scripts do:
 
-**The Raw Data (what `data/` gets):**
+**The Raw Data (what `data/` returns):**
 ```json
-{"id": 1024, "name": "my_mri_scan.nii.gz", "size": 47185920, "status": "synced"}
+{"id": 1024, "type": "SingleFile", "name": "my_mri_scan.nii.gz"}
 ```
 
-**The Formatted Output (what `formatter/` shows you):**
+**The Formatted Output (what `formatter/` shows you for `cbrain file list`):**
 ```text
-+---------+----------------------+---------+-------------+
-| File ID | Name                 | Size    | Status      |
-+---------+----------------------+---------+-------------+
-| 1024    | my_mri_scan.nii.gz   | 45.0 MB | Synced      |
-+---------+----------------------+---------+-------------+
+ID   Type       File Name
+---- ---------- ------------------
+1024 SingleFile my_mri_scan.nii.gz
 ```
 
 *(Fun fact: We don't use heavy external libraries like `PrettyTable` or `Rich` for this! The CLI uses a custom-built, lightweight, dynamic table formatter powered completely by Python's built-in `textwrap` and `shutil` libraries. That means zero extra dependencies to slow you down!)*
 
-Every `_fmt.py` script in this folder is basically a tiny artist that knows exactly how to draw its specific type of data so it's perfectly readable for you!
+### Raw JSON Output
+
+Every command also supports a `--json` flag that skips the formatter entirely and dumps the raw API response straight to your terminal. Useful for scripting or piping into other tools!
+
+## The Formatter Files 🗂️
+
+Each `_fmt.py` file knows exactly how to display its specific type of data:
+
+* **`background_activities_fmt.py`**: Renders background job lists and individual activity details.
+* **`data_providers_fmt.py`**: Renders data provider lists and full provider detail views.
+* **`files_fmt.py`**: Renders file lists, file detail views, upload results, move/copy results, and delete confirmations.
+* **`projects_fmt.py`**: Renders project lists, the current active project, full project details, the "no project" state, and unswitch results.
+* **`remote_resources_fmt.py`**: Renders remote resource (bourreau) lists and individual resource details.
+* **`tags_fmt.py`**: Renders tag lists, tag details, and create/update/delete operation results.
+* **`tasks_fmt.py`**: Renders task lists, detailed task views, and bulk operation results.
+* **`tool_configs_fmt.py`**: Renders tool configuration lists, config details, and Boutiques descriptors.
+* **`tools_fmt.py`**: Renders tool lists and individual tool detail views.
+
+Every formatter script is basically a tiny artist that knows exactly how to draw its specific type of data so it's perfectly readable for you!
