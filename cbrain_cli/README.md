@@ -1,8 +1,8 @@
-# Welcome to the CBRAIN CLI Package! 
+# Welcome to the CBRAIN CLI Package!
 
 This directory is the heart of the `cbrain` command — parse input, check the session, talk to CBRAIN, and print a clean result.
 
-## How It Fits Together 
+## How It Fits Together
 
 **Parse → Auth → Handle → Fetch → Format.**
 
@@ -16,7 +16,7 @@ This directory is the heart of the `cbrain` command — parse input, check the s
 | `cli_utils.py` | `CbrainClient`, errors, pagination, output helpers |
 | `users.py` | Current-user helpers for `whoami` |
 
-## A Quick Mental Model 
+## A Quick Mental Model
 
 ```mermaid
 flowchart TD
