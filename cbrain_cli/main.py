@@ -11,9 +11,10 @@ from cbrain_cli.cli_utils import (
     handle_errors,
     is_authenticated,
     pagination,
+    set_debug,
     version_info,
 )
-from cbrain_cli.data.tasks import operation_task
+from cbrain_cli.data.tasks import TASK_OPERATIONS
 from cbrain_cli.handlers import (
     handle_background_list,
     handle_background_show,
@@ -39,6 +40,7 @@ from cbrain_cli.handlers import (
     handle_tag_show,
     handle_tag_update,
     handle_task_list,
+    handle_task_operation,
     handle_task_show,
     handle_tool_config_boutiques_descriptor,
     handle_tool_config_list,
@@ -67,6 +69,13 @@ def build_parser():
         "--jsonl",
         action="store_true",
         help="Output in JSONL format (one JSON object per line)",
+    )
+    parser.add_argument(
+        "--debug",
+        "--verbose",
+        dest="debug",
+        action="store_true",
+        help="Print sanitized request/response diagnostics to stderr",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -100,7 +109,12 @@ def build_parser():
         "--group-id", dest="group_id", type=int, help="Filter files by group ID"
     )
     file_list_parser.add_argument(
-        "--dp-id", dest="dp_id", type=int, help="Filter files by data provider ID"
+        "--data-provider-id",
+        "--data-provider",
+        "--dp-id",
+        dest="dp_id",
+        type=int,
+        help="Filter files by data provider ID",
     )
     file_list_parser.add_argument(
         "--user-id", dest="user_id", type=int, help="Filter files by user ID"
@@ -130,11 +144,13 @@ def build_parser():
     file_upload_parser = file_subparsers.add_parser("upload", help="Upload a file to CBRAIN")
     file_upload_parser.add_argument("file_path", help="Path to the file to upload")
     file_upload_parser.add_argument(
+        "--data-provider-id",
         "--data-provider",
+        "--dp-id",
         dest="data_provider",
         type=int,
         required=True,
-        help="Data provider ID",
+        help="Destination data provider ID",
     )
     file_upload_parser.add_argument("--group-id", dest="group_id", type=int, help="Group ID")
 
@@ -153,6 +169,8 @@ def build_parser():
         help="One or more file IDs to copy",
     )
     file_copy_parser.add_argument(
+        "--data-provider-id",
+        "--data-provider",
         "--dp-id",
         dest="dp_id",
         type=int,
@@ -174,6 +192,8 @@ def build_parser():
         help="One or more file IDs to move",
     )
     file_move_parser.add_argument(
+        "--data-provider-id",
+        "--data-provider",
         "--dp-id",
         dest="dp_id",
         type=int,
@@ -190,53 +210,57 @@ def build_parser():
     )
     file_delete_parser.set_defaults(func=handle_errors(handle_file_delete))
 
-    # Data provider commands
-    dataprovider_parser = subparsers.add_parser("dataprovider", help="Data provider operations")
-    dataprovider_subparsers = dataprovider_parser.add_subparsers(
+    # Data provider commands (alias: dataprovider)
+    data_provider_parser = subparsers.add_parser(
+        "data-provider",
+        aliases=["dataprovider"],
+        help="Data provider operations",
+    )
+    data_provider_subparsers = data_provider_parser.add_subparsers(
         dest="action", help="Data provider actions"
     )
 
-    # dataprovider list
-    dataprovider_list_parser = dataprovider_subparsers.add_parser(
+    # data-provider list
+    data_provider_list_parser = data_provider_subparsers.add_parser(
         "list", help="List data providers"
     )
-    dataprovider_list_parser.set_defaults(func=handle_errors(handle_dataprovider_list))
+    data_provider_list_parser.set_defaults(func=handle_errors(handle_dataprovider_list))
 
-    dataprovider_list_parser.add_argument(
+    data_provider_list_parser.add_argument(
         "--page", type=int, default=1, help="Page number (default: 1)"
     )
-    dataprovider_list_parser.add_argument(
+    data_provider_list_parser.add_argument(
         "--per-page",
         type=int,
         default=25,
         help="Number of data providers per page (5-1000, default: 25)",
     )
-    # dataprovider show
-    dataprovider_show_parser = dataprovider_subparsers.add_parser(
+    # data-provider show
+    data_provider_show_parser = data_provider_subparsers.add_parser(
         "show", help="Show data provider details"
     )
-    dataprovider_show_parser.add_argument("id", type=int, help="Data provider ID")
-    dataprovider_show_parser.set_defaults(func=handle_errors(handle_dataprovider_show))
+    data_provider_show_parser.add_argument("id", type=int, help="Data provider ID")
+    data_provider_show_parser.set_defaults(func=handle_errors(handle_dataprovider_show))
 
-    # dataprovider is_alive
-    dataprovider_is_alive_parser = dataprovider_subparsers.add_parser(
-        "is-alive", help="Check if a data provider is alive"
+    # data-provider is-alive
+    data_provider_is_alive_parser = data_provider_subparsers.add_parser(
+        "is-alive", help="Check if a data provider is reachable"
     )
-    dataprovider_is_alive_parser.add_argument("id", type=int, help="Data provider ID")
-    dataprovider_is_alive_parser.set_defaults(func=handle_errors(handle_dataprovider_is_alive))
+    data_provider_is_alive_parser.add_argument("id", type=int, help="Data provider ID")
+    data_provider_is_alive_parser.set_defaults(func=handle_errors(handle_dataprovider_is_alive))
 
-    # dataprovider delete-unregistered-files
-    dataprovider_delete_unregistered_files_parser = dataprovider_subparsers.add_parser(
+    # data-provider delete-unregistered-files
+    data_provider_delete_unregistered_files_parser = data_provider_subparsers.add_parser(
         "delete-unregistered-files",
         help="Delete unregistered files from a data provider",
     )
-    dataprovider_delete_unregistered_files_parser.add_argument(
+    data_provider_delete_unregistered_files_parser.add_argument(
         "id", type=int, help="Data provider ID"
     )
-    dataprovider_delete_unregistered_files_parser.add_argument(
+    data_provider_delete_unregistered_files_parser.add_argument(
         "-y", "--yes", action="store_true", help="Skip confirmation prompt"
     )
-    dataprovider_delete_unregistered_files_parser.set_defaults(
+    data_provider_delete_unregistered_files_parser.set_defaults(
         func=handle_errors(handle_dataprovider_delete_unregistered)
     )
 
@@ -411,7 +435,7 @@ def build_parser():
         type=lambda value: value.replace("-", "_"),
         choices=["bourreau_id"],
         metavar="bourreau-id",
-        help="Filter type (optional)",
+        help="Filter by bourreau (execution server) ID",
     )
     task_list_parser.add_argument("--page", type=int, default=1, help="Page number (default: 1)")
     task_list_parser.add_argument(
@@ -425,7 +449,7 @@ def build_parser():
         "bourreau_id",
         type=int,
         nargs="?",
-        help="Bourreau ID (required when filter is bourreau-id)",
+        help="Bourreau (execution server) ID; required with bourreau-id",
     )
     task_list_parser.set_defaults(func=handle_errors(handle_task_list))
 
@@ -435,12 +459,51 @@ def build_parser():
     task_show_parser.set_defaults(func=handle_errors(handle_task_show))
 
     # task operation
-    task_operation_parser = task_subparsers.add_parser("operation", help="operation on a task")
-    task_operation_parser.set_defaults(func=handle_errors(operation_task))
+    task_operation_parser = task_subparsers.add_parser(
+        "operation", help="Run a bulk operation on tasks"
+    )
+    task_operation_parser.add_argument(
+        "operation",
+        choices=TASK_OPERATIONS,
+        help="Operation to run (e.g. terminate, archive, hold, recover)",
+    )
+    task_operation_parser.add_argument(
+        "--task-id",
+        dest="task_id",
+        type=int,
+        nargs="+",
+        help="One or more task IDs",
+    )
+    task_operation_parser.add_argument(
+        "--batch-id",
+        dest="batch_id",
+        type=int,
+        nargs="+",
+        help="One or more batch IDs (expands to member tasks)",
+    )
+    task_operation_parser.add_argument(
+        "--dup-bourreau-id",
+        dest="dup_bourreau_id",
+        type=int,
+        help="Target bourreau ID for duplicate",
+    )
+    task_operation_parser.add_argument(
+        "--archive-dp-id",
+        dest="archive_dp_id",
+        type=int,
+        help="Data provider ID for archive_file",
+    )
+    task_operation_parser.add_argument(
+        "--nozip",
+        action="store_true",
+        help="Archive without compression (admin only)",
+    )
+    task_operation_parser.set_defaults(func=handle_errors(handle_task_operation))
 
-    # Remote resource commands
+    # Remote resource commands (CBRAIN bourreaux / execution servers)
     remote_resource_parser = subparsers.add_parser(
-        "remote-resource", help="Remote resource operations"
+        "remote-resource",
+        help="Remote resource (bourreau / execution server) operations",
     )
     remote_resource_subparsers = remote_resource_parser.add_subparsers(
         dest="action", help="Remote resource actions"
@@ -456,12 +519,16 @@ def build_parser():
     remote_resource_show_parser = remote_resource_subparsers.add_parser(
         "show", help="Show remote resource details"
     )
-    remote_resource_show_parser.add_argument("remote_resource", type=int, help="Remote resource ID")
+    remote_resource_show_parser.add_argument(
+        "remote_resource",
+        type=int,
+        help="Remote resource (bourreau) ID",
+    )
     remote_resource_show_parser.set_defaults(func=handle_errors(handle_remote_resource_show))
 
     command_parsers = {
         "file": file_parser,
-        "dataprovider": dataprovider_parser,
+        "data-provider": data_provider_parser,
         "project": project_parser,
         "tool": tool_parser,
         "tool-config": tool_configs_parser,
@@ -490,9 +557,14 @@ def main(argv=None):
     parser, command_parsers = build_parser()
     args = parser.parse_args(argv)
 
+    set_debug(getattr(args, "debug", False))
+
     if not args.command:
         parser.print_help()
         return
+
+    if args.command == "dataprovider":
+        args.command = "data-provider"
 
     if (args.command, getattr(args, "action", None)) in PAGINATABLE_ACTIONS:
         try:
@@ -518,7 +590,7 @@ def main(argv=None):
     # Handle authenticated commands.
     if args.command in [
         "file",
-        "dataprovider",
+        "data-provider",
         "project",
         "tool",
         "tool-config",

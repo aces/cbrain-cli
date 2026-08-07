@@ -30,8 +30,27 @@ def create_session(args):
     if cbrain_config.CREDENTIALS_FILE.exists():
         creds = cbrain_config.load_credentials()
         if creds and creds.get("api_token") and creds.get("cbrain_url"):
-            print("Already logged in. Use 'cbrain logout' to logout.")
-            return 1
+            # File alone is not enough, probe server to detect expired tokens.
+            try:
+                CbrainClient.from_credentials().get("/session")
+            except CliApiError as e:
+                if e.status == 401:
+                    print("Saved session expired. Please log in again.")
+                elif e.status >= 500:
+                    print(f"Server returned HTTP {e.status} during session check.")
+                    print("The server may be temporarily unavailable. Try again later.")
+                    return 1
+                else:
+                    print(f"Server returned HTTP {e.status} during session check.")
+                    print("Use 'cbrain logout' to reset local credentials.")
+                    return 1
+            except urllib.error.URLError:
+                print(f"Cannot reach CBRAIN server at {creds['cbrain_url']}.")
+                print("Check your connection. Use 'cbrain logout' to reset local credentials.")
+                return 1
+            else:
+                print("Already logged in. Use 'cbrain logout' to logout.")
+                return 1
 
     # Get user input.
     cbrain_url = input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()

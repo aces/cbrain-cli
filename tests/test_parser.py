@@ -18,6 +18,27 @@ def test_task_list_bourreau_id_args():
     assert args.bourreau_id == 7
 
 
+def test_task_operation_args():
+    parser, _command_parsers = build_parser()
+    args = parser.parse_args(["task", "operation", "terminate", "--task-id", "1", "2", "--nozip"])
+    assert args.action == "operation"
+    assert args.operation == "terminate"
+    assert args.task_id == [1, 2]
+    assert args.nozip is True
+
+
+def test_global_debug_flag():
+    parser, _command_parsers = build_parser()
+    args = parser.parse_args(["--debug", "task", "list"])
+    assert args.debug is True
+
+
+def test_global_verbose_alias():
+    parser, _command_parsers = build_parser()
+    args = parser.parse_args(["--verbose", "task", "list"])
+    assert args.debug is True
+
+
 def test_file_list_kebab_options_normalize_to_snake_case():
     parser, _command_parsers = build_parser()
     args = parser.parse_args(
@@ -26,7 +47,7 @@ def test_file_list_kebab_options_normalize_to_snake_case():
             "list",
             "--group-id",
             "5",
-            "--dp-id",
+            "--data-provider-id",
             "9",
             "--file-type",
             "TextFile",
@@ -38,6 +59,29 @@ def test_file_list_kebab_options_normalize_to_snake_case():
     assert args.dp_id == 9
     assert args.file_type == "TextFile"
     assert args.per_page == 50
+
+
+def test_file_dp_id_aliases():
+    parser, _command_parsers = build_parser()
+    for flag in ("--data-provider-id", "--data-provider", "--dp-id"):
+        args = parser.parse_args(["file", "list", flag, "3"])
+        assert args.dp_id == 3
+
+
+def test_file_upload_data_provider_aliases():
+    parser, _command_parsers = build_parser()
+    for flag in ("--data-provider-id", "--data-provider", "--dp-id"):
+        args = parser.parse_args(["file", "upload", "/tmp/x", flag, "15"])
+        assert args.data_provider == 15
+
+
+def test_data_provider_command_and_alias():
+    parser, _command_parsers = build_parser()
+    canonical = parser.parse_args(["data-provider", "list"])
+    alias = parser.parse_args(["dataprovider", "list"])
+    assert canonical.command == "data-provider"
+    assert alias.command == "dataprovider"
+    assert canonical.action == alias.action == "list"
 
 
 def test_tag_create_kebab_options_normalize_to_snake_case():
@@ -97,7 +141,7 @@ def test_command_parsers_include_model_commands():
     _parser, command_parsers = build_parser()
     for command in (
         "file",
-        "dataprovider",
+        "data-provider",
         "project",
         "tool",
         "tool-config",

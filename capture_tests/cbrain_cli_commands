@@ -79,10 +79,10 @@ cbrain --json  project unswitch
 cbrain --jsonl project switch 10
 cbrain --jsonl project unswitch
 
-cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
+cbrain         project switch all
 cbrain --json  project switch all
 cbrain --jsonl project switch all
-cbrain         project switch 3 # need to reset for rest of test to work
+cbrain         project switch 3 # reset project filter for task list below
 
 # Tags
 cbrain         tag list
@@ -103,10 +103,7 @@ cbrain --json  tag create --name NewTag2 --user-id 2 --group-id 3
 cbrain --jsonl tag create --name NewTag3 --user-id 2 --group-id 3
 
 # Tasks
-# NOTE: we needed to reset the current project to 3 above,
-# until 'group switch all' is implemented; this means only
-# tasks in group 3 are shown below, but that's OK, that's
-# what's in the test DB anyway
+# Reset above to project 3 so task list matches seeded DB view.
 cbrain         task list
 cbrain --json  task list
 cbrain --jsonl task list
@@ -115,8 +112,11 @@ cbrain         task show 2
 cbrain --json  task show 2
 cbrain --jsonl task show 2
 
-# Not yet implemented
-cbrain         task operation   # should provide error message
+# Task operations (hold on Completed task → skipped; deterministic, no BAC)
+cbrain         task operation hold --task-id 2
+cbrain --json  task operation hold --task-id 2
+cbrain --jsonl task operation hold --task-id 2
+cbrain         task operation hold  # missing --task-id / --batch-id
 
 # ToolConfigs, as admin user
 ./switch_session admin

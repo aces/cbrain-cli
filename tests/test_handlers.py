@@ -8,6 +8,7 @@ from cbrain_cli.handlers import (
     handle_project_switch,
     handle_project_unswitch,
     handle_task_list,
+    handle_task_operation,
     handle_task_show,
 )
 from cbrain_cli.users import user_details, whoami_user
@@ -151,6 +152,48 @@ def test_list_handler_validation_error_returns_1(monkeypatch):
         MagicMock(side_effect=CliValidationError("bad filter")),
     )
     assert handle_errors(handle_task_list)(make_args()) == 1
+
+
+def test_handle_task_operation_success(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "cbrain_cli.handlers.tasks.operation_task",
+        lambda _: {
+            "success_list": [1],
+            "failed_list": {},
+            "skipped_list": {},
+            "bac_ids": [33],
+        },
+    )
+    assert handle_task_operation(make_args(operation="terminate")) is None
+    out = capsys.readouterr().out
+    assert "TASK OPERATION RESULT" in out
+    assert "Succeeded: 1" in out
+    assert "33" in out
+
+
+def test_handle_task_operation_empty_data(monkeypatch, capsys):
+    """Empty dict is domain data — formatter prints it, handler does not return 1."""
+    monkeypatch.setattr("cbrain_cli.handlers.tasks.operation_task", lambda _: {})
+    assert handle_task_operation(make_args()) is None
+    assert "No operation result." in capsys.readouterr().out
+
+
+def test_handle_task_operation_validation_error_returns_1(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "cbrain_cli.handlers.tasks.operation_task",
+        MagicMock(side_effect=CliValidationError("bad operation")),
+    )
+    assert handle_errors(handle_task_operation)(make_args()) == 1
+    assert "bad operation" in capsys.readouterr().out
+
+
+def test_handle_task_operation_api_error_returns_1(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "cbrain_cli.handlers.tasks.operation_task",
+        MagicMock(side_effect=CliApiError("Forbidden", status=403)),
+    )
+    assert handle_errors(handle_task_operation)(make_args()) == 1
+    assert "Forbidden" in capsys.readouterr().out
 
 
 def test_user_details_sends_current_token_in_header(monkeypatch, capture_urlopen, creds_file):

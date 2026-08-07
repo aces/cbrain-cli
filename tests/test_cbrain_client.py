@@ -2,9 +2,18 @@ import urllib.error
 
 import pytest
 
+import cbrain_cli.cli_utils as cu
 from cbrain_cli.cli_utils import CbrainClient, CliApiError
 from cbrain_cli.config import DEFAULT_TIMEOUT
 from tests.conftest import TOKEN, URL, install_auth
+
+
+@pytest.fixture
+def debug_mode():
+    """Enable debug mode for one test; always resets to False afterward."""
+    cu.set_debug(True)
+    yield
+    cu.set_debug(False)
 
 
 @pytest.fixture
@@ -108,3 +117,22 @@ def test_post_multipart(client, capture_urlopen):
     assert data == {"id": 1} and status == 201
     assert "multipart/form-data" in captured["headers"].get("Content-type", "")
     assert captured["headers"].get("Authorization") == f"Bearer {TOKEN}"
+
+
+def test_debug_off_by_default(capsys):
+    cu.debug_log("should not appear")
+    assert capsys.readouterr().err == ""
+
+
+def test_debug_lines_reach_stderr(debug_mode, capsys):
+    cu.debug_log("hello world")
+    assert "[DEBUG] hello world" in capsys.readouterr().err
+
+
+def test_debug_no_token_in_output(debug_mode, client, capture_urlopen, capsys):
+    configure, _ = capture_urlopen
+    configure({})
+    client.get("/tools")
+    err = capsys.readouterr().err
+    assert TOKEN not in err
+    assert "[DEBUG]" in err
