@@ -24,7 +24,7 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 - Phase 4 item 24 completed in PR #48.
 - Phase 4 items 20, 22, 23, 25, and 26 completed in PR #50.
 - Phase 4 items 19 and 21 completed in PR #51, building on PR #50.
-- Phase 5 items 28 and 29 completed in the documentation update after PR #50; item 27 is partially complete.
+- Phase 5 items 28 and 29 completed through the main documentation update after PR #50 and the focused package/test documentation in PR #40; item 27 is partially complete.
 
 Open work remains in Phase 5 item 27. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
 
@@ -394,7 +394,7 @@ Open work remains in Phase 5 item 27. Phase 5 documentation should continue to e
 
 ## 28. Document test strategy
 
-**Status:** Completed in the documentation update after PR #50.
+**Status:** Completed through the main documentation update after PR #50 and the focused test documentation in PR #40.
 
 **Problem:** README explains capture tests, but the overall testing strategy should distinguish what belongs in capture tests versus unit tests once unit tests exist.
 
@@ -407,7 +407,7 @@ Open work remains in Phase 5 item 27. Phase 5 documentation should continue to e
 
 ## 29. Document internal boundaries
 
-**Status:** Completed in the documentation update after PR #50.
+**Status:** Completed through the main documentation update after PR #50 and the package-layer documentation in PR #40.
 
 **Problem:** The intended layering is implicit.
 

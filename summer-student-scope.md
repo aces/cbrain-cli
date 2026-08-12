@@ -6,13 +6,13 @@ The goal is not to rewrite the CLI. The goal is to fix the highest-impact correc
 
 ## Current Progress
 
-As of PR #50:
+Current repository status after PRs #51 and #40:
 
 - Phase 1 correctness work is complete.
 - The planned Phase 2 guardrails are complete.
-- Phase 3 items 14 and 17 are complete; items 15, 16, and 18 remain in the backlog.
+- Phase 3 items 14-18 are complete.
 - Phase 4 items 19-26 are complete. The work went beyond the original pattern-only target: all current data command families now use `CbrainClient`.
-- The testing strategy, compatibility target, and architecture boundaries are documented in `README.md`.
+- The testing strategy, compatibility target, and architecture boundaries are documented in the main `README.md`, with focused package-layer and unit-test documentation added in PR #40.
 
 The authoritative item-by-item status remains in `plan.md`.
 
