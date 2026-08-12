@@ -20,12 +20,13 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 - Phase 2 items 10-12 completed in PR #49.
 - Phase 2 item 13 completed in PR #46.
 - Phase 3 items 14 and 17 completed in PR #49.
+- Phase 3 items 15, 16, and 18 completed in PR #51.
 - Phase 4 item 24 completed in PR #48.
 - Phase 4 items 20, 22, 23, 25, and 26 completed in PR #50.
-- Phase 4 items 19 and 21 partially completed in PR #50.
+- Phase 4 items 19 and 21 completed in PR #51, building on PR #50.
 - Phase 5 items 28 and 29 completed in the documentation update after PR #50; item 27 is partially complete.
 
-Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and Phase 5 item 27. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
+Open work remains in Phase 5 item 27. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
 
 # Phase 1: Correctness Fixes
 
@@ -220,7 +221,7 @@ Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and 
 
 ## 15. Make not-implemented behavior structured
 
-**Status:** Open.
+**Status:** Completed in PR #51.
 
 **Problem:** Not-implemented paths print prose and return inconsistently.
 
@@ -234,7 +235,7 @@ Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and 
 
 ## 16. Stabilize command vocabulary
 
-**Status:** Open.
+**Status:** Completed in PR #51.
 
 **Problem:** Public terms and option names are inconsistent: `dataprovider`, `remote-resource`, `bourreau-id`, `dp-id`, `data-provider`, etc.
 
@@ -260,7 +261,7 @@ Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and 
 
 ## 18. Add coherent verbose/debug mode
 
-**Status:** Open.
+**Status:** Completed in PR #51.
 
 **Problem:** Debug behavior is ad hoc and mostly tied to `whoami --version`.
 
@@ -275,9 +276,7 @@ Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and 
 
 ## 19. Define command return contracts
 
-**Status:** Partially completed in PR #50.
-
-**Remaining:** `task operation` is still dispatched directly to a data-layer function that formats output. Move orchestration to a handler and return structured domain data from the data function.
+**Status:** Completed in PR #51, building on PR #50.
 
 **Problem:** Functions return mixed values: `None`, `1`, lists, dicts, and tuples.
 
@@ -303,9 +302,7 @@ Open work remains in Phase 3 items 15, 16, and 18; Phase 4 items 19 and 21; and 
 
 ## 21. Move printing out of data modules
 
-**Status:** Partially completed in PR #50.
-
-**Remaining:** `cbrain_cli/data/tasks.py::operation_task()` still calls `json_printer()` directly. Return data instead and let a handler or formatter own presentation.
+**Status:** Completed in PR #51, building on PR #50.
 
 **Problem:** Data modules mix API work, validation, and presentation by printing directly.
 
