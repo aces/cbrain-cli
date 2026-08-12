@@ -2,8 +2,10 @@
 
 This directory contains the unit test suite for the CBRAIN CLI.
 
-Every test mocks the HTTP layer (`urllib.request.urlopen`), so **no real CBRAIN
-server is required**. For live-server end-to-end output checks, see
+Where tests touch the network, the HTTP layer (`urllib.request.urlopen`) is
+mocked, so **no real CBRAIN server is required**. Many tests exercise
+parsers, formatters, config, or dispatch and do not use HTTP at all. For
+live-server end-to-end output checks, see
 [capture_tests/README.md](../capture_tests/README.md). Those capture tests
 expect a seeded CBRAIN test instance; server setup follows the same pattern as
 CBRAIN's own [API testing frameworks](https://github.com/aces/cbrain/blob/master/BrainPortal/test_api/README.md).

@@ -32,7 +32,10 @@ ID   Type       File Name
 
 ### Raw JSON Output
 
-Every command also supports a `--json` flag that skips the formatter entirely and dumps the raw API response straight to your terminal. Useful for scripting or piping into other tools!
+Commands that return API data also support a `--json` flag that skips the
+formatter and dumps the raw response. Useful for scripting or piping into
+other tools. Session commands such as `login` and `logout` still print
+plain text.
 
 ## The Formatter Files 🗂️
 
