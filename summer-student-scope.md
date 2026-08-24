@@ -61,7 +61,7 @@ Recommended target:
 
 Document the architecture boundaries, test workflow, Ruff workflow, supported/tested CBRAIN API version if known, and remaining follow-up work.
 
-**Result:** Completed after PR #50. The compatibility statement deliberately names the tested server branch rather than promising an unsupported numbered API version.
+**Result:** The summer-scope documentation target was completed after PR #50. In the broader backlog, `plan.md` item 27 remains partially complete because API endpoint paths are still distributed across data modules. The compatibility statement deliberately names the tested server branch rather than promising an unsupported numbered API version.
 
 ## Out Of Scope
 
@@ -159,4 +159,4 @@ The summer project is successful if:
 - one command family demonstrates the new architecture pattern;
 - documentation explains what was done and what remains.
 
-All definition-of-done criteria above are now met. Remaining Phase 3 and ongoing documentation work stay tracked in `plan.md`.
+All summer-project definition-of-done criteria above are now met. The selected Phase 3 work is complete. Remaining work is limited to the ongoing Phase 5 compatibility cleanup tracked in `plan.md` item 27.

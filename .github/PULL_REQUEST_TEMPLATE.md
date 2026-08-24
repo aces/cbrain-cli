@@ -1,7 +1,7 @@
 <!---
 Thank you for your pull request! 🚀
 
-CI runs pre-commit (Ruff, formatting, hooks) and capture tests on every pull request.
+CI runs pre-commit (Ruff, formatting, hooks), unit tests, and capture tests on every pull request.
 -->
 
 ### Contributor checklist

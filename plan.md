@@ -276,7 +276,7 @@ Open work remains in Phase 5 item 27. Phase 5 documentation should continue to e
 
 ## 19. Define command return contracts
 
-**Status:** Completed in PR #51, building on PR #50.
+**Status:** Completed for the targeted task command family in PR #51, building on PR #50. Codebase-wide return-contract normalization remains outside the completed target; some other command families still return legacy tuples or status values.
 
 **Problem:** Functions return mixed values: `None`, `1`, lists, dicts, and tuples.
 
