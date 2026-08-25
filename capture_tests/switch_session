@@ -1,3 +1,4 @@
+
 #
 # This script just creates the
 # content of the credentials.json file
@@ -6,77 +7,104 @@
 # in the CBRAIN api test framework, only
 # valid within the test database set up there.
 #
-# Writes a multi-session credentials map so
-# `cbrain session list` / `cbrain switch_session`
-# can flip among planted test users.
-#
 
+# The tree tokens used by the test suite;
+# for the moment we only use the NORM one
 ADMIN_TOKEN="0123456789abcdef0123456789abcdef";
 NORMAL_TOKEN="0123456789abcdeffedcba9876543210";
 DEL_TOKEN="0123456789abcdefffffffffffffffff";
 
+# cbrain client JSON file with credentials to update
 cbrain_cred_file=$HOME/.config/cbrain/credentials.json
 mkdir -p "$(dirname "$cbrain_cred_file")"
 
+# Timestamp as expected by the cbrain client program
 timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
+
+# What session to create is first argument,
+# one of admin norm or normdel; if nothing is
+# provided, the effect will be to empty out
+# the content of the credentials.json file,
+# thus logging out the cbrain command.
 testses="$1"
 
-# Clear credentials (not logged in)
-if test "X$testses" = "X" -o "X$testses" = "XNONE" ; then
-  rm -f "$cbrain_cred_file"
-  exit 0
-fi
-
-# Load existing named sessions (if any) so we can add/switch without wiping others.
+# Keep prior named sessions so planting admin after norm does not wipe norm.
 existing="{}"
 if test -s "$cbrain_cred_file" ; then
   existing=$(cat "$cbrain_cred_file")
 fi
 
-python3 - "$cbrain_cred_file" "$testses" "$timestamp" "$ADMIN_TOKEN" "$NORMAL_TOKEN" "$DEL_TOKEN" "$existing" <<'PY'
+# Stdout from now on goes into a temp JSON blob for this session only
+tmp_cred=$(mktemp)
+exec 1> "$tmp_cred"
+
+# Session for normal user
+if test "X$1" = "Xnorm" ; then
+  cat <<CREDJSON
+{
+  "cbrain_url": "http://localhost:3000",
+  "api_token":  "$NORMAL_TOKEN",
+  "user_id":    2,
+  "username":   "norm",
+  "timestamp":  "$timestamp"
+}
+CREDJSON
+fi
+
+# Session for admin user
+if test "X$1" = "Xadmin" ; then
+  cat <<CREDJSON
+{
+  "cbrain_url": "http://localhost:3000",
+  "api_token":  "$ADMIN_TOKEN",
+  "user_id":    1,
+  "username":   "admin",
+  "timestamp":  "$timestamp"
+}
+CREDJSON
+fi
+
+# Session for normal user, for delete session test
+if test "X$1" = "Xnormdel" ; then
+  cat <<CREDJSON
+{
+  "cbrain_url": "http://localhost:3000",
+  "api_token":  "$DEL_TOKEN",
+  "user_id":    2,
+  "username":   "norm",
+  "timestamp":  "$timestamp"
+}
+CREDJSON
+fi
+
+# Close stdout forever until the end of all time and space and burgers
+exec 1>& -
+
+# Remove outright if it's empty
+if ! test -s "$tmp_cred" ; then
+  rm -f "$tmp_cred" "$cbrain_cred_file"
+  exit 0
+fi
+
+# Merge this session into the named credentials map (multi-session).
+python3 - "$cbrain_cred_file" "$testses" "$existing" "$tmp_cred" <<'PY'
 import json, sys
 
-path, name, ts, admin_tok, norm_tok, del_tok, existing_raw = sys.argv[1:8]
+path, name, existing_raw, new_path = sys.argv[1:5]
+with open(new_path) as f:
+    new = json.load(f)
 try:
     data = json.loads(existing_raw) if existing_raw.strip() else {}
 except json.JSONDecodeError:
     data = {}
-
 # Promote legacy flat file to named map.
 if "api_token" in data or "cbrain_url" in data:
     if not any(isinstance(v, dict) and "api_token" in v for k, v in data.items() if k != "_active_session"):
         data = {"default": {k: v for k, v in data.items() if k != "_active_session"}}
-
-sessions = {
-    "admin": {
-        "cbrain_url": "http://localhost:3000",
-        "api_token": admin_tok,
-        "user_id": 1,
-        "username": "admin",
-        "timestamp": ts,
-    },
-    "norm": {
-        "cbrain_url": "http://localhost:3000",
-        "api_token": norm_tok,
-        "user_id": 2,
-        "username": "norm",
-        "timestamp": ts,
-    },
-    "normdel": {
-        "cbrain_url": "http://localhost:3000",
-        "api_token": del_tok,
-        "user_id": 2,
-        "username": "norm",
-        "timestamp": ts,
-    },
-}
-
-if name not in sessions:
-    sys.exit(0)
-
-data[name] = sessions[name]
+data[name] = new
 data["_active_session"] = name
 with open(path, "w") as f:
     json.dump(data, f, indent=2)
     f.write("\n")
 PY
+rm -f "$tmp_cred"

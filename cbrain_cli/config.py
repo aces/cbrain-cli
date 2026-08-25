@@ -66,7 +66,9 @@ def is_flat_credentials(data):
         return False
     if "api_token" in data or "cbrain_url" in data:
         return not any(
-            k != ACTIVE_SESSION_KEY and isinstance(v, dict) and ("api_token" in v or "cbrain_url" in v)
+            k != ACTIVE_SESSION_KEY
+            and isinstance(v, dict)
+            and ("api_token" in v or "cbrain_url" in v)
             for k, v in data.items()
         )
     return False
@@ -78,11 +80,7 @@ def get_named_sessions(data):
         return {}
     if is_flat_credentials(data):
         return {"default": {k: v for k, v in data.items() if k != ACTIVE_SESSION_KEY}}
-    return {
-        k: v
-        for k, v in data.items()
-        if k != ACTIVE_SESSION_KEY and isinstance(v, dict)
-    }
+    return {k: v for k, v in data.items() if k != ACTIVE_SESSION_KEY and isinstance(v, dict)}
 
 
 def resolve_session_credentials(data, session_name=None):

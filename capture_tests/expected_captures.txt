@@ -124,6 +124,21 @@ Stderr:
 (No output)
 
 ############################
+Command: cbrain         session list
+Status: 0
+Stdout: 337 bytes
+Stderr: 0 bytes
+
+Stdout:
+#    SESSION              USERNAME         USER ID    SERVER                              TIMESTAMP
+------------------------------------------------------------------------------------------
+*1   norm                 norm             2          http://localhost:3000               2222-22-22T44:44
+
+Active session: norm  (* = active)
+Stderr:
+(No output)
+
+############################
 Command: cbrain         remote-resource list
 Status: 0
 Stdout: 441 bytes
@@ -1074,6 +1089,22 @@ Stderr:
 (No output)
 
 ############################
+Command: cbrain         session list
+Status: 0
+Stdout: 448 bytes
+Stderr: 0 bytes
+
+Stdout:
+#    SESSION              USERNAME         USER ID    SERVER                              TIMESTAMP
+------------------------------------------------------------------------------------------
+ 1   norm                 norm             2          http://localhost:3000               2222-22-22T44:44
+*2   admin                admin            1          http://localhost:3000               2222-22-22T44:44
+
+Active session: admin  (* = active)
+Stderr:
+(No output)
+
+############################
 Command: cbrain         tool-config list
 Status: 0
 Stdout: 453 bytes
@@ -1179,13 +1210,29 @@ Stderr:
 (No output)
 
 ############################
-Command: ./switch_session norm
+Command: cbrain         switch_session norm
 Status: 0
-Stdout: 0 bytes
+Stdout: 71 bytes
 Stderr: 0 bytes
 
 Stdout:
+Switched to session 'norm'. All future commands will use this session.
+Stderr:
 (No output)
+
+############################
+Command: cbrain         session list
+Status: 0
+Stdout: 447 bytes
+Stderr: 0 bytes
+
+Stdout:
+#    SESSION              USERNAME         USER ID    SERVER                              TIMESTAMP
+------------------------------------------------------------------------------------------
+*1   norm                 norm             2          http://localhost:3000               2222-22-22T44:44
+ 2   admin                admin            1          http://localhost:3000               2222-22-22T44:44
+
+Active session: norm  (* = active)
 Stderr:
 (No output)
 
@@ -1720,12 +1767,14 @@ Stderr:
 ############################
 Command: cbrain         logout
 Status: 0
-Stdout: 116 bytes
+Stdout: 266 bytes
 Stderr: 0 bytes
 
 Stdout:
-Successfully logged out from CBRAIN server.
-Local session removed from /home/runner/.config/cbrain/credentials.json
+Successfully logged out from CBRAIN server as norm.
+Local session 'norm' removed from /home/runner/.config/cbrain/credentials.json.
+Successfully logged out from CBRAIN server as admin.
+Local session 'admin' removed from /home/runner/.config/cbrain/credentials.json.
 Stderr:
 (No output)
 

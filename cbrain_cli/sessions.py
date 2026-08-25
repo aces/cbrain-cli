@@ -18,8 +18,8 @@ from cbrain_cli.config import (
     resolve_session_credentials,
 )
 
-
 # MARK: Switch Session
+
 
 def switch_session(args):
     """Switch the default session used by bare commands."""
@@ -52,6 +52,7 @@ def switch_session(args):
 
 # MARK: List Sessions
 
+
 def list_sessions(args):
     """List all saved sessions, marking the currently active one with '*'."""
     all_creds = cbrain_config.load_credentials()
@@ -59,7 +60,11 @@ def list_sessions(args):
         print(f"Error: credentials file is corrupted ({cbrain_config.CREDENTIALS_FILE}).")
         return 1
 
-    active = all_creds.get(ACTIVE_SESSION_KEY, "default") if not is_flat_credentials(all_creds) else "default"
+    active = (
+        all_creds.get(ACTIVE_SESSION_KEY, "default")
+        if not is_flat_credentials(all_creds)
+        else "default"
+    )
     sessions = get_named_sessions(all_creds)
 
     if not sessions:
@@ -95,7 +100,9 @@ def create_session(args):
     int
         Exit code (0 on success, 1 on failure).
     """
-    target_session = getattr(args, "session", None) or (session_name if session_specified else "default")
+    target_session = getattr(args, "session", None) or (
+        session_name if session_specified else "default"
+    )
 
     if cbrain_config.CREDENTIALS_FILE.exists():
         all_creds = cbrain_config.load_credentials()
@@ -131,9 +138,11 @@ def create_session(args):
                     print(f"Already logged in{label}. Use 'cbrain logout' to logout.")
                     return 1
 
-    cbrain_url = getattr(args, "server", None) or input(
-        "Enter CBRAIN server base URL [default: localhost:3000]: "
-    ).strip() or DEFAULT_BASE_URL
+    cbrain_url = (
+        getattr(args, "server", None)
+        or input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()
+        or DEFAULT_BASE_URL
+    )
 
     username = getattr(args, "username", None) or input("Enter CBRAIN username: ").strip()
     if not username:
@@ -181,6 +190,7 @@ def create_session(args):
 
 
 # MARK: Logout
+
 
 def logout_session(args):
     """
@@ -236,7 +246,9 @@ def logout_session(args):
 
         display_name = creds.get("username", s_name)
         try:
-            _, status = CbrainClient(s_url, s_token, creds.get("user_id")).send("DELETE", "/session")
+            _, status = CbrainClient(s_url, s_token, creds.get("user_id")).send(
+                "DELETE", "/session"
+            )
             if status == 200:
                 if flat or not session_specified and len(sessions_to_logout) == 1:
                     print("Successfully logged out from CBRAIN server.")
@@ -246,7 +258,11 @@ def logout_session(args):
                 print(f"Logout failed for session '{s_name}'." if not flat else "Logout failed")
         except CliApiError as e:
             if e.status == 401:
-                print("Session already expired on server." if flat else f"Session '{s_name}' already expired on server.")
+                print(
+                    "Session already expired on server."
+                    if flat
+                    else f"Session '{s_name}' already expired on server."
+                )
             else:
                 print(
                     f"Logout request failed: HTTP {e.status}"
@@ -254,7 +270,11 @@ def logout_session(args):
                     else f"Logout request failed for '{s_name}': HTTP {e.status}"
                 )
         except urllib.error.URLError as e:
-            print(f"Network error during logout: {e}" if flat else f"Network error during logout for '{s_name}': {e}")
+            print(
+                f"Network error during logout: {e}"
+                if flat
+                else f"Network error during logout for '{s_name}': {e}"
+            )
 
         if flat:
             if cbrain_config.CREDENTIALS_FILE.exists():
