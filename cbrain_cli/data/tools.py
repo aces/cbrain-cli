@@ -1,53 +1,44 @@
-import json
-import urllib.request
-
-from cbrain_cli.cli_utils import api_token, cbrain_url, pagination
-from cbrain_cli.config import auth_headers
+from cbrain_cli.cli_utils import (
+    CbrainClient,
+    CliApiError,
+    CliValidationError,
+    pagination,
+)
 
 
 def list_tools(args):
     """
-    Get tool details or list of all tools.
-
-    Parameters
-    ----------
-    args : argparse.Namespace
-        Command line arguments, including the tool argument with tool_id if specified
-
-    Returns
-    -------
-    dict or list or None
-        - dict: when tool_id is provided and found
-        - list: when no tool_id is provided
-        - None: when error occurs or tool not found
+    Get paginated list of tools from CBRAIN.
     """
-    # Get the tool ID from the -id argument if provided.
+    params = pagination(args, {})
+    return CbrainClient.from_credentials().get("/tools", params=params)
+
+
+def show_tool(args):
+    """
+    Get detailed information about a specific tool from CBRAIN.
+
+    Searches paginated ``GET /tools`` results because ``GET /tools/{id}``
+    returns 204 No Content on this API.
+    """
     tool_id = getattr(args, "id", None)
-    query_params = {}
-    query_params = pagination(args, query_params)
+    if not tool_id:
+        raise CliValidationError("Tool ID is required", field="id")
 
-    tools_endpoint = f"{cbrain_url}/tools"
-    query_string = urllib.parse.urlencode(query_params)
-    tools_endpoint = f"{tools_endpoint}?{query_string}"
-    headers = auth_headers(api_token)
+    per_page = 20
+    page = 1
+    while True:
+        tools_page = CbrainClient.from_credentials().get(
+            "/tools",
+            params={"page": str(page), "per_page": str(per_page)},
+        )
+        if not tools_page or not isinstance(tools_page, list):
+            break
+        for tool in tools_page:
+            if str(tool.get("id")) == str(tool_id):
+                return tool
+        if len(tools_page) < per_page:
+            break
+        page += 1
 
-    request = urllib.request.Request(tools_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        tools_data = json.loads(data)
-
-    if not isinstance(tools_data, list):
-        print("Error: Unexpected response format from server")
-        return None
-
-    if tool_id:
-        # Filter for a specific tool
-        tool = next((t for t in tools_data if t.get("id") == tool_id), None)
-        if not tool:
-            print(f"Error: Tool with ID {tool_id} not found")
-            return None
-        return tool
-    else:
-        # Return all tools
-        return tools_data
+    raise CliApiError(f"Tool with ID {tool_id} not found")

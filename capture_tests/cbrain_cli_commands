@@ -43,6 +43,9 @@ cbrain --json version
 cbrain        whoami
 cbrain --json whoami
 
+# Named session management
+cbrain         session list
+
 # Bourreaux
 cbrain         remote-resource list
 cbrain --json  remote-resource list
@@ -71,13 +74,18 @@ cbrain --json  project show 10
 cbrain --jsonl project show 10
 
 cbrain         project switch 10
-cbrain --json  project switch 10
-cbrain --jsonl project switch 10
+cbrain         project unswitch
 
-cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
+cbrain --json  project switch 10
+cbrain --json  project unswitch
+
+cbrain --jsonl project switch 10
+cbrain --jsonl project unswitch
+
+cbrain         project switch all
 cbrain --json  project switch all
 cbrain --jsonl project switch all
-cbrain         project switch 3 # need to reset for rest of test to work
+cbrain         project switch 3 # reset project filter for task list below
 
 # Tags
 cbrain         tag list
@@ -91,17 +99,14 @@ cbrain --jsonl tag show 21
 cbrain         tag show   99
 cbrain         tag update 99 --name Renamed --user-id 2 --group-id 3
 cbrain         tag show   99
-cbrain         tag delete 99
+cbrain         tag delete 99 --yes
 
 cbrain         tag create --name NewTag1 --user-id 2 --group-id 3
 cbrain --json  tag create --name NewTag2 --user-id 2 --group-id 3
 cbrain --jsonl tag create --name NewTag3 --user-id 2 --group-id 3
 
 # Tasks
-# NOTE: we needed to reset the current project to 3 above,
-# until 'group switch all' is implemented; this means only
-# tasks in group 3 are shown below, but that's OK, that's
-# what's in the test DB anyway
+# Reset above to project 3 so task list matches seeded DB view.
 cbrain         task list
 cbrain --json  task list
 cbrain --jsonl task list
@@ -110,11 +115,15 @@ cbrain         task show 2
 cbrain --json  task show 2
 cbrain --jsonl task show 2
 
-# Not yet implemented
-cbrain         task operation   # should provide error message
+# Task operations (hold on Completed task → skipped; deterministic, no BAC)
+cbrain         task operation hold --task-id 2
+cbrain --json  task operation hold --task-id 2
+cbrain --jsonl task operation hold --task-id 2
+cbrain         task operation hold  # missing --task-id / --batch-id
 
 # ToolConfigs, as admin user
 ./switch_session admin
+cbrain         session list
 cbrain         tool-config list
 cbrain --json  tool-config list
 cbrain --jsonl tool-config list
@@ -123,8 +132,9 @@ cbrain         tool-config show 19 # not visible to normal user norm
 cbrain --json  tool-config show 19
 cbrain --jsonl tool-config show 19
 
-# ToolConfigs, as normal user
-./switch_session norm
+# ToolConfigs, as normal user (CLI switch_session; both sessions already planted)
+cbrain         switch_session norm
+cbrain         session list
 cbrain         tool-config list
 cbrain --json  tool-config list
 cbrain --jsonl tool-config list
@@ -160,11 +170,10 @@ cbrain         file show 2
 cbrain --json  file show 2
 cbrain --jsonl file show 2
 
-cbrain         file delete 5
+cbrain         file delete 5 --yes
 
 cbrain         file move --file-id 2 --dp-id 15
 #cbrain --json  file move --file-id 2 --dp-id 15
 
 # Logging out
 cbrain         logout
-

@@ -1,10 +1,13 @@
-import json
-import urllib.error
-import urllib.request
-
-from cbrain_cli.cli_utils import api_token, cbrain_url
-from cbrain_cli.config import auth_headers
-from cbrain_cli.sessions import save_credentials
+from cbrain_cli.cli_utils import (
+    CbrainClient,
+    CliApiError,
+    CliValidationError,
+)
+from cbrain_cli.config import (
+    load_credentials,
+    resolve_session_credentials,
+    update_active_credentials,
+)
 
 
 def switch_project(args):
@@ -21,52 +24,77 @@ def switch_project(args):
     dict or None
         Dictionary containing project details if successful, None otherwise
     """
-    from cbrain_cli.cli_utils import all_credentials, session_name
-
     # Get the group ID from the group_id argument
     group_id = getattr(args, "group_id", None)
     if not group_id:
-        print("Error: Group ID is required")
-        return None
+        raise CliValidationError("Group ID is required", field="group_id")
 
-    # Handle the special case of "all"
+    # Server accepts numeric id or "all" (no single project filter).
+    if group_id != "all":
+        try:
+            group_id = int(group_id)
+        except ValueError:
+            raise CliValidationError(
+                f"Invalid group ID '{group_id}'. Must be a number or 'all'", field="group_id"
+            ) from None
+
+    client = CbrainClient.from_credentials()
+    _, switch_status = client.send("POST", f"/groups/switch?id={group_id}")
+    if switch_status not in (200, 201, 204):
+        raise CliApiError(f"Failed to switch project (HTTP {switch_status})")
+
+    # "all" is session state only — no /groups/all resource.
     if group_id == "all":
-        print("Project switch 'all' not yet implemented as of Aug 2025")
-        return None
+        group_data = {"id": "all", "name": "all"}
+    else:
+        group_data = client.get(f"/groups/{group_id}")
 
-    # Convert to integer for regular group IDs
-    try:
-        group_id = int(group_id)
-    except ValueError:
-        print(f"Error: Invalid group ID '{group_id}'. Must be a number or 'all'")
-        return None
-
-    # Step 1: Call the switch API
-    switch_endpoint = f"{cbrain_url}/groups/switch?id={group_id}"
-    headers = auth_headers(api_token)
-
-    # Create the request
-    request = urllib.request.Request(switch_endpoint, data=None, headers=headers, method="POST")
-
-    with urllib.request.urlopen(request):
-        group_endpoint = f"{cbrain_url}/groups/{group_id}"
-        group_request = urllib.request.Request(
-            group_endpoint, data=None, headers=headers, method="GET"
+    if load_credentials() is not None:
+        update_active_credentials(
+            {
+                "current_group_id": group_id,
+                "current_group_name": group_data.get("name", "Unknown"),
+            }
         )
 
-        with urllib.request.urlopen(group_request) as group_response:
-            group_data_text = group_response.read().decode("utf-8")
-            group_data = json.loads(group_data_text)
+    return group_data
 
-        # Step 3: Update credentials file with current group_id
-        if session_name in all_credentials:
-            all_credentials[session_name]["current_group_id"] = group_id
-            all_credentials[session_name]["current_group_name"] = group_data.get(
-                "name", "Unknown"
-            )
-            save_credentials(all_credentials)
 
-        return group_data
+def unswitch_project(args):
+    """
+    Clear the current project/group on the server and in local credentials.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Command line arguments
+
+    Returns
+    -------
+    dict
+        Previous and current group identifiers (all None when no project was set)
+    """
+    credentials = load_credentials()
+    previous_group_id = None
+    previous_group_name = None
+
+    if credentials is not None:
+        active = resolve_session_credentials(credentials)
+        previous_group_id = active.get("current_group_id")
+        previous_group_name = active.get("current_group_name")
+
+    if previous_group_id:
+        CbrainClient.from_credentials().send("POST", "/groups/switch")
+
+    if credentials is not None:
+        update_active_credentials(remove_keys=["current_group_id", "current_group_name"])
+
+    return {
+        "previous_group_id": previous_group_id,
+        "previous_group_name": previous_group_name,
+        "current_group_id": None,
+        "current_group_name": None,
+    }
 
 
 def show_project(args):
@@ -83,57 +111,41 @@ def show_project(args):
     dict or None
         Dictionary containing project details if successful, None if no project set
     """
-    from cbrain_cli.cli_utils import all_credentials, session_name
-
     # Check if a specific project ID was provided
     project_id = getattr(args, "project_id", None)
 
     if project_id:
         # Show specific project by ID
-        group_endpoint = f"{cbrain_url}/groups/{project_id}"
-        headers = auth_headers(api_token)
-        request = urllib.request.Request(group_endpoint, data=None, headers=headers, method="GET")
-
         try:
-            with urllib.request.urlopen(request) as response:
-                data = response.read().decode("utf-8")
-                group_data = json.loads(data)
-                return group_data
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                print(f"Error: Project with ID {project_id} not found")
-                return None
-            else:
-                raise
-    else:
-        # Show current project from credentials
-        session_creds = all_credentials.get(session_name, {})
-        current_group_id = session_creds.get("current_group_id")
-        if not current_group_id:
-            return None
+            return CbrainClient.from_credentials().get(f"/groups/{project_id}")
+        except CliApiError as e:
+            if e.status == 404:
+                raise CliApiError(f"Project with ID {project_id} not found") from None
+            raise
 
-        # Get fresh group details from server
-        group_endpoint = f"{cbrain_url}/groups/{current_group_id}"
-        headers = auth_headers(api_token)
+    credentials = load_credentials()
+    if credentials is None:
+        return None
 
-        request = urllib.request.Request(group_endpoint, data=None, headers=headers, method="GET")
+    active = resolve_session_credentials(credentials)
+    current_group_id = active.get("current_group_id")
+    if not current_group_id:
+        return None
 
-        try:
-            with urllib.request.urlopen(request) as response:
-                data = response.read().decode("utf-8")
-                group_data = json.loads(data)
-                return group_data
+    # Session "all" has no Group row; mirror switch_project synthetic result.
+    if current_group_id == "all":
+        return {
+            "id": "all",
+            "name": active.get("current_group_name") or "all",
+        }
 
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                print(f"Error: Current project (ID {current_group_id}) no longer exists")
-                # Clear the invalid group_id from credentials
-                session_creds.pop("current_group_id", None)
-                session_creds.pop("current_group_name", None)
-                save_credentials(all_credentials)
-                return None
-            else:
-                raise
+    try:
+        return CbrainClient.from_credentials().get(f"/groups/{current_group_id}")
+    except CliApiError as e:
+        if e.status == 404:
+            update_active_credentials(remove_keys=["current_group_id", "current_group_name"])
+            raise CliApiError(f"Current project (ID {current_group_id}) no longer exists") from None
+        raise
 
 
 def list_projects(args):
@@ -150,17 +162,4 @@ def list_projects(args):
     list
         List of project dictionaries
     """
-    # Prepare the API request.
-    groups_endpoint = f"{cbrain_url}/groups"
-    headers = auth_headers(api_token)
-
-    # Create the request.
-    request = urllib.request.Request(groups_endpoint, data=None, headers=headers, method="GET")
-
-    # Make the request.
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        projects_data = json.loads(data)
-
-    return projects_data
-
+    return CbrainClient.from_credentials().get("/groups")

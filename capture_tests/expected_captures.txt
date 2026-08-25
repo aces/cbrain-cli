@@ -16,22 +16,24 @@ Stderr:
 ############################
 Command: cbrain        version
 Status: 0
-Stdout: 30 bytes
+Stdout: 32 bytes
 Stderr: 0 bytes
 
 Stdout:
-cbrain cli client version 1.0
+cbrain cli client version 0.1.0
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json version
 Status: 0
-Stdout: 30 bytes
+Stdout: 25 bytes
 Stderr: 0 bytes
 
 Stdout:
-cbrain cli client version 1.0
+{
+  "version": "0.1.0"
+}
 Stderr:
 (No output)
 
@@ -74,22 +76,24 @@ Stderr:
 ############################
 Command: cbrain        version
 Status: 0
-Stdout: 30 bytes
+Stdout: 32 bytes
 Stderr: 0 bytes
 
 Stdout:
-cbrain cli client version 1.0
+cbrain cli client version 0.1.0
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json version
 Status: 0
-Stdout: 30 bytes
+Stdout: 25 bytes
 Stderr: 0 bytes
 
 Stdout:
-cbrain cli client version 1.0
+{
+  "version": "0.1.0"
+}
 Stderr:
 (No output)
 
@@ -487,62 +491,110 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain --json  project switch 10
+Command: cbrain         project unswitch
 Status: 0
-Stdout: 37 bytes
+Stdout: 42 bytes
 Stderr: 0 bytes
 
 Stdout:
-Current project is "NormTest1" ID=10
+Cleared current project "NormTest1" ID=10
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  project switch 10
+Status: 0
+Stdout: 125 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "id": 10,
+  "name": "NormTest1",
+  "description": null,
+  "type": "WorkGroup",
+  "site_id": null,
+  "invisible": false
+}
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  project unswitch
+Status: 0
+Stdout: 126 bytes
+Stderr: 0 bytes
+
+Stdout:
+{
+  "previous_group_id": 10,
+  "previous_group_name": "NormTest1",
+  "current_group_id": null,
+  "current_group_name": null
+}
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch 10
 Status: 0
-Stdout: 37 bytes
+Stdout: 100 bytes
 Stderr: 0 bytes
 
 Stdout:
-Current project is "NormTest1" ID=10
+{"id":10,"name":"NormTest1","description":null,"type":"WorkGroup","site_id":null,"invisible":false}
 Stderr:
 (No output)
 
 ############################
-Command: cbrain         project switch all  # 'all' not yet implemented as of Aug 2025
+Command: cbrain --jsonl project unswitch
 Status: 0
-Stdout: 56 bytes
+Stdout: 109 bytes
 Stderr: 0 bytes
 
 Stdout:
-Project switch 'all' not yet implemented as of Aug 2025
+{"previous_group_id":10,"previous_group_name":"NormTest1","current_group_id":null,"current_group_name":null}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         project switch all
+Status: 0
+Stdout: 32 bytes
+Stderr: 0 bytes
+
+Stdout:
+Current project is "all" ID=all
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  project switch all
 Status: 0
-Stdout: 56 bytes
+Stdout: 35 bytes
 Stderr: 0 bytes
 
 Stdout:
-Project switch 'all' not yet implemented as of Aug 2025
+{
+  "id": "all",
+  "name": "all"
+}
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl project switch all
 Status: 0
-Stdout: 56 bytes
+Stdout: 26 bytes
 Stderr: 0 bytes
 
 Stdout:
-Project switch 'all' not yet implemented as of Aug 2025
+{"id":"all","name":"all"}
 Stderr:
 (No output)
 
 ############################
-Command: cbrain         project switch 3 # need to reset for rest of test to work
+Command: cbrain         project switch 3 # reset project filter for task list below
 Status: 0
 Stdout: 31 bytes
 Stderr: 0 bytes
@@ -671,12 +723,12 @@ Stderr:
 
 ############################
 Command: cbrain         tag update 99 --name Renamed --user-id 2 --group-id 3
-Status: 1
-Stdout: 37 bytes
+Status: 0
+Stdout: 29 bytes
 Stderr: 0 bytes
 
 Stdout:
-Failed: Invalid response from server
+Tag 99 updated successfully!
 Stderr:
 (No output)
 
@@ -699,7 +751,7 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain         tag delete 99
+Command: cbrain         tag delete 99 --yes
 Status: 0
 Stdout: 29 bytes
 Stderr: 0 bytes
@@ -949,15 +1001,64 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain         task operation   # should provide error message
+Command: cbrain         task operation hold --task-id 2
 Status: 0
-Stdout: 41 bytes
+Stdout: 182 bytes
+Stderr: 0 bytes
+
+Stdout:
+TASK OPERATION RESULT
+------------------------------
+Operation: hold
+Succeeded: 0
+Skipped:   1
+Failed:    0
+
+SKIPPED
+------------------------------
+Tasks have incompatible states: 2
+Stderr:
+(No output)
+
+############################
+Command: cbrain --json  task operation hold --task-id 2
+Status: 0
+Stdout: 142 bytes
 Stderr: 0 bytes
 
 Stdout:
 {
-  "message": "No operation selected"
+  "skipped_list": {
+    "Tasks have incompatible states": [
+      2
+    ]
+  },
+  "success_list": [],
+  "failed_list": {},
+  "bac_ids": []
 }
+Stderr:
+(No output)
+
+############################
+Command: cbrain --jsonl task operation hold --task-id 2
+Status: 0
+Stdout: 104 bytes
+Stderr: 0 bytes
+
+Stdout:
+{"skipped_list":{"Tasks have incompatible states":[2]},"success_list":[],"failed_list":{},"bac_ids":[]}
+Stderr:
+(No output)
+
+############################
+Command: cbrain         task operation hold  # missing --task-id / --batch-id
+Status: 1
+Stdout: 68 bytes
+Stderr: 0 bytes
+
+Stdout:
+Error: At least one --task-id or --batch-id is required (--task-id)
 Stderr:
 (No output)
 
@@ -1138,36 +1239,36 @@ Stderr:
 ############################
 Command: cbrain         tool-config show 19 # visible to user admin
 Status: 1
-Stdout: 107 bytes
+Stdout: 117 bytes
 Stderr: 0 bytes
 
 Stdout:
 Authentication error (401): Unauthorized
-Error: Access denied. Please log in using authorized credentials.
+Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --json  tool-config show 19
 Status: 1
-Stdout: 107 bytes
+Stdout: 117 bytes
 Stderr: 0 bytes
 
 Stdout:
 Authentication error (401): Unauthorized
-Error: Access denied. Please log in using authorized credentials.
+Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.
 Stderr:
 (No output)
 
 ############################
 Command: cbrain --jsonl tool-config show 19
 Status: 1
-Stdout: 107 bytes
+Stdout: 117 bytes
 Stderr: 0 bytes
 
 Stdout:
 Authentication error (401): Unauthorized
-Error: Access denied. Please log in using authorized credentials.
+Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.
 Stderr:
 (No output)
 
@@ -1593,7 +1694,7 @@ Stderr:
 (No output)
 
 ############################
-Command: cbrain         file delete 5
+Command: cbrain         file delete 5 --yes
 Status: 0
 Stdout: 71 bytes
 Stderr: 0 bytes

@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_tool_details(tool_data, args):
@@ -12,28 +12,22 @@ def print_tool_details(tool_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(tool_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(tool_data)
+    if output_json(args, tool_data):
         return
 
     print("TOOL DETAILS")
     print("-" * 30)
-
-    # Prepare tool details as key-value pairs for table display
-    tool_details = [
-        {"field": "ID", "value": str(tool_data.get("id", "N/A"))},
-        {"field": "Name", "value": str(tool_data.get("name", "N/A"))},
-        {"field": "User ID", "value": str(tool_data.get("user_id", "N/A"))},
-        {"field": "Group ID", "value": str(tool_data.get("group_id", "N/A"))},
-        {"field": "Category", "value": str(tool_data.get("category", "N/A"))},
-        {"field": "Description", "value": str(tool_data.get("description", "N/A"))},
-        {"field": "URL", "value": str(tool_data.get("url", "N/A"))},
-    ]
-
-    dynamic_table_print(tool_details, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("ID", str(tool_data.get("id", "N/A"))),
+            ("Name", str(tool_data.get("name", "N/A"))),
+            ("User ID", str(tool_data.get("user_id", "N/A"))),
+            ("Group ID", str(tool_data.get("group_id", "N/A"))),
+            ("Category", str(tool_data.get("category", "N/A"))),
+            ("Description", str(tool_data.get("description", "N/A"))),
+            ("URL", str(tool_data.get("url", "N/A"))),
+        ]
+    )
 
 
 def print_tools_list(tools_data, args):
@@ -47,11 +41,10 @@ def print_tools_list(tools_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(tools_data)
+    if output_json(args, tools_data):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(tools_data)
+
+    if tools_data is None:
         return
 
     if not tools_data:

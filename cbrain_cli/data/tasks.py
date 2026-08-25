@@ -1,9 +1,27 @@
-import json
-import urllib.parse
-import urllib.request
+from cbrain_cli.cli_utils import (
+    CbrainClient,
+    CliValidationError,
+    pagination,
+)
 
-from cbrain_cli.cli_utils import api_token, cbrain_url, json_printer, pagination
-from cbrain_cli.config import auth_headers
+# Names accepted by CBRAIN POST /tasks/operation
+TASK_OPERATIONS = (
+    "terminate",
+    "archive",
+    "archive_file",
+    "unarchive",
+    "zap_wd",
+    "save_wd",
+    "hold",
+    "release",
+    "suspend",
+    "resume",
+    "duplicate",
+    "recover",
+    "restart_setup",
+    "restart_cluster",
+    "restart_postprocess",
+)
 
 
 def list_tasks(args):
@@ -17,40 +35,30 @@ def list_tasks(args):
 
     Returns
     -------
-    int
-        Exit code (0 for success, 1 for failure)
+    list
+        List of task dictionaries
     """
-    # Build query parameters for filtering.
-    query_params = {}
+    params = {}
+    filter_name = getattr(args, "filter_name", None)
+    bourreau_id = getattr(args, "bourreau_id", None)
 
-    # Add filter if provided.
-    if hasattr(args, "filter_type") and args.filter_type is not None:
-        if args.filter_value is None:
-            print("Error: Filter value is required when filter type is specified")
-            return 1
-        if args.filter_type == "bourreau_id":
-            query_params["bourreau_id"] = str(args.filter_value)
-    elif hasattr(args, "filter_value") and args.filter_value is not None:
-        print("Error: Filter type is required when filter value is specified")
-        return 1
+    if filter_name is not None:
+        if filter_name != "bourreau_id":
+            raise CliValidationError(f"Unsupported filter: {filter_name}", field="filter_name")
+        if bourreau_id is None:
+            raise CliValidationError(
+                "Bourreau ID is required when filter is bourreau-id",
+                field="bourreau_id",
+            )
+        params["bourreau_id"] = str(bourreau_id)
+    elif bourreau_id is not None:
+        raise CliValidationError(
+            "Filter bourreau-id is required when Bourreau ID is specified",
+            field="filter_name",
+        )
 
-    query_params = pagination(args, query_params)
-
-    tasks_endpoint = f"{cbrain_url}/tasks"
-
-    if query_params:
-        query_string = urllib.parse.urlencode(query_params)
-        tasks_endpoint = f"{tasks_endpoint}?{query_string}"
-
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(tasks_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        tasks_data = json.loads(data)
-
-    return tasks_data
+    params = pagination(args, params)
+    return CbrainClient.from_credentials().get("/tasks", params=params)
 
 
 def show_task(args):
@@ -64,39 +72,50 @@ def show_task(args):
 
     Returns
     -------
-    int
-        Exit code (0 for success, 1 for failure)
+    dict
+        Task details dictionary
     """
-    # Get the task ID from the task argument.
     task_id = getattr(args, "task", None)
     if not task_id:
-        print("Error: Task ID is required")
-        return 1
-
-    task_endpoint = f"{cbrain_url}/tasks/{task_id}"
-    headers = auth_headers(api_token)
-
-    request = urllib.request.Request(task_endpoint, data=None, headers=headers, method="GET")
-
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        task_data = json.loads(data)
-
-    return task_data
+        raise CliValidationError("Task ID is required", field="task")
+    return CbrainClient.from_credentials().get(f"/tasks/{task_id}")
 
 
 def operation_task(args):
     """
-    Operation on a task.
+    Run a bulk operation on tasks.
     """
-    operate_task_endpoint = f"{cbrain_url}/tasks/operation"
-    headers = auth_headers(api_token)
+    operation = getattr(args, "operation", None)
+    if not operation:
+        raise CliValidationError("Operation is required", field="operation")
+    if operation not in TASK_OPERATIONS:
+        raise CliValidationError(
+            f"Unsupported operation: {operation}",
+            field="operation",
+        )
 
-    request = urllib.request.Request(
-        operate_task_endpoint, data=None, headers=headers, method="POST"
-    )
+    task_ids = getattr(args, "task_id", None) or []
+    batch_ids = getattr(args, "batch_id", None) or []
+    if not task_ids and not batch_ids:
+        raise CliValidationError(
+            "At least one --task-id or --batch-id is required",
+            field="--task-id",
+        )
 
-    with urllib.request.urlopen(request) as response:
-        data = response.read().decode("utf-8")
-        parsed_data = json.loads(data)
-        json_printer(parsed_data)
+    payload = {"operation": operation}
+    if task_ids:
+        payload["tasklist"] = list(task_ids)
+    if batch_ids:
+        payload["batch_ids"] = list(batch_ids)
+
+    dup_bourreau_id = getattr(args, "dup_bourreau_id", None)
+    if dup_bourreau_id is not None:
+        payload["dup_bourreau_id"] = dup_bourreau_id
+    archive_dp_id = getattr(args, "archive_dp_id", None)
+    if archive_dp_id is not None:
+        payload["archive_dp_id"] = archive_dp_id
+    if getattr(args, "nozip", False):
+        payload["nozip"] = True
+
+    data, _ = CbrainClient.from_credentials().send("POST", "/tasks/operation", payload=payload)
+    return data

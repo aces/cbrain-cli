@@ -1,6 +1,12 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py38"
+exclude = [
+    "capture_tests/expected_captures.txt",
+]
 
 [tool.ruff.lint]
 select = [

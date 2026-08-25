@@ -1,13 +1,27 @@
+import configparser
 import functools
+import importlib.metadata
 import json
 import re
+import socket
 import sys
 import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
 
-# import importlib.metadata
-from cbrain_cli.config import ACTIVE_SESSION_KEY, CREDENTIALS_FILE
+from cbrain_cli import config as cbrain_config
+from cbrain_cli.config import (
+    ACTIVE_SESSION_KEY,
+    DEFAULT_HEADERS,
+    DEFAULT_TIMEOUT,
+    auth_headers,
+    resolve_session_credentials,
+)
 
-# Session name priority: --session flag > _active_session in cbrain.json > "default"
+_debug = False
+
+# Session name priority: --session flag > _active_session in credentials > "default"
 session_name = "default"
 session_specified = False
 for i, arg in enumerate(sys.argv):
@@ -18,36 +32,179 @@ for i, arg in enumerate(sys.argv):
         session_name = arg.split("=", 1)[1]
         session_specified = True
 
-try:
-    try:
-        with open(CREDENTIALS_FILE) as f:
-            all_credentials = json.load(f)
-    except FileNotFoundError:
-        all_credentials = {}
+_all = cbrain_config.load_credentials() or {}
+if not session_specified:
+    session_name = _all.get(ACTIVE_SESSION_KEY, "default") or "default"
+all_credentials = dict(_all)
+all_credentials.pop(ACTIVE_SESSION_KEY, None)
+_resolved = resolve_session_credentials(_all, session_name if session_specified else None)
+cbrain_url = _resolved.get("cbrain_url")
+api_token = _resolved.get("api_token")
+user_id = _resolved.get("user_id")
+cbrain_timestamp = _resolved.get("timestamp")
 
-    if not session_specified:
-        session_name = all_credentials.get(ACTIVE_SESSION_KEY, "default") or "default"
 
-    all_credentials.pop(ACTIVE_SESSION_KEY, None)
+def set_debug(flag: bool) -> None:
+    """Enable or disable debug output."""
+    global _debug
+    _debug = bool(flag)
 
-    credentials = all_credentials.get(session_name, {})
 
-    # Get credentials.
-    cbrain_url = credentials.get("cbrain_url")
-    api_token = credentials.get("api_token")
-    user_id = credentials.get("user_id")
-    cbrain_timestamp = credentials.get("timestamp")
-except Exception:
-    all_credentials = {}
-    cbrain_url = api_token = user_id = cbrain_timestamp = None
+def debug_log(message: str) -> None:
+    """Print a debug line to stderr when debug mode is active."""
+    if _debug:
+        print(f"[DEBUG] {message}", file=sys.stderr)
+
+
+class CbrainClient:
+    """
+    Holds auth state and issues JSON requests against a CBRAIN server.
+    """
+
+    def __init__(self, base_url, token=None, user_id=None, timeout=None):
+        self.base_url = base_url.rstrip("/")
+        self.token = token
+        self.user_id = user_id
+        self.timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
+
+    @classmethod
+    def from_credentials(cls, timeout=None):
+        """
+        Build a client from the saved credentials file.
+        """
+        all_creds = cbrain_config.load_credentials() or {}
+        name = session_name if session_specified else None
+        creds = resolve_session_credentials(all_creds, name)
+        return cls(
+            creds.get("cbrain_url", ""),
+            creds.get("api_token", ""),
+            creds.get("user_id"),
+            timeout,
+        )
+
+    def _request(self, method, path, *, headers=None, body=None, params=None):
+        """
+        Issue an HTTP request and return (raw_bytes, status).
+        """
+        target = path if path.startswith(("http://", "https://")) else f"{self.base_url}{path}"
+        if params:
+            target = f"{target}?{urllib.parse.urlencode(params)}"
+        hdrs = headers or auth_headers(self.token)
+        # strip host from full URL for debug display; preserve all query params
+        parsed = urllib.parse.urlsplit(target)
+        display_path = parsed.path
+        if display_path.startswith(self.base_url):
+            display_path = display_path[len(self.base_url) :]
+        query = urllib.parse.urlencode(params) if params else parsed.query
+        if query:
+            display_path = f"{display_path}?{query}"
+        debug_log(f"{method} {display_path}")
+        req = urllib.request.Request(target, data=body, headers=hdrs, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                status = r.status
+                debug_log(f"→ HTTP {status}")
+                return r.read(), status
+        except urllib.error.HTTPError as e:
+            debug_log(f"→ HTTP {e.code} ({e.reason})")
+            raise CliApiError(e.reason or f"HTTP {e.code}", status=e.code) from e
+
+    def get(self, path, params=None):
+        """
+        Authenticated GET; returns parsed JSON.
+        """
+        raw, _ = self._request("GET", path, params=params)
+        return json.loads(raw.decode())
+
+    def send(self, method, path, payload=None):
+        """
+        Authenticated POST/PUT/DELETE with optional JSON body; returns (parsed, status).
+        """
+        hdrs = auth_headers(self.token)
+        body = None
+        if payload is not None:
+            hdrs["Content-Type"] = "application/json"
+            body = json.dumps(payload).encode()
+        raw, status = self._request(method, path, headers=hdrs, body=body)
+        decoded = raw.decode()
+        return (json.loads(decoded) if decoded.strip() else {}), status
+
+    def post_form(self, path, form_data, headers=None):
+        """
+        POST form-urlencoded data (unauthenticated); returns parsed JSON.
+        """
+        hdrs = headers or DEFAULT_HEADERS
+        body = urllib.parse.urlencode(form_data).encode()
+        raw, _ = self._request("POST", path, headers=hdrs, body=body)
+        return json.loads(raw.decode())
+
+    def post_multipart(self, path, body, content_type):
+        """
+        Authenticated multipart POST; returns (parsed JSON, status).
+        """
+        hdrs = auth_headers(self.token)
+        hdrs["Content-Type"] = content_type
+        hdrs["Content-Length"] = str(len(body))
+        raw, status = self._request("POST", path, headers=hdrs, body=body)
+        return json.loads(raw.decode()), status
+
+
+PAGINATABLE_ACTIONS = {
+    ("file", "list"),
+    ("data-provider", "list"),
+    ("tool", "list"),
+    ("tool-config", "list"),
+    ("tag", "list"),
+    ("task", "list"),
+}
+
+
+class CliValidationError(Exception):
+    """Raised when command arguments fail client-side validation.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error description.
+    field : str, optional
+        The CLI flag or argument name that caused the error (e.g. ``--per-page``).
+    """
+
+    def __init__(self, message, field=None):
+        super().__init__(message)
+        self.field = field
+
+    def __str__(self):
+        message = self.args[0] if self.args else ""
+        if self.field:
+            return f"{message} ({self.field})"
+        return message
+
+
+class CliApiError(Exception):
+    """
+    Raised when the API returns an expected error response.
+    """
+
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status
+
+
+class CliResponseError(Exception):
+    """
+    Raised when the API response is malformed or unexpected.
+    """
+
+    pass
 
 
 def is_authenticated():
     """
     Check if the user is authenticated.
     """
-    # Check if user is logged in.
-    if not api_token or not cbrain_url or not user_id:
+    client = CbrainClient.from_credentials()
+    if not client.token or not client.base_url or not client.user_id:
         print("Not logged in. Use 'cbrain login' to login first.")
         return False
     return True
@@ -103,7 +260,7 @@ def handle_connection_error(error):
 
         if error.code == 401:
             print(f"{status_description}: {error.reason}")
-            print("Error: Access denied. Please log in using authorized credentials.")
+            print("Error: Session expired or invalid. Run 'cbrain logout' then 'cbrain login'.")
         elif error.code in (400, 404, 422, 500):
             # Try to extract specific error message from response
             try:
@@ -120,11 +277,11 @@ def handle_connection_error(error):
                     error_data = json.loads(error_response)
                     if isinstance(error_data, dict):
                         # Look for common error message fields
-                        error_msg = (
+                        error_msg = str(
                             error_data.get("message")
                             or error_data.get("error")
                             or error_data.get("notice")
-                            or str(error_data)
+                            or error_data
                         )
                         # Check if this looks like a password change redirect
                         if "change_password" in error_msg:
@@ -170,8 +327,16 @@ def handle_connection_error(error):
         else:
             print(f"{status_description}: {error.reason}")
     elif isinstance(error, urllib.error.URLError):
-        if "Connection refused" in str(error):
-            print(f"Error: Cannot connect to CBRAIN server at {cbrain_url}")
+        if isinstance(error.reason, socket.timeout):
+            print(
+                f"Error: Request timed out after {DEFAULT_TIMEOUT}s. "
+                "Check your connection or set CBRAIN_TIMEOUT env var."
+            )
+        elif "Connection refused" in str(error):
+            print(
+                "Error: Cannot connect to CBRAIN server at "
+                f"{CbrainClient.from_credentials().base_url}"
+            )
             print("Please check if the CBRAIN server is running and accessible.")
         else:
             print(f"Connection failed: {error.reason}")
@@ -193,20 +358,29 @@ def handle_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except urllib.error.HTTPError as e:
-            handle_connection_error(e)
-            return 1
-        except urllib.error.URLError as e:
-            handle_connection_error(e)
-            return 1
         except json.JSONDecodeError:
             print("Failed: Invalid response from server")
             return 1
         except KeyboardInterrupt:
             print("\nOperation cancelled")
             return 1
+        except (CliValidationError, CliResponseError) as e:
+            print(f"Error: {e}")
+            return 1
+        except CliApiError as e:
+            if isinstance(e.__cause__, urllib.error.HTTPError):
+                handle_connection_error(e.__cause__)
+            else:
+                print(f"Error: {e}")
+            return 1
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            handle_connection_error(e)
+            return 1
+        except socket.timeout as e:
+            handle_connection_error(urllib.error.URLError(e))
+            return 1
         except Exception as e:
-            print(f"Operation failed: {str(e)}")
+            print(f"Operation failed: {e}")
             return 1
 
     return wrapper
@@ -215,6 +389,9 @@ def handle_errors(func):
 def version_info(args):
     """
     Display the CLI version information.
+
+    Prefer installed package metadata; fall back to setup.cfg when running
+    from a source tree without install.
 
     Parameters
     ----------
@@ -226,14 +403,66 @@ def version_info(args):
     int
         Exit code (0 for success, 1 for failure)
     """
-    print("cbrain cli client version 1.0")
-    # try:
-    #     cbrain_cli_version = importlib.metadata.version('cbrain-cli')
-    #     print(f"cbrain cli client version {cbrain_cli_version}")
-    #     return 0
-    # except importlib.metadata.PackageNotFoundError:
-    #     print("Warning: Could not determine version. Package may not be installed properly.")
-    #     return 1
+    try:
+        cbrain_cli_version = importlib.metadata.version("cbrain-cli")
+    except importlib.metadata.PackageNotFoundError:
+        cfg = configparser.ConfigParser()
+        cfg.read(Path(__file__).resolve().parents[1] / "setup.cfg")
+        cbrain_cli_version = cfg["metadata"]["version"]
+
+    if output_json(args, {"version": cbrain_cli_version}):
+        return 0
+    print(f"cbrain cli client version {cbrain_cli_version}")
+    return 0
+
+
+def output_json(args, data):
+    """
+    Print data as JSON or JSONL if requested. Returns True if output was handled.
+    """
+    if getattr(args, "json", False):
+        json_printer(data)
+        return True
+    if getattr(args, "jsonl", False):
+        jsonl_printer(data)
+        return True
+    return False
+
+
+def confirm_destructive(args, prompt):
+    """
+    Gate destructive actions: ``--yes`` skips, TTY asks, otherwise refuse.
+
+    Returns
+    -------
+    bool
+        True to proceed, False if the user declined an interactive prompt.
+    """
+    if getattr(args, "yes", False):
+        return True
+    # JSON/JSONL must not mix with a prompt; pipes/EOF also never auto-confirm.
+    if getattr(args, "json", False) or getattr(args, "jsonl", False) or not sys.stdin.isatty():
+        raise CliValidationError(
+            "Refusing destructive action without confirmation; pass --yes",
+            field="--yes",
+        )
+    try:
+        answer = input(f"{prompt} [y/N]: ").strip().lower()
+    except EOFError:
+        print("Aborted.")
+        return False
+    if answer in ("y", "yes"):
+        return True
+    print("Aborted.")
+    return False
+
+
+def display_key_value_table(pairs):
+    """
+    Print a (key-value) two-column Field/Value table from a list of (field, value) tuples.
+    """
+    rows = [{"field": k, "value": v} for k, v in pairs]
+    dynamic_table_print(rows, ["field", "value"], ["Field", "Value"])
 
 
 def json_printer(data):
@@ -262,13 +491,11 @@ def pagination(args, query_params):
     """
     per_page = getattr(args, "per_page", 25)
     if per_page < 5 or per_page > 1000:
-        print("Error: per-page must be between 5 and 1000")
-        return None
+        raise CliValidationError("per-page must be between 5 and 1000", field="--per-page")
 
     page = getattr(args, "page", 1)
     if page < 1:
-        print("Error: page must be 1 or greater")
-        return None
+        raise CliValidationError("page must be 1 or greater", field="--page")
 
     query_params["page"] = str(page)
     query_params["per_page"] = str(per_page)

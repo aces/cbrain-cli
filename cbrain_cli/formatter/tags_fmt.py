@@ -1,4 +1,4 @@
-from cbrain_cli.cli_utils import dynamic_table_print, json_printer, jsonl_printer
+from cbrain_cli.cli_utils import display_key_value_table, dynamic_table_print, output_json
 
 
 def print_tags_list(tags_data, args):
@@ -12,11 +12,10 @@ def print_tags_list(tags_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(tags_data)
+    if output_json(args, tags_data):
         return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(tags_data)
+
+    if tags_data is None:
         return
 
     if not tags_data:
@@ -25,12 +24,9 @@ def print_tags_list(tags_data, args):
 
     print("TAGS")
     print("-" * 40)
-
-    # Use the reusable dynamic table formatter
     dynamic_table_print(
         tags_data, ["id", "name", "user_id", "group_id"], ["ID", "Name", "User", "Group"]
     )
-
     print("-" * 40)
     print(f"Total: {len(tags_data)} tag(s)")
 
@@ -46,29 +42,28 @@ def print_tag_details(tag_data, args):
     args : argparse.Namespace
         Command line arguments, including the --json flag
     """
-    if getattr(args, "json", False):
-        json_printer(tag_data)
-        return
-    elif getattr(args, "jsonl", False):
-        jsonl_printer(tag_data)
+    if output_json(args, tag_data):
         return
 
     print("TAG DETAILS")
     print("-" * 30)
-
-    # Prepare tag details as key-value pairs for table display
-    tag_details = [
-        {"field": "ID", "value": str(tag_data.get("id", "N/A"))},
-        {"field": "Name", "value": str(tag_data.get("name", "N/A"))},
-        {"field": "User ID", "value": str(tag_data.get("user_id", "N/A"))},
-        {"field": "Group ID", "value": str(tag_data.get("group_id", "N/A"))},
-    ]
-
-    dynamic_table_print(tag_details, ["field", "value"], ["Field", "Value"])
+    display_key_value_table(
+        [
+            ("ID", str(tag_data.get("id", "N/A"))),
+            ("Name", str(tag_data.get("name", "N/A"))),
+            ("User ID", str(tag_data.get("user_id", "N/A"))),
+            ("Group ID", str(tag_data.get("group_id", "N/A"))),
+        ]
+    )
 
 
 def print_tag_operation_result(
-    operation, tag_id=None, success=True, error_msg=None, response_status=None
+    operation,
+    tag_id=None,
+    success=True,
+    error_msg=None,
+    response_status=None,
+    args=None,
 ):
     """
     Print result of a tag operation (create, update, delete).
@@ -85,7 +80,19 @@ def print_tag_operation_result(
         Error message if operation failed
     response_status : int, optional
         HTTP response status code if operation failed
+    args : argparse.Namespace, optional
+        Command line arguments, including the --json flag
     """
+    if args is not None and not success:
+        structured = {
+            "operation": operation,
+            "success": success,
+            "tag_id": tag_id,
+            "error": error_msg,
+        }
+        if output_json(args, structured):
+            return
+
     if success:
         if operation == "create":
             print("Tag created successfully!")

@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         exclude: ^capture_tests/expected_captures\.txt$
@@ -9,13 +9,13 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/tcort/markdown-link-check
-    rev: v3.13.6
+    rev: v3.14.2
     hooks:
       - id: markdown-link-check
         args: [-q]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.5
+    rev: v0.15.18
     hooks:
       - id: ruff
         args: [--fix]

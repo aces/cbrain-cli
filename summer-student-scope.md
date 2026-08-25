@@ -1,0 +1,162 @@
+# Summer Student Project Scope
+
+This is the 3-month project brief. The detailed technical backlog is in `plan.md`; use this document to understand what is in scope for the summer and how to prioritize it.
+
+The goal is not to rewrite the CLI. The goal is to fix the highest-impact correctness issues, add development guardrails, and establish one clean pattern that future contributors can continue.
+
+## Current Progress
+
+Current repository status after PRs #51 and #40:
+
+- Phase 1 correctness work is complete.
+- The planned Phase 2 guardrails are complete.
+- Phase 3 items 14-18 are complete.
+- Phase 4 items 19-26 are complete. The work went beyond the original pattern-only target: all current data command families now use `CbrainClient`.
+- The testing strategy, compatibility target, and architecture boundaries are documented in the main `README.md`, with focused package-layer and unit-test documentation added in PR #40.
+
+The authoritative item-by-item status remains in `plan.md`.
+
+## Project Goal
+
+Improve CBRAIN CLI reliability and maintainability by:
+
+- fixing the correctness bugs in Phase 1 of `plan.md`;
+- adding tests, linting, formatting, and CI/pre-commit guardrails from Phase 2;
+- improving output consistency for a selected command slice from Phase 3;
+- originally establishing a Phase 4 architecture pattern, which was later completed across the current data command families in PR #50;
+- documenting what changed and what remains.
+
+Success means reviewed, tested, merged improvements. It does not mean touching every module.
+
+## Scope By Phase
+
+### Phase 1: Required
+
+Complete all Phase 1 items in `plan.md`. These are correctness fixes and should be treated as the baseline deliverable.
+
+### Phase 2: Mostly Required
+
+Complete the high-value guardrails from Phase 2 of `plan.md`: Ruff, tests, CI/pre-commit where practical, timeouts, credential permissions, versioning, and contributor checklist updates.
+
+### Phase 3: Selected Slice
+
+Do not try to make every command perfect. Pick a representative subset, preferably `project` and `task`, and make normal, JSON, and JSONL behavior consistent for that slice.
+
+Avoid broad public command renaming during the summer unless explicitly agreed.
+
+### Phase 4: Pattern Target (Completed)
+
+The original scope was to establish a pattern without requiring a whole-codebase migration. PR #50 completed that pattern and migrated the current data command families.
+
+Recommended target:
+
+- define return contracts;
+- add typed CLI exceptions;
+- introduce a small `CbrainClient` or shared API helper;
+- migrate one command family, preferably `task` or `project`.
+
+**Result:** Completed and exceeded in PR #50. Future work should preserve the established boundaries rather than introduce parallel request helpers.
+
+### Phase 5: Lightweight
+
+Document the architecture boundaries, test workflow, Ruff workflow, supported/tested CBRAIN API version if known, and remaining follow-up work.
+
+**Result:** The summer-scope documentation target was completed after PR #50. In the broader backlog, `plan.md` item 27 remains partially complete because API endpoint paths are still distributed across data modules. The compatibility statement deliberately names the tested server branch rather than promising an unsupported numbered API version.
+
+## Out Of Scope
+
+These were originally out of scope unless required work was complete and reviewed:
+
+- migrating every command to `CbrainClient` (completed and reviewed in PR #50);
+- rewriting all return contracts across the whole CLI;
+- making every command fully output-consistent;
+- redesigning all destructive command safety behavior;
+- broadly renaming public commands or options;
+- replacing the capture test framework;
+- adding external runtime dependencies beyond approved development tooling.
+
+## Repository Conventions To Know
+
+- The CLI is tested against CBRAIN, the server application at https://github.com/aces/cbrain.
+- The capture tests expect a local CBRAIN test server on `localhost:3000` with the expected seeded test database.
+- You are not expected to have production CBRAIN credentials. Use local/test credentials only.
+- If setting up the CBRAIN test server blocks you, say so early. You can still write unit tests and note that capture tests were not run locally.
+- `capture_tests/switch_session` writes test credentials directly to `$HOME/.config/cbrain/credentials.json`; do not run it casually against a real CLI session.
+- The repo-root `cbrain` script is the local CLI entrypoint used by the capture tests.
+- Runtime code is intended to use only the Python standard library unless a dependency is explicitly approved.
+- Output formatting is part of the tested behavior. If command output changes, update capture expectations only when the new output is intentional.
+- CBRAIN-specific terms such as `bourreau`, `data provider`, and `tool config` come from the server/domain model; refer to the server repository when behavior is unclear.
+
+## Remote Collaboration
+
+- Work asynchronously and make progress visible with small PRs or draft PRs.
+- Mention your timezone and typical working hours in your first project update.
+- Ask questions early when setup, CBRAIN terminology, or expected behavior is unclear.
+- If you cannot run a test locally, say exactly which test was skipped and why.
+- PR descriptions should include the commands you ran and any remaining uncertainty.
+
+## Suggested Timeline
+
+Note: in this repository, "capture tests" means the existing shell-based CLI output regression tests in `capture_tests/`. They run CLI commands and compare captured terminal output against `expected_captures.txt`.
+
+### Month 1: Correctness
+
+- Complete Phase 1.
+- Add unit tests for those fixes.
+- Keep capture tests passing.
+- Start Ruff and CI/pre-commit work.
+
+### Month 2: Guardrails And Output
+
+- Complete most Phase 2 guardrails.
+- Improve JSON/JSONL behavior for the selected command slice.
+- Add regression tests for those output modes.
+- Update contributor docs.
+
+### Month 3: Architecture Pattern
+
+- Introduce typed errors and/or a small API client.
+- Migrate one command family to the new pattern.
+- Add tests for the new pattern.
+- Document the remaining backlog against `plan.md`.
+
+**Progress:** Completed in PR #50, including broader migration and regression coverage.
+
+## Expectations For You
+
+- Work from your own fork of the repository.
+- Open PRs from your fork to the upstream repository for review.
+- Do not rewrite the CLI.
+- Fix correctness first, then add guardrails, then improve one architecture slice.
+- Keep PRs small enough to review.
+- Add tests for every behavior change.
+- Preserve public command behavior unless a change is explicitly agreed.
+- Do not change public command names without discussion.
+- Do not add new direct `print()` calls in data modules.
+- Keep tokens and credentials out of logs, fixtures, and PR descriptions.
+- When in doubt, preserve existing behavior and document follow-up work.
+
+## PR Checklist
+
+Each PR should answer:
+
+- Is this PR opened from your fork against the upstream repository?
+- What user-visible behavior changed?
+- What tests were added or updated?
+- Do `ruff check .` and `ruff format --check .` pass?
+- Were capture tests affected?
+- Does JSON/JSONL behavior still make sense?
+- Did any data module gain direct output behavior?
+- Are credentials and tokens protected?
+
+## Definition Of Done
+
+The summer project is successful if:
+
+- all Phase 1 items in `plan.md` are fixed and tested;
+- the project has regular lint/format/test guardrails;
+- the selected command slice has consistent output behavior;
+- one command family demonstrates the new architecture pattern;
+- documentation explains what was done and what remains.
+
+All summer-project definition-of-done criteria above are now met. The selected Phase 3 work is complete. Remaining work is limited to the ongoing Phase 5 compatibility cleanup tracked in `plan.md` item 27.
