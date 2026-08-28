@@ -7,6 +7,7 @@ from cbrain_cli.cli_utils import (
     CbrainClient,
     CliApiError,
     CliValidationError,
+    handle_connection_error,
     session_name,
     session_specified,
 )
@@ -26,6 +27,10 @@ def switch_session(args):
     target = getattr(args, "session_target", None)
     if not target:
         print("Usage: cbrain switch_session <session_name>")
+        return 1
+
+    if not cbrain_config.CREDENTIALS_FILE.exists():
+        print("No saved sessions. Use 'cbrain login' to create one.")
         return 1
 
     all_creds = cbrain_config.load_credentials()
@@ -55,6 +60,10 @@ def switch_session(args):
 
 def list_sessions(args):
     """List all saved sessions, marking the currently active one with '*'."""
+    if not cbrain_config.CREDENTIALS_FILE.exists():
+        print("No saved sessions. Use 'cbrain login' to create one.")
+        return 0
+
     all_creds = cbrain_config.load_credentials()
     if all_creds is None:
         print(f"Error: credentials file is corrupted ({cbrain_config.CREDENTIALS_FILE}).")
@@ -107,9 +116,13 @@ def create_session(args):
     if cbrain_config.CREDENTIALS_FILE.exists():
         all_creds = cbrain_config.load_credentials()
         if all_creds:
-            existing = resolve_session_credentials(
-                all_creds, target_session if not is_flat_credentials(all_creds) else None
-            )
+            named = get_named_sessions(all_creds)
+            if target_session in named:
+                existing = named[target_session]
+            elif is_flat_credentials(all_creds) and target_session == "default":
+                existing = resolve_session_credentials(all_creds)
+            else:
+                existing = {}
             if existing.get("api_token") and existing.get("cbrain_url"):
                 # File alone is not enough, probe server to detect expired tokens.
                 try:
@@ -138,23 +151,44 @@ def create_session(args):
                     print(f"Already logged in{label}. Use 'cbrain logout' to logout.")
                     return 1
 
-    cbrain_url = (
-        getattr(args, "server", None)
-        or input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()
-        or DEFAULT_BASE_URL
-    )
+    cbrain_url = getattr(args, "server", None)
+    if cbrain_url is None:
+        cbrain_url = (
+            input("Enter CBRAIN server base URL [default: localhost:3000]: ").strip()
+            or DEFAULT_BASE_URL
+        )
+    else:
+        cbrain_url = str(cbrain_url).strip()
+        if not cbrain_url:
+            raise CliValidationError("Server URL is required", field="server")
 
-    username = getattr(args, "username", None) or input("Enter CBRAIN username: ").strip()
+    username = getattr(args, "username", None)
+    if username is None:
+        username = input("Enter CBRAIN username: ").strip()
+    else:
+        username = str(username).strip()
     if not username:
         raise CliValidationError("Username is required", field="username")
 
-    password = getattr(args, "password", None) or getpass.getpass("Enter CBRAIN password: ")
+    password = getattr(args, "password", None)
+    if password is None:
+        password = getpass.getpass("Enter CBRAIN password: ")
     if not password:
         raise CliValidationError("Password is required", field="password")
 
-    response_data = CbrainClient(cbrain_url).post_form(
-        "/session", {"login": username, "password": password}
-    )
+    try:
+        response_data = CbrainClient(cbrain_url).post_form(
+            "/session", {"login": username, "password": password}
+        )
+    except CliApiError as e:
+        if e.status == 401:
+            print("Authentication error (401): Unauthorized")
+            print("Error: Login failed. Check username and password.")
+            return 1
+        raise
+    except urllib.error.URLError as e:
+        handle_connection_error(e, server_url=cbrain_url)
+        return 1
 
     cbrain_api_token = response_data.get("cbrain_api_token")
     cbrain_user_id = response_data.get("user_id")

@@ -56,6 +56,11 @@ def test_handle_connection_error_url_error_connection_refused(fake_credentials, 
     assert "Cannot connect to CBRAIN server" in capsys.readouterr().out
 
 
+def test_handle_connection_error_url_error_uses_explicit_server_url(capsys):
+    handle_connection_error(URLError("Connection refused"), server_url="http://127.0.0.1:59999")
+    assert "127.0.0.1:59999" in capsys.readouterr().out
+
+
 def test_is_authenticated_false_when_no_credentials():
     assert is_authenticated() is False
 
@@ -67,6 +72,27 @@ def test_is_authenticated_false_when_cbrain_url_is_none(creds_file):
 
 def test_is_authenticated_true_with_fake_credentials(fake_credentials):
     assert is_authenticated() is True
+
+
+def test_is_authenticated_unknown_session(monkeypatch, creds_file, capsys):
+    creds_file.write_text(
+        json.dumps({"default": {"api_token": "tok", "cbrain_url": URL, "user_id": 1}})
+    )
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "ghost")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+    assert is_authenticated() is False
+    assert "Session 'ghost' not found" in capsys.readouterr().out
+
+
+def test_main_file_list_unknown_session_returns_1(monkeypatch, creds_file, capsys):
+    creds_file.write_text(
+        json.dumps({"default": {"api_token": "tok", "cbrain_url": URL, "user_id": 1}})
+    )
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "ghost")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+    result = run_main(monkeypatch, ["cbrain", "--session", "ghost", "file", "list"])
+    assert result == 1
+    assert "Session 'ghost' not found" in capsys.readouterr().out
 
 
 def test_main_file_list_unauthenticated_returns_1(monkeypatch, capsys):

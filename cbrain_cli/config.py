@@ -83,10 +83,30 @@ def get_named_sessions(data):
     return {k: v for k, v in data.items() if k != ACTIVE_SESSION_KEY and isinstance(v, dict)}
 
 
+def _cli_session_override():
+    """Return --session name from argv when present."""
+    from cbrain_cli.cli_utils import session_name, session_specified
+
+    return session_name if session_specified else None
+
+
+def cli_session_not_found():
+    """Return session name when --session was given but is not saved locally."""
+    from cbrain_cli.cli_utils import session_name, session_specified
+
+    if not session_specified:
+        return None
+    if session_name in get_named_sessions(load_credentials() or {}):
+        return None
+    return session_name
+
+
 def resolve_session_credentials(data, session_name=None):
     """Pick active session dict from flat or multi-session credentials file."""
     if not data:
         return {}
+    if session_name is None:
+        session_name = _cli_session_override()
     if is_flat_credentials(data):
         return {k: v for k, v in data.items() if k != ACTIVE_SESSION_KEY}
     name = session_name or data.get(ACTIVE_SESSION_KEY) or "default"
@@ -101,6 +121,8 @@ def update_active_credentials(updates=None, remove_keys=None, session_name=None)
         return
     updates = updates or {}
     remove_keys = remove_keys or []
+    if session_name is None:
+        session_name = _cli_session_override()
     if is_flat_credentials(data):
         data.update(updates)
         for k in remove_keys:
