@@ -11,9 +11,31 @@ import urllib.request
 from pathlib import Path
 
 from cbrain_cli import config as cbrain_config
-from cbrain_cli.config import DEFAULT_HEADERS, DEFAULT_TIMEOUT, auth_headers
+from cbrain_cli.config import (
+    ACTIVE_SESSION_KEY,
+    DEFAULT_HEADERS,
+    DEFAULT_TIMEOUT,
+    auth_headers,
+    cli_session_not_found,
+    resolve_session_credentials,
+)
 
 _debug = False
+
+# Session name priority: --session flag > _active_session in credentials > "default"
+session_name = "default"
+session_specified = False
+for i, arg in enumerate(sys.argv):
+    if arg == "--session" and i + 1 < len(sys.argv):
+        session_name = sys.argv[i + 1]
+        session_specified = True
+    elif arg.startswith("--session="):
+        session_name = arg.split("=", 1)[1]
+        session_specified = True
+
+if not session_specified:
+    _all = cbrain_config.load_credentials() or {}
+    session_name = _all.get(ACTIVE_SESSION_KEY, "default") or "default"
 
 
 def set_debug(flag: bool) -> None:
@@ -44,7 +66,9 @@ class CbrainClient:
         """
         Build a client from the saved credentials file.
         """
-        creds = cbrain_config.load_credentials() or {}
+        all_creds = cbrain_config.load_credentials() or {}
+        name = session_name if session_specified else None
+        creds = resolve_session_credentials(all_creds, name)
         return cls(
             creds.get("cbrain_url", ""),
             creds.get("api_token", ""),
@@ -173,6 +197,10 @@ def is_authenticated():
     """
     Check if the user is authenticated.
     """
+    missing = cli_session_not_found()
+    if missing:
+        print(f"Session '{missing}' not found.")
+        return False
     client = CbrainClient.from_credentials()
     if not client.token or not client.base_url or not client.user_id:
         print("Not logged in. Use 'cbrain login' to login first.")
@@ -211,7 +239,7 @@ def get_status_code_description(status_code):
         return f"HTTP error ({status_code})"
 
 
-def handle_connection_error(error):
+def handle_connection_error(error, server_url=None):
     """
     Handle connection errors with informative messages including server URL.
 
@@ -219,6 +247,8 @@ def handle_connection_error(error):
     ----------
     error : Exception
         The connection error that occurred
+    server_url : str, optional
+        Server URL for errors before credentials exist (e.g. during login)
 
     Returns
     -------
@@ -303,10 +333,11 @@ def handle_connection_error(error):
                 "Check your connection or set CBRAIN_TIMEOUT env var."
             )
         elif "Connection refused" in str(error):
-            print(
-                "Error: Cannot connect to CBRAIN server at "
-                f"{CbrainClient.from_credentials().base_url}"
-            )
+            url = server_url or CbrainClient.from_credentials().base_url
+            if url:
+                print(f"Error: Cannot connect to CBRAIN server at {url}")
+            else:
+                print("Error: Cannot connect to CBRAIN server.")
             print("Please check if the CBRAIN server is running and accessible.")
         else:
             print(f"Connection failed: {error.reason}")

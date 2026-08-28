@@ -3,7 +3,15 @@ import os
 
 import pytest
 
-from cbrain_cli.config import auth_headers, load_credentials, save_credentials
+from cbrain_cli.config import (
+    ACTIVE_SESSION_KEY,
+    auth_headers,
+    cli_session_not_found,
+    load_credentials,
+    resolve_session_credentials,
+    save_credentials,
+    update_active_credentials,
+)
 from tests.conftest import CREDS_FILE, patch_credentials_file, sample_credentials
 
 
@@ -63,3 +71,43 @@ def test_save_credentials_non_posix_branch(monkeypatch, creds_file):
     monkeypatch.setattr("os.name", "nt")
     save_credentials({"key": "value"})
     assert load_credentials() == {"key": "value"}
+
+
+def test_update_active_credentials_honors_cli_session_override(monkeypatch, creds_file):
+    creds_file.write_text(
+        json.dumps(
+            {
+                ACTIVE_SESSION_KEY: "default",
+                "default": {"api_token": "a", "cbrain_url": "http://localhost:3000"},
+                "prod": {"api_token": "b", "cbrain_url": "http://localhost:3000"},
+            }
+        )
+    )
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "prod")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+
+    update_active_credentials({"current_group_id": 7})
+
+    saved = load_credentials()
+    assert saved["prod"]["current_group_id"] == 7
+    assert "current_group_id" not in saved["default"]
+
+
+def test_resolve_session_credentials_honors_cli_session_override(monkeypatch, creds_file):
+    data = {
+        ACTIVE_SESSION_KEY: "default",
+        "default": {"api_token": "a", "user_id": 1},
+        "prod": {"api_token": "b", "user_id": 2},
+    }
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "prod")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+
+    resolved = resolve_session_credentials(data)
+    assert resolved["api_token"] == "b"
+    assert resolved["user_id"] == 2
+
+
+def test_cli_session_not_found(monkeypatch):
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "ghost")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+    assert cli_session_not_found() == "ghost"

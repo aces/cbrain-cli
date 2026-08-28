@@ -3,7 +3,11 @@ from cbrain_cli.cli_utils import (
     CliApiError,
     CliValidationError,
 )
-from cbrain_cli.config import load_credentials, save_credentials
+from cbrain_cli.config import (
+    load_credentials,
+    resolve_session_credentials,
+    update_active_credentials,
+)
 
 
 def switch_project(args):
@@ -45,11 +49,13 @@ def switch_project(args):
     else:
         group_data = client.get(f"/groups/{group_id}")
 
-    credentials = load_credentials()
-    if credentials is not None:
-        credentials["current_group_id"] = group_id
-        credentials["current_group_name"] = group_data.get("name", "Unknown")
-        save_credentials(credentials)
+    if load_credentials() is not None:
+        update_active_credentials(
+            {
+                "current_group_id": group_id,
+                "current_group_name": group_data.get("name", "Unknown"),
+            }
+        )
 
     return group_data
 
@@ -73,16 +79,15 @@ def unswitch_project(args):
     previous_group_name = None
 
     if credentials is not None:
-        previous_group_id = credentials.get("current_group_id")
-        previous_group_name = credentials.get("current_group_name")
+        active = resolve_session_credentials(credentials)
+        previous_group_id = active.get("current_group_id")
+        previous_group_name = active.get("current_group_name")
 
     if previous_group_id:
         CbrainClient.from_credentials().send("POST", "/groups/switch")
 
     if credentials is not None:
-        credentials.pop("current_group_id", None)
-        credentials.pop("current_group_name", None)
-        save_credentials(credentials)
+        update_active_credentials(remove_keys=["current_group_id", "current_group_name"])
 
     return {
         "previous_group_id": previous_group_id,
@@ -122,7 +127,8 @@ def show_project(args):
     if credentials is None:
         return None
 
-    current_group_id = credentials.get("current_group_id")
+    active = resolve_session_credentials(credentials)
+    current_group_id = active.get("current_group_id")
     if not current_group_id:
         return None
 
@@ -130,16 +136,14 @@ def show_project(args):
     if current_group_id == "all":
         return {
             "id": "all",
-            "name": credentials.get("current_group_name") or "all",
+            "name": active.get("current_group_name") or "all",
         }
 
     try:
         return CbrainClient.from_credentials().get(f"/groups/{current_group_id}")
     except CliApiError as e:
         if e.status == 404:
-            credentials.pop("current_group_id", None)
-            credentials.pop("current_group_name", None)
-            save_credentials(credentials)
+            update_active_credentials(remove_keys=["current_group_id", "current_group_name"])
             raise CliApiError(f"Current project (ID {current_group_id}) no longer exists") from None
         raise
 
