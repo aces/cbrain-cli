@@ -200,8 +200,8 @@ def test_create_session_flat_file_allows_first_named_session(
     sessions_creds_file.write_text(
         json.dumps({"api_token": "tok", "cbrain_url": "http://localhost:3000", "user_id": 1})
     )
-    monkeypatch.setattr("cbrain_cli.sessions.session_name", "prod")
-    monkeypatch.setattr("cbrain_cli.sessions.session_specified", True)
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "prod")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
     monkeypatch.setattr("builtins.input", lambda _: "admin")
     monkeypatch.setattr("getpass.getpass", lambda _: "secret")
     monkeypatch.setattr(
@@ -269,3 +269,17 @@ def test_create_session_unreachable_login_server_shows_url(
     )
     assert result == 1
     assert "127.0.0.1:59999" in capsys.readouterr().out
+
+
+def test_create_session_password_from_env(monkeypatch, sessions_creds_file):
+    monkeypatch.setenv("CBRAIN_PASSWORD", "secret")
+    monkeypatch.setattr(
+        "cbrain_cli.sessions.getpass.getpass",
+        lambda _: (_ for _ in ()).throw(AssertionError("getpass must not run")),
+    )
+    monkeypatch.setattr(
+        "cbrain_cli.cli_utils.CbrainClient.post_form",
+        lambda self, *_: {"cbrain_api_token": "tok", "user_id": 1},
+    )
+    result = create_session(argparse.Namespace(server="http://localhost:3000", username="admin"))
+    assert result == 0

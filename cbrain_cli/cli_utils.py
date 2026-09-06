@@ -12,7 +12,6 @@ from pathlib import Path
 
 from cbrain_cli import config as cbrain_config
 from cbrain_cli.config import (
-    ACTIVE_SESSION_KEY,
     DEFAULT_HEADERS,
     DEFAULT_TIMEOUT,
     auth_headers,
@@ -22,20 +21,8 @@ from cbrain_cli.config import (
 
 _debug = False
 
-# Session name priority: --session flag > _active_session in credentials > "default"
 session_name = "default"
 session_specified = False
-for i, arg in enumerate(sys.argv):
-    if arg == "--session" and i + 1 < len(sys.argv):
-        session_name = sys.argv[i + 1]
-        session_specified = True
-    elif arg.startswith("--session="):
-        session_name = arg.split("=", 1)[1]
-        session_specified = True
-
-if not session_specified:
-    _all = cbrain_config.load_credentials() or {}
-    session_name = _all.get(ACTIVE_SESSION_KEY, "default") or "default"
 
 
 def set_debug(flag: bool) -> None:
@@ -108,7 +95,8 @@ class CbrainClient:
         Authenticated GET; returns parsed JSON.
         """
         raw, _ = self._request("GET", path, params=params)
-        return json.loads(raw.decode())
+        decoded = raw.decode()
+        return json.loads(decoded) if decoded.strip() else {}
 
     def send(self, method, path, payload=None):
         """

@@ -5,6 +5,8 @@ Setup and commands for the CBRAIN CLI command line interface.
 import argparse
 import sys
 
+from cbrain_cli import cli_utils
+from cbrain_cli import config as cbrain_config
 from cbrain_cli.cli_utils import (
     PAGINATABLE_ACTIONS,
     CliValidationError,
@@ -80,8 +82,8 @@ def build_parser():
     parser.add_argument(
         "--session",
         type=str,
-        default="default",
-        help="Session name to use for multiple configurations (default: default)",
+        default=None,
+        help="Session name to use (default: active session, or 'default')",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -93,22 +95,28 @@ def build_parser():
     # MARK: Session commands (top-level)
     # Create new session.
     login_parser = subparsers.add_parser("login", help="Login to CBRAIN")
-    login_parser.add_argument("--session", type=str, help="Session name to use")
+    login_parser.add_argument(
+        "--session", type=str, default=argparse.SUPPRESS, help="Session name to use"
+    )
     login_parser.add_argument("-u", "--username", type=str, help="CBRAIN username")
-    login_parser.add_argument("-p", "--password", type=str, help="CBRAIN password")
     login_parser.add_argument("-s", "--server", type=str, help="CBRAIN server URL")
     login_parser.set_defaults(func=handle_errors(create_session))
 
     # Logout session.
     logout_parser = subparsers.add_parser("logout", help="Logout from CBRAIN")
     logout_parser.add_argument(
-        "--session", type=str, help="Session name to logout (default: all sessions)"
+        "--session",
+        type=str,
+        default=argparse.SUPPRESS,
+        help="Session name to logout (default: all sessions)",
     )
     logout_parser.set_defaults(func=handle_errors(logout_session))
 
     # Show current session.
     whoami_parser = subparsers.add_parser("whoami", help="Show current session")
-    whoami_parser.add_argument("--session", type=str, help="Session name to show")
+    whoami_parser.add_argument(
+        "--session", type=str, default=argparse.SUPPRESS, help="Session name to show"
+    )
     whoami_parser.add_argument("-v", "--version", action="store_true", help="Show version")
     whoami_parser.set_defaults(func=handle_errors(whoami_user))
 
@@ -591,6 +599,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     set_debug(getattr(args, "debug", False))
+    session_val = getattr(args, "session", None)
+    if not session_val:
+        _all = cbrain_config.load_credentials() or {}
+        session_val = _all.get(cbrain_config.ACTIVE_SESSION_KEY) or None
+    cli_utils.session_specified = bool(session_val)
+    cli_utils.session_name = session_val or "default"
 
     if not args.command:
         parser.print_help()

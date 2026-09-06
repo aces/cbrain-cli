@@ -1,15 +1,15 @@
 import datetime
 import getpass
+import os
 import urllib.error
 
+from cbrain_cli import cli_utils
 from cbrain_cli import config as cbrain_config
 from cbrain_cli.cli_utils import (
     CbrainClient,
     CliApiError,
     CliValidationError,
     handle_connection_error,
-    session_name,
-    session_specified,
 )
 from cbrain_cli.config import (
     ACTIVE_SESSION_KEY,
@@ -110,7 +110,7 @@ def create_session(args):
         Exit code (0 on success, 1 on failure).
     """
     target_session = getattr(args, "session", None) or (
-        session_name if session_specified else "default"
+        cli_utils.session_name if cli_utils.session_specified else "default"
     )
 
     if cbrain_config.CREDENTIALS_FILE.exists():
@@ -171,6 +171,8 @@ def create_session(args):
         raise CliValidationError("Username is required", field="username")
 
     password = getattr(args, "password", None)
+    if password is None and "CBRAIN_PASSWORD" in os.environ:
+        password = os.environ["CBRAIN_PASSWORD"]
     if password is None:
         password = getpass.getpass("Enter CBRAIN password: ")
     if not password:
@@ -206,7 +208,7 @@ def create_session(args):
     }
 
     # Named sessions → nested map; bare login keeps flat file (main-compatible).
-    if target_session != "default" or session_specified:
+    if target_session != "default" or cli_utils.session_specified:
         on_disk = cbrain_config.load_credentials() or {}
         if is_flat_credentials(on_disk):
             on_disk = {"default": {k: v for k, v in on_disk.items() if k != ACTIVE_SESSION_KEY}}
@@ -247,8 +249,11 @@ def logout_session(args):
     sessions = get_named_sessions(all_creds)
     flat = is_flat_credentials(all_creds)
 
-    if session_specified:
-        sessions_to_logout = [session_name]
+    target = getattr(args, "session", None) or (
+        cli_utils.session_name if cli_utils.session_specified else None
+    )
+    if target:
+        sessions_to_logout = [target]
     else:
         sessions_to_logout = list(sessions)
 
@@ -268,7 +273,7 @@ def logout_session(args):
                     print(f"Local session removed from {cbrain_config.CREDENTIALS_FILE}")
                     return 0
                 all_creds.pop(s_name, None)
-            elif session_specified:
+            elif target:
                 print(f"Not logged in to session '{s_name}'.")
             elif len(sessions_to_logout) == 1:
                 print("Not logged in. Use 'cbrain login' to login first.")
@@ -284,7 +289,7 @@ def logout_session(args):
                 "DELETE", "/session"
             )
             if status == 200:
-                if flat or not session_specified and len(sessions_to_logout) == 1:
+                if flat or not target and len(sessions_to_logout) == 1:
                     print("Successfully logged out from CBRAIN server.")
                 else:
                     print(f"Successfully logged out from CBRAIN server as {display_name}.")

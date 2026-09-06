@@ -22,8 +22,8 @@ def show_data_provider(args):
     """
     # Get the data provider ID from the --id argument.
     data_provider_id = getattr(args, "id", None)
-    if not data_provider_id:
-        return list_data_providers(args)
+    if data_provider_id is None:
+        raise CliValidationError("Data provider ID is required", field="id")
     data = CbrainClient.from_credentials().get(f"/data_providers/{data_provider_id}")
     if data.get("error"):
         raise CliApiError(data.get("error"))

@@ -1,4 +1,5 @@
 import importlib
+import sys
 from pathlib import Path
 
 from tests.conftest import install_auth, run_main
@@ -87,3 +88,25 @@ def test_main_data_provider_canonical_dispatches(monkeypatch, fake_credentials, 
     result = run_main(monkeypatch, ["cbrain", "data-provider", "list"])
     assert result is None
     assert "/data_providers" in captured["url"]
+
+
+def test_main_honors_argv_session_not_sys_argv(monkeypatch):
+    from cbrain_cli import cli_utils
+    from cbrain_cli.main import main
+
+    monkeypatch.setattr(sys, "argv", ["pytest", "--session", "ghost", "whoami"])
+
+    main(["version"])
+    assert cli_utils.session_specified is False
+    assert cli_utils.session_name == "default"
+
+    main(["--session", "prod", "version"])
+    assert cli_utils.session_specified is True
+    assert cli_utils.session_name == "prod"
+
+    main(["--session=staging", "version"])
+    assert cli_utils.session_specified is True
+    assert cli_utils.session_name == "staging"
+
+    main(["whoami"])
+    assert cli_utils.session_specified is False

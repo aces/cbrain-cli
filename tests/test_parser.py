@@ -1,3 +1,5 @@
+import pytest
+
 from cbrain_cli.main import build_parser
 
 
@@ -71,7 +73,7 @@ def test_file_dp_id_aliases():
 def test_file_upload_data_provider_aliases():
     parser, _command_parsers = build_parser()
     for flag in ("--data-provider-id", "--data-provider", "--dp-id"):
-        args = parser.parse_args(["file", "upload", "/tmp/x", flag, "15"])
+        args = parser.parse_args(["file", "upload", "/tmp/x", flag, "15", "--group-id", "1"])
         assert args.data_provider == 15
 
 
@@ -151,3 +153,17 @@ def test_command_parsers_include_model_commands():
         "remote-resource",
     ):
         assert command in command_parsers
+
+
+def test_login_rejects_password_flag():
+    parser, _command_parsers = build_parser()
+    with pytest.raises(SystemExit):
+        parser.parse_args(["login", "--username", "admin", "--password", "secret"])
+
+
+def test_global_session_omitted_is_none():
+    parser, _command_parsers = build_parser()
+    assert parser.parse_args(["version"]).session is None
+    assert parser.parse_args(["--session", "prod", "version"]).session == "prod"
+    assert parser.parse_args(["--session=staging", "whoami"]).session == "staging"
+    assert parser.parse_args(["whoami", "--session", "prod"]).session == "prod"
