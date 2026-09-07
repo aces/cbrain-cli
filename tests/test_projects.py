@@ -132,3 +132,70 @@ def test_unswitch_project_removes_group_from_credentials(creds_file, mock_urlope
     assert result["current_group_id"] is None
     saved = json.loads(creds_file.read_text())
     assert "current_group_id" not in saved
+
+
+def test_switch_project_updates_named_session_not_active(monkeypatch, creds_file):
+    creds_file.write_text(
+        json.dumps(
+            {
+                "_active_session": "default",
+                "default": {"api_token": TOKEN, "cbrain_url": URL, "user_id": 42},
+                "prod": {"api_token": TOKEN, "cbrain_url": URL, "user_id": 42},
+            }
+        )
+    )
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "prod")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+
+    switch_response = MagicMock()
+    switch_response.__enter__.return_value.read.return_value = b""
+    switch_response.__enter__.return_value.status = 200
+    project_details_response = MagicMock()
+    project_details_response.__enter__.return_value.read.return_value = json.dumps(
+        {"id": 5, "name": "MyGroup"}
+    ).encode()
+    project_details_response.__enter__.return_value.status = 200
+    monkeypatch.setattr(
+        "urllib.request.urlopen",
+        MagicMock(side_effect=[switch_response, project_details_response]),
+    )
+
+    switch_project(make_args(group_id="5"))
+    saved = json.loads(creds_file.read_text())
+    assert saved["prod"]["current_group_id"] == 5
+    assert "current_group_id" not in saved["default"]
+
+
+def test_unswitch_project_clears_named_session_not_active(monkeypatch, creds_file):
+    creds_file.write_text(
+        json.dumps(
+            {
+                "_active_session": "default",
+                "default": {
+                    "api_token": TOKEN,
+                    "cbrain_url": URL,
+                    "user_id": 42,
+                    "current_group_id": 9,
+                    "current_group_name": "Other",
+                },
+                "prod": {
+                    "api_token": TOKEN,
+                    "cbrain_url": URL,
+                    "user_id": 42,
+                    "current_group_id": 5,
+                    "current_group_name": "ProdGroup",
+                },
+            }
+        )
+    )
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "prod")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+    mock_urlopen = MagicMock()
+    mock_urlopen.__enter__.return_value.read.return_value = b"{}"
+    mock_urlopen.__enter__.return_value.status = 200
+    monkeypatch.setattr("urllib.request.urlopen", MagicMock(return_value=mock_urlopen))
+
+    unswitch_project(make_args())
+    saved = json.loads(creds_file.read_text())
+    assert "current_group_id" not in saved["prod"]
+    assert saved["default"]["current_group_id"] == 9

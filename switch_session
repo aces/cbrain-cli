@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Convenience wrapper: ./switch_session <session_name>
+# Equivalent to: cbrain switch_session <session_name>
+set -e
+exec "$(dirname "$0")/cbrain" switch_session "$@"

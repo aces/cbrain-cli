@@ -5,6 +5,8 @@ Setup and commands for the CBRAIN CLI command line interface.
 import argparse
 import sys
 
+from cbrain_cli import cli_utils
+from cbrain_cli import config as cbrain_config
 from cbrain_cli.cli_utils import (
     PAGINATABLE_ACTIONS,
     CliValidationError,
@@ -48,7 +50,7 @@ from cbrain_cli.handlers import (
     handle_tool_list,
     handle_tool_show,
 )
-from cbrain_cli.sessions import create_session, logout_session
+from cbrain_cli.sessions import create_session, list_sessions, logout_session, switch_session
 from cbrain_cli.users import whoami_user
 
 
@@ -77,6 +79,12 @@ def build_parser():
         action="store_true",
         help="Print sanitized request/response diagnostics to stderr",
     )
+    parser.add_argument(
+        "--session",
+        type=str,
+        default=None,
+        help="Session name to use (default: active session, or 'default')",
+    )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -87,16 +95,48 @@ def build_parser():
     # MARK: Session commands (top-level)
     # Create new session.
     login_parser = subparsers.add_parser("login", help="Login to CBRAIN")
+    login_parser.add_argument(
+        "--session", type=str, default=argparse.SUPPRESS, help="Session name to use"
+    )
+    login_parser.add_argument("-u", "--username", type=str, help="CBRAIN username")
+    login_parser.add_argument("-s", "--server", type=str, help="CBRAIN server URL")
     login_parser.set_defaults(func=handle_errors(create_session))
 
     # Logout session.
     logout_parser = subparsers.add_parser("logout", help="Logout from CBRAIN")
+    logout_parser.add_argument(
+        "--session",
+        type=str,
+        default=argparse.SUPPRESS,
+        help="Session name to logout (default: all sessions)",
+    )
     logout_parser.set_defaults(func=handle_errors(logout_session))
 
     # Show current session.
     whoami_parser = subparsers.add_parser("whoami", help="Show current session")
+    whoami_parser.add_argument(
+        "--session", type=str, default=argparse.SUPPRESS, help="Session name to show"
+    )
     whoami_parser.add_argument("-v", "--version", action="store_true", help="Show version")
     whoami_parser.set_defaults(func=handle_errors(whoami_user))
+
+    # Switch active session.
+    switch_session_parser = subparsers.add_parser(
+        "switch_session",
+        help="Switch the default session (e.g. cbrain switch_session prod)",
+    )
+    switch_session_parser.add_argument(
+        "session_target",
+        type=str,
+        help="Name of the session to make the default",
+    )
+    switch_session_parser.set_defaults(func=handle_errors(switch_session))
+
+    # Session management sub-commands.
+    session_parser = subparsers.add_parser("session", help="Session management")
+    session_subparsers = session_parser.add_subparsers(dest="action", help="Session actions")
+    session_list_parser = session_subparsers.add_parser("list", help="List all saved sessions")
+    session_list_parser.set_defaults(func=handle_errors(list_sessions))
 
     # MARK: Model-based commands
     # File commands
@@ -536,6 +576,7 @@ def build_parser():
         "background": background_parser,
         "task": task_parser,
         "remote-resource": remote_resource_parser,
+        "session": session_parser,
     }
     return parser, command_parsers
 
@@ -558,6 +599,13 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     set_debug(getattr(args, "debug", False))
+    explicit_session = getattr(args, "session", None)
+    session_val = explicit_session
+    if not session_val:
+        _all = cbrain_config.load_credentials() or {}
+        session_val = _all.get(cbrain_config.ACTIVE_SESSION_KEY) or None
+    cli_utils.session_specified = bool(explicit_session)
+    cli_utils.session_name = session_val or "default"
 
     if not args.command:
         parser.print_help()
@@ -582,6 +630,13 @@ def main(argv=None):
         return handle_errors(version_info)(args)
     elif args.command == "whoami":
         return handle_errors(whoami_user)(args)
+    elif args.command == "switch_session":
+        return handle_errors(switch_session)(args)
+    elif args.command == "session":
+        if not getattr(args, "action", None):
+            command_parsers["session"].print_help()
+            return 1
+        return args.func(args)
 
     # All other commands require authentication.
     if not is_authenticated():

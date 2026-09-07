@@ -43,6 +43,9 @@ cbrain --json version
 cbrain        whoami
 cbrain --json whoami
 
+# Named session management
+cbrain         session list
+
 # Bourreaux
 cbrain         remote-resource list
 cbrain --json  remote-resource list
@@ -120,6 +123,7 @@ cbrain         task operation hold  # missing --task-id / --batch-id
 
 # ToolConfigs, as admin user
 ./switch_session admin
+cbrain         session list
 cbrain         tool-config list
 cbrain --json  tool-config list
 cbrain --jsonl tool-config list
@@ -128,8 +132,9 @@ cbrain         tool-config show 19 # not visible to normal user norm
 cbrain --json  tool-config show 19
 cbrain --jsonl tool-config show 19
 
-# ToolConfigs, as normal user
-./switch_session norm
+# ToolConfigs, as normal user (CLI switch_session; both sessions already planted)
+cbrain         switch_session norm
+cbrain         session list
 cbrain         tool-config list
 cbrain --json  tool-config list
 cbrain --jsonl tool-config list

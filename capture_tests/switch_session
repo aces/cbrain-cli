@@ -16,6 +16,7 @@ DEL_TOKEN="0123456789abcdefffffffffffffffff";
 
 # cbrain client JSON file with credentials to update
 cbrain_cred_file=$HOME/.config/cbrain/credentials.json
+mkdir -p "$(dirname "$cbrain_cred_file")"
 
 # Timestamp as expected by the cbrain client program
 timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
@@ -27,8 +28,15 @@ timestamp=$(date +"%Y-%m-%dT%H:%M:%S")
 # thus logging out the cbrain command.
 testses="$1"
 
-# Stdout from now on goes into the JSON
-exec 1> $cbrain_cred_file
+# Keep prior named sessions so planting admin after norm does not wipe norm.
+existing="{}"
+if test -s "$cbrain_cred_file" ; then
+  existing=$(cat "$cbrain_cred_file")
+fi
+
+# Stdout from now on goes into a temp JSON blob for this session only
+tmp_cred=$(mktemp)
+exec 1> "$tmp_cred"
 
 # Session for normal user
 if test "X$1" = "Xnorm" ; then
@@ -37,6 +45,7 @@ if test "X$1" = "Xnorm" ; then
   "cbrain_url": "http://localhost:3000",
   "api_token":  "$NORMAL_TOKEN",
   "user_id":    2,
+  "username":   "norm",
   "timestamp":  "$timestamp"
 }
 CREDJSON
@@ -49,6 +58,7 @@ if test "X$1" = "Xadmin" ; then
   "cbrain_url": "http://localhost:3000",
   "api_token":  "$ADMIN_TOKEN",
   "user_id":    1,
+  "username":   "admin",
   "timestamp":  "$timestamp"
 }
 CREDJSON
@@ -61,6 +71,7 @@ if test "X$1" = "Xnormdel" ; then
   "cbrain_url": "http://localhost:3000",
   "api_token":  "$DEL_TOKEN",
   "user_id":    2,
+  "username":   "norm",
   "timestamp":  "$timestamp"
 }
 CREDJSON
@@ -70,6 +81,30 @@ fi
 exec 1>& -
 
 # Remove outright if it's empty
-if ! test -s "$cbrain_cred_file" ; then
-  rm -f "$cbrain_cred_file"
+if ! test -s "$tmp_cred" ; then
+  rm -f "$tmp_cred" "$cbrain_cred_file"
+  exit 0
 fi
+
+# Merge this session into the named credentials map (multi-session).
+python3 - "$cbrain_cred_file" "$testses" "$existing" "$tmp_cred" <<'PY'
+import json, sys
+
+path, name, existing_raw, new_path = sys.argv[1:5]
+with open(new_path) as f:
+    new = json.load(f)
+try:
+    data = json.loads(existing_raw) if existing_raw.strip() else {}
+except json.JSONDecodeError:
+    data = {}
+# Promote legacy flat file to named map.
+if "api_token" in data or "cbrain_url" in data:
+    if not any(isinstance(v, dict) and "api_token" in v for k, v in data.items() if k != "_active_session"):
+        data = {"default": {k: v for k, v in data.items() if k != "_active_session"}}
+data[name] = new
+data["_active_session"] = name
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+PY
+rm -f "$tmp_cred"

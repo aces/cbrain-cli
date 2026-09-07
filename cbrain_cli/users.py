@@ -1,7 +1,9 @@
 from cbrain_cli.cli_utils import (
     CbrainClient,
     json_printer,
+    output_json,
 )
+from cbrain_cli.config import cli_session_not_found
 
 
 def user_details(user_id):
@@ -37,6 +39,15 @@ def whoami_user(args):
         Exit code on credential or API failure; otherwise None after printing.
     """
     version = getattr(args, "version", False)
+    missing = cli_session_not_found()
+    if missing:
+        msg = f"Session '{missing}' not found."
+        if getattr(args, "json", False):
+            json_printer({"error": msg, "logged_in": False})
+        else:
+            print(msg)
+        return 1
+
     client = CbrainClient.from_credentials()
 
     # Check if we have credentials first
@@ -50,13 +61,12 @@ def whoami_user(args):
     user_data = user_details(client.user_id)
 
     # Handle JSON output first
-    if getattr(args, "json", False):
-        output = {
-            "login": user_data.get("login", ""),
-            "full_name": user_data.get("full_name", ""),
-            "server": client.base_url,
-        }
-        json_printer(output)
+    output = {
+        "login": user_data.get("login", ""),
+        "full_name": user_data.get("full_name", ""),
+        "server": client.base_url,
+    }
+    if output_json(args, output):
         return 0
 
     if version:

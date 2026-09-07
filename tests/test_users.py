@@ -41,6 +41,16 @@ def test_whoami_missing_credentials_plain(capsys):
     assert "Credential file is missing" in capsys.readouterr().out
 
 
+def test_whoami_unknown_session_name(monkeypatch, creds_file, capsys):
+    creds_file.write_text(
+        json.dumps({"default": {"api_token": "tok", "cbrain_url": URL, "user_id": 1}})
+    )
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_name", "ghost")
+    monkeypatch.setattr("cbrain_cli.cli_utils.session_specified", True)
+    assert whoami_user(make_args()) == 1
+    assert "Session 'ghost' not found" in capsys.readouterr().out
+
+
 def test_whoami_json_output(monkeypatch, capsys):
     install_auth(user_id=1)
     monkeypatch.setattr(
