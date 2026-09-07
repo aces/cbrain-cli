@@ -1,4 +1,5 @@
 import importlib
+import json
 import sys
 from pathlib import Path
 
@@ -110,3 +111,36 @@ def test_main_honors_argv_session_not_sys_argv(monkeypatch):
 
     main(["whoami"])
     assert cli_utils.session_specified is False
+
+
+def test_main_bare_logout_removes_all_named_sessions(monkeypatch, sessions_creds_file):
+    from cbrain_cli.main import main
+
+    sessions_creds_file.write_text(
+        json.dumps(
+            {
+                "_active_session": "norm",
+                "norm": {
+                    "api_token": "norm-token",
+                    "cbrain_url": "http://localhost:3000",
+                    "user_id": 2,
+                },
+                "admin": {
+                    "api_token": "admin-token",
+                    "cbrain_url": "http://localhost:3000",
+                    "user_id": 1,
+                },
+            }
+        )
+    )
+    logged_out_tokens = []
+
+    def fake_send(client, method, path, payload=None):
+        logged_out_tokens.append(client.token)
+        return {}, 200
+
+    monkeypatch.setattr("cbrain_cli.cli_utils.CbrainClient.send", fake_send)
+
+    assert main(["logout"]) == 0
+    assert logged_out_tokens == ["norm-token", "admin-token"]
+    assert not sessions_creds_file.exists()

@@ -599,11 +599,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     set_debug(getattr(args, "debug", False))
-    session_val = getattr(args, "session", None)
+    explicit_session = getattr(args, "session", None)
+    session_val = explicit_session
     if not session_val:
         _all = cbrain_config.load_credentials() or {}
         session_val = _all.get(cbrain_config.ACTIVE_SESSION_KEY) or None
-    cli_utils.session_specified = bool(session_val)
+    cli_utils.session_specified = bool(explicit_session)
     cli_utils.session_name = session_val or "default"
 
     if not args.command:
