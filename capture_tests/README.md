@@ -1,6 +1,8 @@
 # CBRAIN CLI Capture Tests
 
-Capture tests are end-to-end output regression tests for the `cbrain` command. They complement the unit suite: use unit tests for parsing, validation, request construction, client behavior, handler contracts, and formatters; use capture tests when live-server behavior or user-visible terminal output matters.
+Capture tests are end-to-end output regression tests for the `cbrain` command. They complement the unit suite: use unit tests for parsing, validation, request construction, client behavior, handler contracts, and formatters; use capture tests when live-server compatibility or user-visible terminal output matters.
+
+This layer intentionally provides a strong but slower signal: CI provisions MariaDB, checks out and boots the CBRAIN Rails server, migrates and seeds its test database, runs the CLI transcript, and compares the result. The project plans to add faster subprocess-level tests with a fake HTTP server for most cross-layer behavior while retaining a focused set of these live-server checks. See `plan.md` item 30.
 
 ## How They Work
 
@@ -27,6 +29,8 @@ bash run_and_diff_captures
 ```
 
 If output changed intentionally, review the generated diff carefully before updating `expected_captures.txt`. Do not update the fixture merely to make CI green.
+
+Each command in `cbrain_cli_commands` should protect a specific compatibility contract or regression. Prefer a focused unit or lightweight integration test when a behavior does not require the live CBRAIN server or a golden terminal transcript.
 
 ## Credential Safety
 

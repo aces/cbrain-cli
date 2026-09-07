@@ -10,6 +10,12 @@ live-server end-to-end output checks, see
 expect a seeded CBRAIN test instance; server setup follows the same pattern as
 CBRAIN's own [API testing frameworks](https://github.com/aces/cbrain/blob/master/BrainPortal/test_api/README.md).
 
+The planned testing strategy adds a middle layer of subprocess-level CLI tests
+using an isolated `HOME` and a lightweight fake HTTP server. Those tests should
+cover behavior that crosses parser, dispatch, credential persistence, HTTP,
+stdout/stderr, and exit-code boundaries without paying the setup cost of the
+live CBRAIN capture suite. See `plan.md` item 30.
+
 Alongside the test modules, __conftest.py__ provides shared helpers and pytest
 fixtures used across the suite.
 
@@ -89,11 +95,11 @@ Fixtures:
 - `test_cli_utils_output.py` — tables, JSONL, `version_info`, `confirm_destructive`
 - `test_config.py` — credential load/save, permissions, corrupt JSON
 - `test_exit_codes.py` — mapped exit codes for HTTP, URL, validation, interrupt, unexpected errors
-- `test_sessions.py` — login/logout edge cases and file cleanup
-- `test_users.py` — `user_details` / `whoami`, including login-then-whoami flow
+- `test_sessions.py` — default and named login/logout, session listing and switching, backward-compatible credentials, and file cleanup
+- `test_users.py` — `user_details` / `whoami`, including named-session and login-then-whoami flows
 
 ### Parsing and dispatch
 
 - `test_parser.py` — command registration, kebab→snake flags, `--json` / `--jsonl`, pagination flags
-- `test_main_dispatch.py` — auth bypass for logout/version, help paths, `task list bourreau-id`
+- `test_main_dispatch.py` — auth bypass for logout/version, help paths, explicit session propagation, multi-session logout, and `task list bourreau-id`
 - `test_pagination.py` — page / per-page bounds and query-param injection

@@ -100,6 +100,8 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
 - `login`        - Login to CBRAIN
 - `logout`       - Logout from CBRAIN
 - `whoami`       - Show current session
+- `session list` - List saved sessions and show the active session
+- `switch_session` - Change the active session used by commands without `--session`
 - `file`         - File operations
 - `dataprovider` - Data provider operations
 - `project`      - Project operations
@@ -109,6 +111,38 @@ cbrain [options] <MODEL> <ACTION> [id_or_args]
 - `background`   - Background activity operations
 - `task`         - Task operations
 - `remote-resource` - Remote resource operations
+
+### Sessions
+
+Credentials are stored in `~/.config/cbrain/credentials.json`. Existing single-session credential files remain supported. Creating a named session upgrades the file to a named-session map while preserving the original credentials as `default`.
+
+Log in interactively to the default session:
+
+```bash
+cbrain login
+```
+
+Create or use named sessions:
+
+```bash
+cbrain login --session prod --username alice --server https://cbrain.example.org
+cbrain session list
+cbrain switch_session prod
+cbrain whoami
+cbrain --session default whoami
+```
+
+Passwords are prompted for without echo. For non-interactive use, set `CBRAIN_PASSWORD` for the login process instead of placing a password in command-line arguments.
+
+Logout behavior is deliberate:
+
+```bash
+cbrain logout                    # log out every saved session
+cbrain logout --session prod     # log out only prod
+cbrain --session prod logout     # equivalent explicit-session form
+```
+
+Project selection is stored independently for each named session. The repository-root `switch_session` executable is a convenience wrapper for `cbrain switch_session`.
 
 ## Command Examples
 
@@ -215,10 +249,18 @@ pre-commit run --all-files
 
 ### Tests
 
-The repository uses two complementary test layers:
+The repository currently uses two complementary test layers:
 
 - **Unit tests** cover parsing, validation, request construction, `CbrainClient`, handler contracts, formatters, exit codes, and regressions that do not require a live CBRAIN server.
 - **Capture tests** cover end-to-end command behavior and terminal output against a seeded CBRAIN test server. They run commands from `capture_tests/cbrain_cli_commands` and compare the output with `capture_tests/expected_captures.txt`.
+
+The planned testing model has three layers:
+
+1. Keep the fast unit suite for isolated behavior and precise regressions.
+2. Add lightweight subprocess-level CLI integration tests backed by a fake HTTP server and isolated `HOME`; these should exercise parsing, dispatch, credentials, HTTP, output streams, and exit codes together.
+3. Retain a smaller live-server capture suite for representative CBRAIN compatibility and golden-output workflows.
+
+This split preserves the value of capture testing—it caught a multi-session logout regression that passed unit tests—while moving most cross-layer feedback into a suite that can run in seconds.
 
 Run the unit suite with:
 
@@ -228,7 +270,7 @@ pytest
 
 Capture tests require a local CBRAIN test server on `localhost:3000` with the expected test database seed. The GitHub Actions workflow sets this up by checking out the CBRAIN server repository at https://github.com/aces/cbrain.
 
-Use unit tests for behavior and request-level changes. Update `capture_tests/expected_captures.txt` only when user-visible CLI output intentionally changes. See [capture_tests/README.md](capture_tests/README.md) for the capture workflow and its credential-safety warning.
+Use unit tests for behavior and request-level changes. Until the lightweight integration layer is implemented, add dispatcher-level unit coverage for cross-layer regressions where practical. Update `capture_tests/expected_captures.txt` only when user-visible CLI output intentionally changes and after reviewing the generated diff. See [capture_tests/README.md](capture_tests/README.md) for the capture workflow and its credential-safety warning.
 
 ### Architecture
 

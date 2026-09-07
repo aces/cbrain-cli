@@ -24,9 +24,10 @@ For the student-facing 3-month scope, use `summer-student-scope.md`. That docume
 - Phase 4 item 24 completed in PR #48.
 - Phase 4 items 20, 22, 23, 25, and 26 completed in PR #50.
 - Phase 4 items 19 and 21 completed in PR #51, building on PR #50.
-- Phase 5 items 28 and 29 completed through the main documentation update after PR #50 and the focused package/test documentation in PR #40; item 27 is partially complete.
+- Phase 5 items 28 and 29 completed through the main documentation update after PR #50 and the focused package/test documentation in PR #40.
+- Multi-session login, selection, listing, logout, and backward-compatible credential loading completed in PR #34.
 
-Open work remains in Phase 5 item 27. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
+Open work remains in Phase 5 items 27 and 30. Phase 5 documentation should continue to evolve whenever compatibility, testing, or internal boundaries change.
 
 # Phase 1: Correctness Fixes
 
@@ -421,3 +422,19 @@ Open work remains in Phase 5 item 27. Phase 5 documentation should continue to e
 - State that data modules should not print.
 
 **Verify:** Contributor docs match the architecture used by migrated command families.
+
+## 30. Add a lightweight CLI integration-test layer
+
+**Status:** Planned. The existing unit and live-server capture layers remain valuable; this item adds a faster middle layer rather than replacing either one.
+
+**Problem:** Unit tests are fast and precise but can miss defects spanning parsing, dispatch, persisted credentials, HTTP requests, and exit behavior. The live capture suite catches those defects, but provisioning MariaDB and a seeded CBRAIN Rails server makes it comparatively slow and its large golden-output diff can obscure the relevant failure.
+
+**Do:**
+- Keep focused unit tests for parsers, validation, request construction, handlers, formatters, and regressions.
+- Add subprocess-level CLI integration tests using an isolated `HOME` and a small fake HTTP server.
+- Cover critical workflows such as login, named-session selection, project switching, logout, stdout/stderr separation, and exit codes.
+- Keep a smaller live-server capture suite for representative compatibility and output workflows that genuinely require CBRAIN.
+- Give each captured command a clear compatibility or regression purpose; normalize only nondeterministic fields.
+- Never update `expected_captures.txt` solely to make CI pass—inspect and explain every behavior change first.
+
+**Verify:** Most cross-layer CLI regressions fail in the lightweight integration suite within seconds, while the live capture suite remains a focused compatibility signal against a seeded CBRAIN server.
